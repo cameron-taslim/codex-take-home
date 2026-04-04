@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateExperimentVariants } from "@/lib/codex/service";
+import { buildPromptSnapshot, generateExperimentVariants } from "@/lib/codex/service";
 
 const {
   mockTransaction,
@@ -63,11 +63,25 @@ vi.mock("@/lib/repositories/variant-repository", () => ({
 }));
 
 describe("generateExperimentVariants", () => {
+  const expectedPromptSnapshot = {
+    experimentName: "Holiday push",
+    goal: "Improve conversions",
+    pageType: "Landing page",
+    targetAudience: "Gift buyers",
+    tone: "Energetic",
+    brandConstraints: "No discount language",
+    seedContext: "Hero campaign",
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     transactionContexts.length = 0;
     getExperimentForUser.mockResolvedValue(experiment);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
+  });
+
+  it("normalizes the saved experiment brief into the Codex input contract", () => {
+    expect(buildPromptSnapshot(experiment)).toEqual(expectedPromptSnapshot);
   });
 
   it("persists variants and updates statuses for a successful generation", async () => {
@@ -102,7 +116,14 @@ describe("generateExperimentVariants", () => {
       provider,
     });
 
-    expect(createGenerationRun).toHaveBeenCalled();
+    expect(createGenerationRun).toHaveBeenCalledWith(transactionContexts[0], {
+      experimentId: "exp_123",
+      promptSnapshot: expectedPromptSnapshot,
+    });
+    expect(provider.generateVariants).toHaveBeenCalledWith(expectedPromptSnapshot);
+    expect(provider.generateVariants.mock.calls[0]?.[0]).toBe(
+      createGenerationRun.mock.calls[0]?.[1]?.promptSnapshot,
+    );
     expect(mockTransaction).toHaveBeenCalledTimes(2);
     expect(markGenerationRunRunning).toHaveBeenCalledWith(
       transactionContexts[0],
@@ -118,9 +139,11 @@ describe("generateExperimentVariants", () => {
     expect(failGenerationRun).not.toHaveBeenCalled();
   });
 
-  it("records a failed run without persisting partial variants", async () => {
+  it("records a failed run without persisting malformed partial variants", async () => {
     const provider = {
-      generateVariants: vi.fn().mockRejectedValue(new Error("provider down")),
+      generateVariants: vi
+        .fn()
+        .mockRejectedValue(new Error("Codex returned an invalid structured response.")),
     };
 
     await expect(
@@ -129,16 +152,22 @@ describe("generateExperimentVariants", () => {
         userId: "user_123",
         provider,
       }),
-    ).rejects.toThrow("provider down");
+    ).rejects.toThrow("Codex returned an invalid structured response.");
 
     expect(mockTransaction).toHaveBeenCalledTimes(2);
+    expect(createGenerationRun).toHaveBeenCalledWith(transactionContexts[0], {
+      experimentId: "exp_123",
+      promptSnapshot: expectedPromptSnapshot,
+    });
+    expect(provider.generateVariants).toHaveBeenCalledWith(expectedPromptSnapshot);
     expect(failGenerationRun).toHaveBeenCalledWith(
       transactionContexts[1],
       "run_123",
       "exp_123",
-      "provider down",
+      "Codex returned an invalid structured response.",
     );
     expect(createVariants).not.toHaveBeenCalled();
+    expect(completeGenerationRun).not.toHaveBeenCalled();
     expect(markGenerationRunRunning).toHaveBeenCalledWith(
       transactionContexts[0],
       "run_123",
