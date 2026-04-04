@@ -50,7 +50,10 @@ test("authenticated scaffold routes render shared shell", async ({ page }) => {
 
   await page.goto("/experiments/example-id");
   await expect(
-    page.getByRole("heading", { name: "Experiment detail scaffold" }),
+    page.getByRole("heading", { name: "Experiment not found" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Choose another experiment" }),
   ).toBeVisible();
 
   await page.screenshot({
