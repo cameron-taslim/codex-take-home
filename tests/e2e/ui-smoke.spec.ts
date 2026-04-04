@@ -36,9 +36,12 @@ test("authenticated scaffold routes render shared shell", async ({ page }) => {
   });
 
   await page.goto("/experiments/new");
+  await expect(page.getByRole("heading", { name: "Experiment Builder" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save Draft" })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Experiment builder scaffold" }),
+    page.getByRole("button", { name: "Generate Variants" }),
   ).toBeVisible();
+  await expect(page.getByText("Generation guide")).toBeVisible();
 
   await page.screenshot({
     path: "test-results/new-experiment-page.png",

@@ -1,10 +1,17 @@
+import React from "react";
 import { AppShell } from "@/components/layout/app-shell";
+import { ExperimentBuilderForm } from "@/components/experiment-builder/builder-form";
+import { requireUserSession } from "@/lib/auth/session";
 
-export default function NewExperimentPage() {
+export default async function NewExperimentPage() {
+  await requireUserSession();
+
   return (
     <AppShell
-      title="Experiment builder scaffold"
-      description="Reserved route boundary for the structured brief flow. Shared validation and Codex service wiring are available server-side."
-    />
+      title="Experiment Builder"
+      description="Capture the structured brief, save a recoverable draft, and trigger a server-side Codex generation run."
+    >
+      <ExperimentBuilderForm />
+    </AppShell>
   );
 }

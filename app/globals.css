@@ -95,6 +95,10 @@ textarea {
 }
 
 @media (max-width: 768px) {
+  .builder-layout {
+    grid-template-columns: 1fr !important;
+  }
+
   .page-frame {
     padding: 20px 16px 32px;
   }

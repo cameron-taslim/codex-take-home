@@ -37,12 +37,17 @@ export async function updateExperimentBrief(
   userId: string,
   input: Prisma.ExperimentUpdateInput,
 ) {
-  return db.experiment.update({
-    where: {
-      id: experimentId,
-      userId,
-    },
+  const result = await db.experiment.updateMany({
+    where: { id: experimentId, userId },
     data: input,
+  });
+
+  if (result.count === 0) {
+    throw new Error("Experiment not found.");
+  }
+
+  return db.experiment.findFirstOrThrow({
+    where: { id: experimentId, userId },
   });
 }
 

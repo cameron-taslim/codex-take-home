@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const requiredText = (message: string) => z.string().trim().min(1, message);
+
 export const previewConfigSchema = z.object({
   align: z.enum(["left", "center", "split"]).default("left"),
   emphasis: z.enum(["headline", "cta", "body"]).default("headline"),
@@ -18,7 +20,7 @@ export const generatedVariantSchema = z.object({
 
 export const experimentDraftSchema = z.object({
   userId: z.string().min(1),
-  name: z.string().min(1),
+  name: requiredText("Experiment name is required."),
   goal: z.string().optional(),
   pageType: z.string().optional(),
   targetAudience: z.string().optional(),
@@ -28,12 +30,12 @@ export const experimentDraftSchema = z.object({
 });
 
 export const experimentInputSchema = z.object({
-  experimentName: z.string().min(1),
-  goal: z.string().min(1),
-  pageType: z.string().min(1),
-  targetAudience: z.string().min(1),
-  tone: z.string().min(1),
-  brandConstraints: z.string().min(1),
+  experimentName: requiredText("Experiment name is required."),
+  goal: requiredText("Experiment goal is required."),
+  pageType: requiredText("Target page type is required."),
+  targetAudience: requiredText("Target audience is required."),
+  tone: requiredText("Tone is required."),
+  brandConstraints: z.string().trim().optional(),
   seedContext: z.string().optional(),
 });
 

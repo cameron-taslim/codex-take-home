@@ -1,3 +1,4 @@
+import React from "react";
 import type { TextareaHTMLAttributes } from "react";
 
 export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
