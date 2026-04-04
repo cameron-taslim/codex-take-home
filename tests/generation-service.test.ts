@@ -3,24 +3,26 @@ import { generateExperimentVariants } from "@/lib/codex/service";
 
 const {
   mockTransaction,
+  transactionContexts,
   getExperimentForUser,
   createGenerationRun,
   markGenerationRunRunning,
   createVariants,
   completeGenerationRun,
   failGenerationRun,
-  updateExperimentGenerationState,
 } = vi.hoisted(() => ({
-  mockTransaction: vi.fn(async (callback: (tx: object) => Promise<unknown>) =>
-    callback({}),
-  ),
+  transactionContexts: [] as Array<{ id: string }>,
+  mockTransaction: vi.fn(async (callback: (tx: { id: string }) => Promise<unknown>) => {
+    const tx = { id: `tx_${Math.random().toString(36).slice(2, 8)}` };
+    transactionContexts.push(tx);
+    return callback(tx);
+  }),
   getExperimentForUser: vi.fn(),
   createGenerationRun: vi.fn(),
   markGenerationRunRunning: vi.fn(),
   createVariants: vi.fn(),
   completeGenerationRun: vi.fn(),
   failGenerationRun: vi.fn(),
-  updateExperimentGenerationState: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -47,7 +49,6 @@ const experiment = {
 
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentForUser,
-  updateExperimentGenerationState,
 }));
 
 vi.mock("@/lib/repositories/generation-repository", () => ({
@@ -64,6 +65,7 @@ vi.mock("@/lib/repositories/variant-repository", () => ({
 describe("generateExperimentVariants", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    transactionContexts.length = 0;
     getExperimentForUser.mockResolvedValue(experiment);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
   });
@@ -101,9 +103,18 @@ describe("generateExperimentVariants", () => {
     });
 
     expect(createGenerationRun).toHaveBeenCalled();
-    expect(markGenerationRunRunning).toHaveBeenCalledWith({}, "run_123", "exp_123");
+    expect(mockTransaction).toHaveBeenCalledTimes(2);
+    expect(markGenerationRunRunning).toHaveBeenCalledWith(
+      transactionContexts[0],
+      "run_123",
+      "exp_123",
+    );
     expect(createVariants).toHaveBeenCalled();
-    expect(completeGenerationRun).toHaveBeenCalledWith({}, "run_123", "exp_123");
+    expect(completeGenerationRun).toHaveBeenCalledWith(
+      transactionContexts[1],
+      "run_123",
+      "exp_123",
+    );
     expect(failGenerationRun).not.toHaveBeenCalled();
   });
 
@@ -120,16 +131,18 @@ describe("generateExperimentVariants", () => {
       }),
     ).rejects.toThrow("provider down");
 
+    expect(mockTransaction).toHaveBeenCalledTimes(2);
     expect(failGenerationRun).toHaveBeenCalledWith(
-      {},
+      transactionContexts[1],
       "run_123",
       "exp_123",
       "provider down",
     );
     expect(createVariants).not.toHaveBeenCalled();
-    expect(updateExperimentGenerationState).toHaveBeenCalledWith({}, "exp_123", {
-      status: "generation_failed",
-      latestGenerationRunId: "run_123",
-    });
+    expect(markGenerationRunRunning).toHaveBeenCalledWith(
+      transactionContexts[0],
+      "run_123",
+      "exp_123",
+    );
   });
 });

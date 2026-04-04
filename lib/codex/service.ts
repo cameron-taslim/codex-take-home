@@ -8,10 +8,7 @@ import {
   completeGenerationRun,
 } from "@/lib/repositories/generation-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
-import {
-  getExperimentForUser,
-  updateExperimentGenerationState,
-} from "@/lib/repositories/experiment-repository";
+import { getExperimentForUser } from "@/lib/repositories/experiment-repository";
 import { codexGenerationInputSchema } from "@/lib/codex/provider";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
@@ -41,17 +38,21 @@ export async function generateExperimentVariants(params: {
   const promptSnapshot = buildPromptSnapshot(experiment);
   const provider = params.provider ?? createDefaultCodexProvider();
 
-  return prisma.$transaction(async (tx) => {
-    const run = await createGenerationRun(tx, {
+  const run = await prisma.$transaction(async (tx) => {
+    const createdRun = await createGenerationRun(tx, {
       experimentId: experiment.id,
       promptSnapshot,
     });
 
-    await markGenerationRunRunning(tx, run.id, experiment.id);
+    await markGenerationRunRunning(tx, createdRun.id, experiment.id);
 
-    try {
-      const result = await provider.generateVariants(promptSnapshot);
+    return createdRun;
+  });
 
+  try {
+    const result = await provider.generateVariants(promptSnapshot);
+
+    await prisma.$transaction(async (tx) => {
       await createVariants(
         tx,
         experiment.id,
@@ -63,23 +64,21 @@ export async function generateExperimentVariants(params: {
       );
 
       await completeGenerationRun(tx, run.id, experiment.id);
+    });
 
-      return {
-        runId: run.id,
-        variantCount: result.variants.length,
-      };
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Codex generation failed.";
+    return {
+      runId: run.id,
+      variantCount: result.variants.length,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Codex generation failed.";
 
+    await prisma.$transaction(async (tx) => {
       await failGenerationRun(tx, run.id, experiment.id, message);
-      await updateExperimentGenerationState(tx, experiment.id, {
-        status: "generation_failed",
-        latestGenerationRunId: run.id,
-      });
-      throw error;
-    }
-  });
+    });
+    throw error;
+  }
 }
 
 function createDefaultCodexProvider(): CodexProvider {
