@@ -1,6 +1,7 @@
+import React from "react";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CreateExperimentLink } from "@/components/dashboard/dashboard-content";
 
 export default function ExperimentNotFound() {
   return (
@@ -11,7 +12,24 @@ export default function ExperimentNotFound() {
       <EmptyState
         title="Choose another experiment"
         description="Return to the dashboard to open one of your saved experiments or start a new brief."
-        action={<CreateExperimentLink>Create New Experiment</CreateExperimentLink>}
+        action={
+          <Link
+            href="/dashboard"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 44,
+              padding: "0 18px",
+              borderRadius: 999,
+              fontWeight: 700,
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+          >
+            Return to Dashboard
+          </Link>
+        }
       />
     </AppShell>
   );
