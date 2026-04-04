@@ -11,7 +11,7 @@ export class OpenAICodexProvider implements CodexProvider {
   private readonly client: OpenAI;
   private readonly model: string;
 
-  constructor(apiKey: string, model = process.env.OPENAI_MODEL ?? "gpt-4.1") {
+  constructor(apiKey: string, model = process.env.OPENAI_MODEL ?? "gpt-5-codex") {
     this.client = new OpenAI({ apiKey });
     this.model = model;
   }
