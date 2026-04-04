@@ -9,7 +9,11 @@ import {
 } from "@/lib/repositories/generation-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
 import { getExperimentForUser } from "@/lib/repositories/experiment-repository";
-import { codexGenerationInputSchema } from "@/lib/codex/provider";
+import {
+  codexGenerationInputSchema,
+  codexGenerationResultSchema,
+  type CodexGenerationInput,
+} from "@/lib/codex/provider";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
 export function buildPromptSnapshot(experiment: ExperimentRecord) {
@@ -82,6 +86,43 @@ export async function generateExperimentVariants(params: {
 }
 
 function createDefaultCodexProvider(): CodexProvider {
+  if (process.env.CODEX_PROVIDER_MODE === "mock") {
+    return {
+      async generateVariants(input: CodexGenerationInput) {
+        return codexGenerationResultSchema.parse({
+          variants: [
+            {
+              label: "Variant A",
+              headline: `${input.experimentName}: editorial hero`,
+              subheadline: `Built for ${input.targetAudience}`,
+              bodyCopy: `${input.goal} while keeping the experience ${input.tone.toLowerCase()}.`,
+              ctaText: "Shop the edit",
+              layoutNotes: `Centered composition for a ${input.pageType.toLowerCase()} experience.`,
+              previewConfig: {
+                align: "center",
+                emphasis: "headline",
+                theme: "linen",
+              },
+            },
+            {
+              label: "Variant B",
+              headline: `${input.experimentName}: conversion-led split`,
+              subheadline: input.brandConstraints || undefined,
+              bodyCopy: `Highlights the offer for ${input.targetAudience} with concise supporting copy.`,
+              ctaText: "Explore collection",
+              layoutNotes: "Split layout that keeps the CTA visible beside proof points.",
+              previewConfig: {
+                align: "split",
+                emphasis: "cta",
+                theme: "charcoal",
+              },
+            },
+          ],
+        });
+      },
+    };
+  }
+
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured.");
   }

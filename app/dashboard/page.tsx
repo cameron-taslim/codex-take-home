@@ -9,7 +9,7 @@ import { listExperimentsForUser } from "@/lib/repositories/experiment-repository
 
 export default async function DashboardPage() {
   const session = await requireUserSession();
-  let experiments = [];
+  let experiments: Awaited<ReturnType<typeof listExperimentsForUser>> = [];
   let hasError = false;
 
   try {

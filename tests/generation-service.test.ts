@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExperimentStatus } from "@prisma/client";
 import { buildPromptSnapshot, generateExperimentVariants } from "@/lib/codex/service";
 
 const {
@@ -41,7 +42,7 @@ const experiment = {
   tone: "Energetic",
   brandConstraints: "No discount language",
   seedContext: "Hero campaign",
-  status: "draft",
+  status: "draft" as ExperimentStatus,
   latestGenerationRunId: null,
   createdAt: new Date(),
   updatedAt: new Date(),

@@ -3,6 +3,7 @@
 import React from "react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { saveDraftExperimentAction, generateExperimentAction } from "@/app/experiments/new/actions";
 import {
   emptyExperimentBuilderValues,
@@ -69,7 +70,7 @@ export function ExperimentBuilderForm({
     setSavedMessage(result.savedMessage);
 
     if (result.redirectTo) {
-      router.push(result.redirectTo);
+      router.push(result.redirectTo as Route);
       router.refresh();
     }
   }
