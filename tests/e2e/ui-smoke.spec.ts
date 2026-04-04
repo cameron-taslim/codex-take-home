@@ -25,9 +25,10 @@ test("authenticated scaffold routes render shared shell", async ({ page }) => {
   await page.getByRole("button", { name: "Sign In" }).click();
 
   await page.waitForURL("**/dashboard");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Dashboard scaffold" }),
-  ).toBeVisible();
+    page.getByRole("link", { name: "Create New Experiment" }).first(),
+  ).toHaveAttribute("href", "/experiments/new");
 
   await page.screenshot({
     path: "test-results/dashboard-page.png",

@@ -7,10 +7,12 @@ import { PageHeader } from "@/components/ui/page-header";
 export async function AppShell({
   title,
   description,
+  headerAction,
   children,
 }: {
   title: string;
   description: string;
+  headerAction?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   const session = await getServerSession();
@@ -47,7 +49,7 @@ export async function AppShell({
             </div>
           </div>
         </Card>
-        <PageHeader title={title} description={description} />
+        <PageHeader title={title} description={description} action={headerAction} />
         {children ? (
           children
         ) : (

@@ -1,3 +1,4 @@
+import React from "react";
 import { formatExperimentStatus } from "@/lib/domain/status";
 
 const statusStyles: Record<string, React.CSSProperties> = {
