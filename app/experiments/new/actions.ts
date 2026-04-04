@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/auth/session";
 import { generateExperimentVariants } from "@/lib/codex/service";
@@ -148,6 +149,9 @@ export async function saveDraftExperimentAction(
   try {
     const experiment = await persistExperiment(normalizedValues, userId);
 
+    revalidatePath("/dashboard");
+    revalidatePath(`/experiments/${experiment.id}`);
+
     return buildResult(
       {
         ...normalizedValues,
@@ -195,6 +199,9 @@ export async function generateExperimentAction(
       experimentId: experiment.id,
       userId,
     });
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/experiments/${experiment.id}`);
 
     return buildResult(
       {

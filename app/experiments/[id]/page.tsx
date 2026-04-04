@@ -168,9 +168,10 @@ export default async function ExperimentDetailPage({
                   ))}
                 </div>
               ) : (
-                <p className="muted" style={{ margin: 0 }}>
-                  No generation runs yet. Start the first run from the saved brief.
-                </p>
+                <EmptyState
+                  title="No generation runs yet"
+                  description="Start the first run from the saved brief to populate generation history."
+                />
               )}
             </div>
           </Card>
