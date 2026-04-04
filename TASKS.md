@@ -5,6 +5,31 @@ This file breaks the project into a practical execution sequence for Codex agent
 
 All agents must read `AGENTS.md` first.
 
+## Required Task Checklist
+Apply this checklist to every implementation task unless the task explicitly says otherwise:
+
+1. read the required planning documents in the order defined by `AGENTS.md`
+2. inspect the current implementation for the affected route, components, and tests before editing
+3. identify the narrowest local verification path before making changes
+4. run local preflight when the task depends on auth, persistence, or browser verification:
+   - confirm `.env` exists
+   - confirm PostgreSQL is running
+   - run `npx prisma db push` if the task uses persisted data
+   - run `npm run db:seed` if the task uses demo auth or seeded records
+5. implement only the planned scope
+6. update stale automated assertions affected by UI copy or route behavior in the same task
+7. run the narrowest relevant Vitest coverage
+8. run the narrowest relevant Playwright coverage when the task changes visible page behavior or a primary user flow
+9. report files changed, tests run, browser checks run, and any blockers or deviations
+
+## Known Local Commands
+Use these commands when the task requires them:
+
+- `npx prisma db push`
+- `npm run db:seed`
+- `NEXTAUTH_URL=http://127.0.0.1:3001 npm run dev -- --hostname 127.0.0.1 --port 3001`
+- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 npx playwright test <spec>`
+
 ## Execution Order
 Work through these tasks in order:
 
@@ -40,7 +65,8 @@ Implement only the shared foundations needed for the project:
 
 Do not implement page-specific product features beyond what is needed to support the shared foundation.
 Before editing, summarize your implementation steps.
-After editing, report files changed, tests run, and any deviations from the plan.
+Identify the local verification path before editing.
+After editing, report files changed, tests run, browser checks run, and any deviations from the plan.
 ```
 
 ### Expected Output
@@ -67,7 +93,9 @@ Then read:
 Implement only the login page and its tests.
 Do not redesign auth or expand scope.
 Before editing, summarize your steps.
-After editing, report files changed, tests run, and any deviations from plan.
+Identify the local verification path before editing.
+Run targeted Playwright verification for `/login` after implementation.
+After editing, report files changed, tests run, browser checks run, and any deviations from plan.
 ```
 
 ### Expected Output
@@ -93,7 +121,8 @@ Implement only the dashboard page and its tests.
 Consume persisted experiment summary data from the shared model.
 Do not add analytics, filters, or extra features not in the plan.
 Before editing, summarize your steps.
-After editing, report files changed, tests run, and any deviations from plan.
+Identify the local verification path before editing.
+After editing, report files changed, tests run, browser checks run, and any deviations from plan.
 ```
 
 ### Expected Output
@@ -120,7 +149,8 @@ Implement only the experiment builder page and its tests.
 Use the shared Codex integration contract and shared persistence model.
 Do not invent new input fields or change generation behavior outside the plan.
 Before editing, summarize your steps.
-After editing, report files changed, tests run, and any deviations from plan.
+Identify the local verification path before editing.
+After editing, report files changed, tests run, browser checks run, and any deviations from plan.
 ```
 
 ### Expected Output
@@ -147,7 +177,8 @@ Implement only the experiment detail page and its tests.
 Use persisted generation history and latest saved variants.
 Do not add extra analytics or unsupported preview rendering.
 Before editing, summarize your steps.
-After editing, report files changed, tests run, and any deviations from plan.
+Identify the local verification path before editing.
+After editing, report files changed, tests run, browser checks run, and any deviations from plan.
 ```
 
 ### Expected Output
@@ -178,7 +209,8 @@ Your job is integration cleanup only:
 
 Do not expand scope or redesign features.
 Before editing, summarize your steps.
-After editing, report files changed, tests run, and any deviations from plan.
+Identify the local verification path before editing.
+After editing, report files changed, tests run, browser checks run, and any deviations from plan.
 ```
 
 ### Expected Output
@@ -217,3 +249,4 @@ Return findings first, ordered by severity, with file references.
 - Use one coordinating agent or person to manage shared systems and final integration.
 - Avoid parallel page implementation until shared foundations are stable.
 - If you parallelize later, `login` and `dashboard` are safer to run before `experiment-builder` and `experiment-detail`.
+- For user-facing page tasks, do not treat the task as complete until the narrow relevant Playwright check passes locally.

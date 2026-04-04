@@ -1,3 +1,4 @@
+import React from "react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getServerSession } from "@/lib/auth/session";
@@ -34,11 +35,11 @@ export default async function LoginPage() {
               Experiment Lab
             </p>
             <h1 style={{ margin: 0, fontSize: "2rem", lineHeight: 1.1 }}>
-              Sign in to the shared workspace scaffold
+              Sign in to launch and review experiment variants
             </h1>
             <p className="muted" style={{ margin: 0 }}>
-              This foundation ships the auth contract and route protections so page
-              work can layer on top without changing the session model.
+              Access the authenticated workspace to create experiment briefs,
+              generate landing-page variants, and review saved outputs.
             </p>
           </div>
           <LoginForm />

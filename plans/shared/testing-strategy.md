@@ -13,6 +13,11 @@ The test suite should prove that the app’s core promises work:
 
 Favor a small number of reliable tests over broad but shallow coverage.
 
+Separate two ideas clearly:
+
+- required automated coverage
+- required local verification workflow during implementation
+
 ## Required Coverage
 ### Auth protection
 Test that unauthenticated users cannot access protected routes and are redirected to `/login`.
@@ -69,6 +74,37 @@ Use for:
 
 Do not rely only on end-to-end testing for MVP.
 
+### Browser-level verification
+Use targeted Playwright coverage when a task changes:
+
+- visible page copy that is asserted in e2e tests
+- a page's primary interaction path
+- redirect behavior that is meaningful in the browser
+- authentication entry or navigation flows
+
+Agents should prefer the narrowest relevant Playwright spec instead of rerunning the full suite by default.
+
+## Local Verification Workflow
+When implementing or changing user-facing behavior, the expected local verification path is:
+
+1. confirm required local environment variables are present
+2. confirm PostgreSQL is running when the feature depends on persistence or auth
+3. run `npx prisma db push` when schema-backed behavior is involved
+4. run `npm run db:seed` when browser auth depends on the demo user
+5. run targeted Vitest coverage for the changed behavior
+6. run targeted Playwright coverage for the changed route or user flow
+
+This workflow is part of implementation, not an optional cleanup step.
+
+## Environment-Backed E2E Prerequisites
+Playwright checks that exercise real login or persisted data assume:
+
+- PostgreSQL is reachable at the configured `DATABASE_URL`
+- the Prisma schema is already applied
+- the demo user is seeded from `.env`
+- the Next.js app is running on the agreed local base URL
+- auth-related runs use a `NEXTAUTH_URL` compatible with that local base URL
+
 ## Mocking Strategy
 - Mock Codex responses at the service boundary.
 - Avoid tests that depend on live external model calls.
@@ -85,10 +121,13 @@ The planning package assumes the implementation is not complete until these test
 6. detail page renders the latest saved variants
 7. generation failure is recoverable and visible
 
+For user-facing route work, the implementation is also expected to pass targeted local browser verification when the changed behavior is visible in the UI.
+
 ## Quality Bar
 The app is ready for take-home submission when:
 
 - the required tests pass consistently
+- targeted browser verification passes for changed user-facing flows
 - core paths are covered without live external dependencies
 - failure behavior has at least one explicit automated test
 - the test suite is small enough to run quickly during iteration

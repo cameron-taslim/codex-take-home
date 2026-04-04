@@ -48,6 +48,16 @@ Provide a clean authentication entry point for the Experiment Lab MVP and enforc
 - authenticated user visiting `/login` is redirected
 - invalid credentials show an inline error
 - valid credentials land on `/dashboard`
+- unexpected auth failures show a generic retryable error
+
+## Verification
+- run focused component or page tests for authenticated redirect, invalid credentials, valid login, and generic auth failure
+- run a targeted Playwright check for `/login` render and the real credential sign-in flow
+- if the login heading or other asserted UI copy changes, update the corresponding browser assertions in the same task
+
+## Required Fixtures
+- the browser-level login flow assumes the demo user is seeded from `.env`
+- the browser-level login flow assumes the app is running at the Playwright base URL with a matching `NEXTAUTH_URL` when required
 
 ## Acceptance Criteria
 - login is the only public page in MVP

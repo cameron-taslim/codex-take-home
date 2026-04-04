@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,26 +20,39 @@ export function LoginForm() {
     setIsSubmitting(true);
     setError(null);
 
-    const response = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: "/dashboard",
-    });
+    try {
+      const response = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
 
-    setIsSubmitting(false);
+      if (response?.error) {
+        if (response.error === "CredentialsSignin") {
+          setError("Invalid email or password.");
+        } else {
+          setError("Sign in failed. Try again.");
+        }
+        return;
+      }
 
-    if (response?.error) {
-      setError("Invalid email or password.");
-      return;
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Sign in failed. Try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
-    <form className="stack" style={{ gap: 18 }} onSubmit={handleSubmit}>
+    <form
+      className="stack"
+      style={{ gap: 18 }}
+      onSubmit={handleSubmit}
+      aria-busy={isSubmitting}
+    >
       {error ? <ErrorBanner message={error} /> : null}
       <FormField label="Email" htmlFor="email" required>
         <Input
