@@ -35,30 +35,63 @@ vi.mock("@/components/layout/app-shell", () => ({
     title,
     description,
     headerAction,
+    customHeader,
     children,
   }: {
     title: string;
     description: string;
     headerAction?: React.ReactNode;
+    customHeader?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
     <main>
       <h1>{title}</h1>
       <p>{description}</p>
       {headerAction}
+      {customHeader}
       {children}
     </main>
   ),
 }));
 
 vi.mock("@/components/experiment-detail/rerun-controls", () => ({
-  RerunControls: () => <button type="button">Regenerate</button>,
+  RerunControls: ({
+    suggestions,
+  }: {
+    suggestions: Array<{ title: string }>;
+  }) => (
+    <section>
+      <h2>AI suggestions</h2>
+      {suggestions.map((suggestion) => (
+        <p key={suggestion.title}>{suggestion.title}</p>
+      ))}
+      <h3>Custom prompt</h3>
+      <button type="button">Generate output</button>
+    </section>
+  ),
+}));
+
+vi.mock("@/components/experiment-detail/detail-header", () => ({
+  ExperimentDetailHeader: ({
+    title,
+    approvedBrief,
+  }: {
+    title: string;
+    approvedBrief?: React.ReactNode;
+  }) => (
+    <section>
+      <h2>{title}</h2>
+      <button type="button" aria-expanded={false}>
+        Expand overview
+      </button>
+      {approvedBrief}
+    </section>
+  ),
 }));
 
 vi.mock("@/components/experiment-detail/results-panel", () => ({
   ExperimentResultsPanel: ({ experiment }: { experiment: { latestSavedRun: { variants: Array<{ headline: string }> } } }) => (
     <section>
-      <h2>Live creative directions</h2>
       {experiment.latestSavedRun.variants.map((variant) => (
         <p key={variant.headline}>{variant.headline}</p>
       ))}
@@ -88,7 +121,7 @@ describe("experiment detail page", () => {
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders the approved brief, live previews, and generation history", async () => {
+  it("renders the collapsed overview control, live previews, and generation history", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
       name: "Spring hero banner test",
@@ -100,7 +133,6 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      variantCount: 3,
       lockedElements: ["Lock hero image", "Lock logo"],
       approvedBrief: {
         hypothesis: "We believe stronger quality-led copy will improve clickthrough rate.",
@@ -160,20 +192,25 @@ describe("experiment detail page", () => {
           startedAt: new Date("2026-04-03T17:30:00.000Z"),
           completedAt: new Date("2026-04-03T17:32:00.000Z"),
           errorMessage: null,
-          variantCount: 3,
+          variantCount: 1,
         },
       ],
     });
 
     render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
 
+    expect(screen.getByRole("button", { name: "Expand overview" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     expect(screen.getByText("Approved brief")).toBeInTheDocument();
     expect(
       screen.getByText("We believe stronger quality-led copy will improve clickthrough rate."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Live creative directions")).toBeInTheDocument();
     expect(screen.getByText("Wear what lasts")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Launch Experiment" })).toBeInTheDocument();
+    expect(screen.getByText("AI suggestions")).toBeInTheDocument();
+    expect(screen.getByText("Push a sharper headline")).toBeInTheDocument();
+    expect(screen.getByText("Custom prompt")).toBeInTheDocument();
     expect(screen.getByText("Generation history")).toBeInTheDocument();
   });
 
@@ -188,7 +225,7 @@ describe("experiment detail page", () => {
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
-  it("renders an empty state when no variants exist yet", async () => {
+  it("renders an empty state when no output exists yet", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
       name: "Spring hero banner test",
@@ -200,7 +237,6 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      variantCount: 3,
       lockedElements: ["Lock hero image", "Lock logo"],
       approvedBrief: null,
       launchMetric: null,
@@ -217,7 +253,7 @@ describe("experiment detail page", () => {
     render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "No saved variants yet" }),
+      screen.getByRole("heading", { level: 2, name: "No saved output yet" }),
     ).toBeInTheDocument();
   });
 });

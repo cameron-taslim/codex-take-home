@@ -27,7 +27,7 @@ export default async function LoginPage() {
             <h1 className="login-title">Sign in to the experiment console.</h1>
             <p className="login-description">
               Access the authenticated workspace to build briefs, trigger Codex generation, and
-              review saved landing-page variants.
+              review saved landing-page output history.
             </p>
           </div>
           <div className="login-note">

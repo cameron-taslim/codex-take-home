@@ -1,12 +1,12 @@
 import React from "react";
 import { notFound } from "next/navigation";
+import { ExperimentDetailHeader } from "@/components/experiment-detail/detail-header";
 import { ExperimentResultsPanel } from "@/components/experiment-detail/results-panel";
 import { RerunControls } from "@/components/experiment-detail/rerun-controls";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { requireUserSession } from "@/lib/auth/session";
 import { getExperimentDetailForUser } from "@/lib/repositories/experiment-repository";
 
@@ -30,26 +30,13 @@ export default async function ExperimentDetailPage({
   return (
     <AppShell
       title={experiment.name}
-      description="Review the approved brief, edit generated copy in live previews, and launch the storefront experiment."
-      headerAction={<RerunControls experimentId={experiment.id} />}
-      activeExperimentId={experiment.id}
-    >
-      <div className="detail-layout">
-        <div className="stack detail-main-column">
-          <Card className="detail-summary-panel">
-            <div className="detail-summary-topbar">
-              <div className="stack detail-summary-heading">
-                <p className="builder-kicker">Experiment summary</p>
-                <h2 className="detail-section-title">{experiment.name}</h2>
-                <p className="muted detail-summary-copy">
-                  Approved brief context, current launch state, and the latest
-                  saved creative directions.
-                </p>
-              </div>
-              <StatusBadge status={experiment.status} />
-            </div>
-
-            {latestRun?.status === "failed" ? (
+      description="Review the latest saved output, refine the next generation prompt, and inspect run history."
+      customHeader={
+        <ExperimentDetailHeader
+          experimentId={experiment.id}
+          title={experiment.name}
+          failureMessage={
+            latestRun?.status === "failed" ? (
               <ErrorBanner
                 message={
                   latestRun.errorMessage
@@ -57,14 +44,15 @@ export default async function ExperimentDetailPage({
                     : "Latest generation failed. You can retry from the saved brief."
                 }
               />
-            ) : null}
-
+            ) : undefined
+          }
+          metadata={
             <dl className="detail-summary-grid">
               <MetadataItem label="Component type" value={experiment.pageType} />
               <MetadataItem label="Primary goal" value={experiment.goal} />
-              <MetadataItem label="Traffic split" value={experiment.trafficSplit} />
               <MetadataItem label="Audience" value={experiment.targetAudience} />
               <MetadataItem label="Brand tone" value={experiment.tone} />
+              <MetadataItem label="Traffic split" value={experiment.trafficSplit} />
               <MetadataItem label="Brand constraints" value={experiment.brandConstraints} />
               <MetadataItem
                 label="What to test"
@@ -84,10 +72,11 @@ export default async function ExperimentDetailPage({
                 }
               />
             </dl>
-
-            {experiment.approvedBrief ? (
-              <div className="detail-approved-brief">
-                <h3 className="detail-section-title">Approved brief</h3>
+          }
+          approvedBrief={
+            experiment.approvedBrief ? (
+              <div className="detail-approved-brief detail-approved-brief-compact">
+                <h2 className="detail-section-title">Approved brief</h2>
                 <p className="detail-brief-hypothesis">
                   {safeBriefValue(experiment.approvedBrief, "hypothesis")}
                 </p>
@@ -110,56 +99,69 @@ export default async function ExperimentDetailPage({
                   />
                 </div>
               </div>
-            ) : null}
-          </Card>
-
-          {latestVariants.length > 0 ? (
-            <ExperimentResultsPanel experiment={experiment} />
-          ) : (
-            <EmptyState
-              title="No saved variants yet"
-              description="Approve the brief and generate variants before editing copy or launching this experiment."
-              action={<RerunControls experimentId={experiment.id} />}
-            />
-          )}
-        </div>
-
-        <aside className="stack detail-side-column">
-          <Card className="detail-history-panel">
-            <div className="stack detail-history-stack">
-              <div className="stack" style={{ gap: 6 }}>
-                <p className="builder-section-kicker">Run ledger</p>
-                <h2 className="detail-section-title">Generation history</h2>
-                <p className="muted detail-section-copy">
-                  Each mocked generation run preserves variants and hidden config
-                  output for later review.
-                </p>
-              </div>
-
-              {experiment.generationHistory.length > 0 ? (
-                <div className="stack detail-history-list">
-                  {experiment.generationHistory.map((run, index) => (
-                    <HistoryItem
-                      key={run.id}
-                      id={run.id}
-                      status={run.status}
-                      startedAt={run.startedAt}
-                      completedAt={run.completedAt}
-                      errorMessage={run.errorMessage}
-                      variantCount={run.variantCount}
-                      isLatest={index === 0}
-                    />
-                  ))}
-                </div>
+            ) : undefined
+          }
+        />
+      }
+      activeExperimentId={experiment.id}
+    >
+      <div className="detail-layout">
+        <div className="stack detail-main-column">
+          <div className="detail-workspace">
+            <div className="stack detail-workspace-main">
+              {latestVariants.length > 0 ? (
+                <ExperimentResultsPanel experiment={experiment} />
               ) : (
                 <EmptyState
-                  title="No generation runs yet"
-                  description="Start the first run from the approved brief to populate generation history."
+                  title="No saved output yet"
+                  description="Approve the brief and generate output before editing copy or launching this experiment."
                 />
               )}
+
+              <Card className="detail-history-panel detail-history-panel-inline">
+                <div className="stack detail-history-stack">
+                  <div className="stack" style={{ gap: 6 }}>
+                    <p className="builder-section-kicker">Run ledger</p>
+                    <h2 className="detail-section-title">Generation history</h2>
+                    <p className="muted detail-section-copy">
+                      Every saved run stays visible below the active output workspace.
+                    </p>
+                  </div>
+
+                  {experiment.generationHistory.length > 0 ? (
+                    <div className="stack detail-history-list">
+                      {experiment.generationHistory.map((run, index) => (
+                        <HistoryItem
+                          key={run.id}
+                          id={run.id}
+                          status={run.status}
+                          startedAt={run.startedAt}
+                          completedAt={run.completedAt}
+                          errorMessage={run.errorMessage}
+                          variantCount={run.variantCount}
+                          isLatest={index === 0}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No generation runs yet"
+                      description="Start the first run from the approved brief to populate generation history."
+                    />
+                  )}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </aside>
+
+            <aside className="stack detail-side-column">
+              <RerunControls
+                experimentId={experiment.id}
+                suggestions={buildPromptSuggestions(experiment, latestVariants)}
+                defaultPrompt={experiment.whatToTest}
+              />
+            </aside>
+          </div>
+        </div>
       </div>
     </AppShell>
   );
@@ -198,7 +200,7 @@ function HistoryItem({
         <span className="detail-history-date">{formatDate(startedAt)}</span>
       </div>
       <p className="detail-history-copy">
-        {variantCount} saved variant{variantCount === 1 ? "" : "s"}
+        {variantCount} saved output{variantCount === 1 ? "" : "s"}
         {completedAt ? ` • Completed ${formatDate(completedAt)}` : ""}
       </p>
       {errorMessage ? <p className="detail-history-error">{errorMessage}</p> : null}
@@ -256,4 +258,41 @@ function safeBriefList(value: unknown, key: string) {
   }
 
   return [];
+}
+
+function buildPromptSuggestions(
+  experiment: {
+    goal: string;
+    targetAudience: string;
+    tone: string;
+    brandConstraints: string;
+  },
+  variants: Array<{
+    headline: string;
+    ctaText: string;
+    subheadline: string | null;
+  }>,
+) {
+  const leadVariant = variants[0];
+
+  return [
+    {
+      title: "Push a sharper headline",
+      prompt: leadVariant
+        ? `Generate a stronger urgency-led headline direction than "${leadVariant.headline}" while still targeting ${experiment.targetAudience.toLowerCase()} and protecting this constraint: ${experiment.brandConstraints}.`
+        : `Generate a sharper headline direction for ${experiment.targetAudience.toLowerCase()} while protecting this constraint: ${experiment.brandConstraints}.`,
+    },
+    {
+      title: "Test a new CTA angle",
+      prompt: leadVariant
+        ? `Keep the current positioning but replace the CTA "${leadVariant.ctaText}" with a higher-intent alternative that supports ${experiment.goal.toLowerCase()}.`
+        : `Generate a CTA-led output that supports ${experiment.goal.toLowerCase()} without changing the approved audience focus.`,
+    },
+    {
+      title: "Explore a fresh subheadline",
+      prompt: leadVariant?.subheadline
+        ? `Keep the overall ${experiment.tone.toLowerCase()} tone but propose a more benefit-led subheadline than "${leadVariant.subheadline}".`
+        : `Keep the overall ${experiment.tone.toLowerCase()} tone but introduce a more benefit-led subheadline and supporting copy direction.`,
+    },
+  ];
 }

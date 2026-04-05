@@ -7,7 +7,7 @@ export default function ExperimentDetailLoading() {
   return (
     <AppShell
       title="Loading experiment"
-      description="Loading the saved brief, the latest persisted variants, and the generation history."
+      description="Loading the saved brief, the latest persisted output, and the generation history."
     >
       <div
         style={{

@@ -58,7 +58,7 @@ export const briefSynthesisSchema = z.object({
 });
 
 export const experimentLaunchConfigSchema = z.object({
-  variantIds: z.array(z.string().min(1)).min(2).max(4),
+  variantIds: z.array(z.string().min(1)).length(1),
   trafficSplit: trafficSplitSchema,
   primaryMetric: primaryGoalSchema,
   featureFlagKey: z.string().min(1),
@@ -76,7 +76,6 @@ export const experimentDraftSchema = z.object({
   seedContext: z.string().optional(),
   whatToTest: z.string().optional(),
   trafficSplit: trafficSplitSchema.optional(),
-  variantCount: z.number().int().min(2).max(4).optional(),
   lockedElements: z.array(lockedElementSchema).optional(),
   approvedBrief: briefSynthesisSchema.optional(),
   launchMetric: primaryGoalSchema.optional(),
@@ -95,7 +94,6 @@ export const experimentInputSchema = z.object({
   lockedElements: z.array(lockedElementSchema).min(1, "Choose at least one locked element."),
   seedContext: requiredText("Seed context is required."),
   whatToTest: requiredText("What to test is required."),
-  variantCount: z.number().int().min(2).max(4),
 });
 
 export function validateGenerationInput(input: unknown) {

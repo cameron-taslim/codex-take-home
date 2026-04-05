@@ -36,9 +36,9 @@ This page should feel action-oriented rather than like a generic settings form.
 
 ## Primary Actions
 - `Save Draft`
-- `Generate Variants`
+- `Generate Output`
 
-`Generate Variants` should be the dominant action once required fields are valid.
+`Generate Output` should be the dominant action once required fields are valid.
 
 ## Behavior
 ### Save Draft
@@ -46,7 +46,7 @@ This page should feel action-oriented rather than like a generic settings form.
 - creates or updates an experiment in `draft` state
 - keeps the user in a recoverable editing flow
 
-### Generate Variants
+### Generate Output
 - requires the full generation field set
 - persists the experiment if needed
 - triggers a server-side Codex generation run

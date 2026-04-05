@@ -1,7 +1,7 @@
 # Experiment Detail Page Plan
 
 ## Purpose
-Present the saved experiment, display generated variants, and provide a controlled rerun path for additional Codex generations.
+Present the saved experiment, display the latest generated output, and provide a controlled rerun path for additional Codex generations.
 
 ## Route
 `/experiments/[id]`
@@ -9,28 +9,28 @@ Present the saved experiment, display generated variants, and provide a controll
 ## Page Responsibilities
 - load the selected owned experiment
 - render experiment metadata
-- display the latest generated variants
+- display the latest generated output
 - show generation history
 - allow rerunning generation
 
 ## Data Needed
 - experiment metadata
 - latest generation run
-- all variants for the latest run
+- the saved output for the latest run
 - lightweight generation history list
 - latest failure state if applicable
 
 All data must be loaded from persisted records, scoped to the authenticated owner.
 
 ## UI Layout
-Use a split or stacked layout that prioritizes variant review:
+Use a split or stacked layout that prioritizes output review:
 
 - summary section for experiment metadata and status
-- main comparison area for saved variants
+- main review area for the latest saved output
 - secondary area for generation history and rerun action
 
-## Variant Presentation
-Show 2 to 3 generated variants side by side or in clearly separated cards. Each variant should present:
+## Output Presentation
+Show one generated output for the active run in a clearly separated preview card. The saved output should present:
 
 - label
 - headline
@@ -52,7 +52,7 @@ Use `previewConfig` only for safe presentational enhancements, not arbitrary ren
 ### Unauthorized or missing experiment
 Render a safe not-found style experience rather than exposing ownership details.
 
-### No generated variants yet
+### No generated output yet
 If the experiment exists but has not yet generated successfully, show a purposeful empty state with an action back to generation.
 
 ### Failed latest run
@@ -65,7 +65,7 @@ Show the failure state and allow regeneration without losing existing experiment
 - shared variant preview and status components
 
 ## Test Expectations
-- owned experiment detail renders latest persisted variants
+- owned experiment detail renders the latest persisted output
 - unauthorized experiment access is blocked safely
 - rerun action creates a new generation run in mocked integration tests
 - failed latest run renders a recoverable error state

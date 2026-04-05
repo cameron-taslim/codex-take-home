@@ -21,7 +21,7 @@ Responsible for:
 - managing local form state
 - displaying loading, success, and error states
 - navigating between pages
-- rendering saved experiment variants
+- rendering saved experiment output
 
 The client must not call external Codex APIs directly.
 
@@ -31,7 +31,7 @@ Responsible for:
 - validating authenticated access
 - loading and persisting experiment data
 - triggering Codex generation
-- mapping Codex responses into internal variant records
+- mapping Codex responses into internal output records
 - returning UI-safe data payloads to the client
 
 ### Persistence layer
@@ -39,7 +39,7 @@ Responsible for:
 
 - storing user-owned experiments
 - storing generation runs
-- storing generated variants
+- storing generated outputs
 - serving dashboard summary data and detail-page records
 
 ## Route Responsibilities
@@ -53,7 +53,7 @@ Protected route. Lists the current user’s experiments and offers navigation to
 Protected route. Hosts the Experiment Builder flow for draft creation, validation, save, and generation.
 
 ### `/experiments/[id]`
-Protected route. Shows experiment metadata, latest saved variants, generation history, and rerun controls.
+Protected route. Shows experiment metadata, the latest saved output, generation history, and rerun controls.
 
 ## Data Flow
 ### Dashboard flow
@@ -66,13 +66,13 @@ Protected route. Shows experiment metadata, latest saved variants, generation hi
 2. Client validates required inputs before submission.
 3. Server persists a draft experiment if it does not already exist.
 4. Server triggers Codex generation when requested.
-5. Server saves a `CodexGenerationRun` and linked `ExperimentVariant` records.
+5. Server saves a `CodexGenerationRun` and one linked `ExperimentVariant` record for the run.
 6. Client transitions to the detail page or updates the builder with success state.
 
 ### Detail flow
 1. Server authenticates the user and loads the requested experiment.
-2. Server fetches latest variants and generation history.
-3. Page renders saved experiment metadata and preview-oriented comparison.
+2. Server fetches the latest saved output and generation history.
+3. Page renders saved experiment metadata and the current preview-oriented output.
 4. User may rerun generation, which creates a new generation run while preserving prior history.
 
 ## Codex Call Placement

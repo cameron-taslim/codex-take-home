@@ -72,7 +72,6 @@ const baseValues = {
   lockedElements: ["Lock hero image", "Lock logo"],
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three headlines that lead with quality.",
-  variantCount: 3 as const,
 };
 
 describe("experiment builder page", () => {
@@ -145,7 +144,7 @@ describe("experiment builder page", () => {
       screen.getByRole("button", { name: "Analyze Inputs" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Approve Brief & Generate" }),
+      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
     ).toBeDisabled();
   });
 
@@ -198,7 +197,7 @@ describe("experiment builder page", () => {
       screen.getByText("We believe a quality-led headline will improve clickthrough rate."),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Approve Brief & Generate" }),
+      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
     ).toBeEnabled();
   });
 
@@ -209,7 +208,9 @@ describe("experiment builder page", () => {
 
     await screen.findByText("Brief confirmation");
 
-    fireEvent.click(screen.getByRole("button", { name: "Approve Brief & Generate" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
+    );
 
     await waitFor(() => {
       expect(generateExperimentActionMock).toHaveBeenCalled();

@@ -63,7 +63,6 @@ describe("OpenAICodexProvider", () => {
       lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      variantCount: 3,
     });
 
     expect(openAIConstructorMock).toHaveBeenCalledWith({ apiKey: "test-key" });
@@ -78,38 +77,21 @@ describe("OpenAICodexProvider", () => {
     process.env.OPENAI_MODEL = "codex-custom";
     parseMock.mockResolvedValue({
       output_parsed: {
-        variants: [
-          {
-            label: "Quality-led",
-            headline: "Wear what lasts",
-            subheadline: "Crafted for the season ahead.",
-            bodyCopy: "Leads with product materiality.",
-            ctaText: "Explore now",
-            layoutNotes: "Quality-led direction",
-            previewConfig: {
-              layout: "spotlight",
-              emphasis: "headline",
-              theme: "atelier-spring",
-              assetSetKey: "atelier-spring",
-              lockedElements: ["Lock hero image", "Lock logo"],
-            },
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          layoutNotes: "Quality-led direction",
+          previewConfig: {
+            layout: "spotlight",
+            emphasis: "headline",
+            theme: "atelier-spring",
+            assetSetKey: "atelier-spring",
+            lockedElements: ["Lock hero image", "Lock logo"],
           },
-          {
-            label: "Scarcity + personal",
-            headline: "Your next favorite is here",
-            subheadline: "Curated for repeat shoppers.",
-            bodyCopy: "Adds urgency and curation.",
-            ctaText: "Claim yours",
-            layoutNotes: "Scarcity-led direction",
-            previewConfig: {
-              layout: "split",
-              emphasis: "cta",
-              theme: "midnight-ledger",
-              assetSetKey: "atelier-spring",
-              lockedElements: ["Lock hero image", "Lock logo"],
-            },
-          },
-        ],
+        },
       },
     });
 
@@ -127,7 +109,6 @@ describe("OpenAICodexProvider", () => {
       lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      variantCount: 3,
     });
 
     expect(parseMock).toHaveBeenCalledWith(

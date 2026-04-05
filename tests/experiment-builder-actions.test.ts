@@ -55,7 +55,6 @@ const baseValues = {
   lockedElements: ["Lock hero image", "Lock logo"] as const,
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three headlines that lead with quality.",
-  variantCount: 3 as const,
 };
 
 describe("experiment builder actions", () => {
@@ -157,20 +156,20 @@ describe("experiment builder actions", () => {
 
     await expect(generateExperimentAction(baseValues)).resolves.toEqual({
       values: baseValues,
-      formError: "Approve the synthesized brief before generating variants.",
+      formError: "Approve the synthesized brief before generating output.",
     });
 
     expect(generateExperimentVariantsMock).not.toHaveBeenCalled();
   });
 
-  it("generates variants after brief approval and redirects to detail", async () => {
+  it("generates output after brief approval and redirects to detail", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
     createDraftExperimentMock.mockResolvedValue({ id: "exp_123" });
     generateExperimentVariantsMock.mockResolvedValue({
       runId: "run_123",
-      variantCount: 3,
+      variantCount: 1,
     });
 
     await expect(

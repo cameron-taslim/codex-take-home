@@ -14,7 +14,6 @@ describe("experiment generation validation", () => {
       lockedElements: [],
       seedContext: "",
       whatToTest: "",
-      variantCount: 3,
     });
 
     expect(result.success).toBe(false);

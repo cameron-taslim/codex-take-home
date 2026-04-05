@@ -46,7 +46,6 @@ const brandTones = [
   "Confident",
   "Warm",
 ] as const;
-const variantCounts = [2, 3, 4] as const;
 const lockedElementOptions: LockedElement[] = [
   "Lock hero image",
   "Lock logo",
@@ -387,35 +386,8 @@ export function ExperimentBuilderForm({
                     id="whatToTest"
                     value={values.whatToTest}
                     onChange={(event) => setFieldValue("whatToTest", event.target.value)}
-                    placeholder="Generate 3 headline variants that emphasize product quality, not the season. Keep CTA under 4 words."
+                    placeholder="Generate one headline direction that emphasizes product quality, not the season. Keep CTA under 4 words."
                   />
-                </FormField>
-
-                <FormField
-                  label="Number of variants"
-                  htmlFor="variantCount"
-                  required
-                  error={fieldErrors.variantCount}
-                >
-                  <div className="builder-stepper-row" id="variantCount">
-                    {variantCounts.map((count) => (
-                      <button
-                        key={count}
-                        type="button"
-                        className={`builder-stepper-chip ${
-                          values.variantCount === count ? "is-active" : ""
-                        }`}
-                        onClick={() =>
-                          setFieldValue(
-                            "variantCount",
-                            count as ExperimentBuilderValues["variantCount"],
-                          )
-                        }
-                      >
-                        {count}
-                      </button>
-                    ))}
-                  </div>
                 </FormField>
               </div>
             </section>
@@ -463,7 +435,7 @@ export function ExperimentBuilderForm({
               <p className="builder-section-kicker">Pipeline controls</p>
               <p className="muted builder-action-note">
                 Save the brief, analyze inputs into a confirmation card, then
-                generate the previewable storefront variants.
+                generate the next saved storefront output.
               </p>
             </div>
             <div className="cluster builder-action-buttons">
@@ -491,7 +463,7 @@ export function ExperimentBuilderForm({
                 loading={isGenerating}
                 disabled={isBusy || !values.approvedBrief}
               >
-                Approve Brief & Generate
+                Approve Brief & Generate Output
               </Button>
             </div>
           </div>
@@ -513,7 +485,7 @@ export function ExperimentBuilderForm({
                   state={isAnalyzing ? "Running" : values.approvedBrief ? "Ready" : "Pending"}
                 />
                 <PipelineRow
-                  label="Writing variant copy..."
+                  label="Writing output copy..."
                   state={isGenerating ? "Running" : workflowStage === "brief_ready" ? "Queued" : "Pending"}
                 />
                 <PipelineRow

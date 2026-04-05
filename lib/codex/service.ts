@@ -85,8 +85,10 @@ function createMockCodexProvider(): CodexProvider {
         },
       ];
 
+      const variant = angles[0];
+
       return codexGenerationResultSchema.parse({
-        variants: angles.slice(0, input.variantCount).map((variant, index) => ({
+        variant: {
           label: variant.label,
           headline: variant.headline,
           subheadline: variant.subheadline,
@@ -94,28 +96,33 @@ function createMockCodexProvider(): CodexProvider {
           ctaText: variant.ctaText,
           layoutNotes: `${variant.label} direction for ${input.componentType.toLowerCase()} previews.`,
           previewConfig: {
-            layout: layouts[index % layouts.length],
-            emphasis: index === 1 ? "cta" : index === 2 ? "proof" : "headline",
-            theme: themes[index % themes.length],
+            layout: layouts[0],
+            emphasis: "headline",
+            theme: themes[0],
             assetSetKey: "atelier-spring",
             lockedElements: input.lockedElements,
           },
-        })),
+        },
       });
     },
-    async generateLaunchConfig({ input, variants }) {
+    async generateLaunchConfig({ input, variant }) {
       return codexLaunchConfigSchema.parse({
-        variantIds: variants.map((variant, index) => slugify(`${variant.label}-${index + 1}`)),
+        variantIds: [slugify(`${variant.label}-1`)],
         trafficSplit: input.trafficSplit,
         primaryMetric: input.primaryGoal,
         featureFlagKey: `storefront-exp-${slugify(input.experimentName)}`,
-        rolloutNotes: `Mocked config for ${input.componentType.toLowerCase()} experiment with ${variants.length} creative directions.`,
+        rolloutNotes: `Mocked config for ${input.componentType.toLowerCase()} experiment with one saved output.`,
       });
     },
   };
 }
 
-export function buildPromptSnapshot(experiment: ExperimentRecord) {
+export function buildPromptSnapshot(
+  experiment: ExperimentRecord,
+  overrides?: { whatToTest?: string },
+) {
+  const whatToTest = overrides?.whatToTest?.trim() || experiment.whatToTest;
+
   return codexGenerationInputSchema.parse({
     experimentName: experiment.name,
     componentType: experiment.pageType,
@@ -126,8 +133,7 @@ export function buildPromptSnapshot(experiment: ExperimentRecord) {
     brandConstraints: experiment.brandConstraints,
     lockedElements: normalizeLockedElements(experiment.lockedElements),
     seedContext: experiment.seedContext ?? "",
-    whatToTest: experiment.whatToTest,
-    variantCount: experiment.variantCount,
+    whatToTest,
   });
 }
 
@@ -154,6 +160,7 @@ export async function synthesizeExperimentBrief(params: {
 export async function generateExperimentVariants(params: {
   experimentId: string;
   userId: string;
+  promptOverride?: string;
   provider?: CodexProvider;
 }) {
   const experiment = await getExperimentForUser(params.experimentId, params.userId);
@@ -163,7 +170,9 @@ export async function generateExperimentVariants(params: {
   }
 
   const approvedBrief = codexBriefSynthesisSchema.parse(experiment.approvedBrief);
-  const promptSnapshot = buildPromptSnapshot(experiment);
+  const promptSnapshot = buildPromptSnapshot(experiment, {
+    whatToTest: params.promptOverride,
+  });
   const provider = params.provider ?? createDefaultCodexProvider();
 
   const run = await prisma.$transaction(async (tx) => {
@@ -182,7 +191,7 @@ export async function generateExperimentVariants(params: {
     const launchConfig = await provider.generateLaunchConfig({
       input: promptSnapshot,
       approvedBrief,
-      variants: result.variants,
+      variant: result.variant,
     });
 
     await prisma.$transaction(async (tx) => {
@@ -190,15 +199,17 @@ export async function generateExperimentVariants(params: {
         tx,
         experiment.id,
         run.id,
-        result.variants.map((variant, index) => ({
-          ...variant,
-          position: index,
-        })),
+        [
+          {
+            ...result.variant,
+            position: 0,
+          },
+        ],
       );
 
       await persistGenerationRunResult(tx, run.id, {
         approvedBrief,
-        variants: result.variants,
+        variant: result.variant,
         launchConfig,
       });
 
@@ -207,7 +218,7 @@ export async function generateExperimentVariants(params: {
 
     return {
       runId: run.id,
-      variantCount: result.variants.length,
+      variantCount: 1,
     };
   } catch (error) {
     const message =

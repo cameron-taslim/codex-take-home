@@ -31,7 +31,6 @@ function normalizeValues(values: ExperimentBuilderValues): ExperimentBuilderValu
     lockedElements: values.lockedElements,
     seedContext: values.seedContext.trim(),
     whatToTest: values.whatToTest.trim(),
-    variantCount: values.variantCount,
     approvedBrief: values.approvedBrief,
   };
 }
@@ -68,7 +67,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
     lockedElements: values.lockedElements,
     seedContext: values.seedContext,
     whatToTest: values.whatToTest,
-    variantCount: values.variantCount,
   });
 
   if (validation.success) {
@@ -89,7 +87,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
     if (path === "lockedElements") fieldErrors.lockedElements = issue.message;
     if (path === "seedContext") fieldErrors.seedContext = issue.message;
     if (path === "whatToTest") fieldErrors.whatToTest = issue.message;
-    if (path === "variantCount") fieldErrors.variantCount = issue.message;
   }
 
   return fieldErrors;
@@ -106,7 +103,6 @@ async function persistExperiment(values: ExperimentBuilderValues, userId: string
     seedContext: values.seedContext || undefined,
     whatToTest: values.whatToTest,
     trafficSplit: values.trafficSplit,
-    variantCount: values.variantCount,
     lockedElements: values.lockedElements,
   };
 
@@ -233,7 +229,7 @@ export async function generateExperimentAction(
 
   if (!userId) {
     return buildResult(normalizedValues, {
-      formError: "Your session expired. Sign in again to generate variants.",
+      formError: "Your session expired. Sign in again to generate output.",
     });
   }
 
@@ -245,7 +241,7 @@ export async function generateExperimentAction(
 
   if (!normalizedValues.approvedBrief) {
     return buildResult(normalizedValues, {
-      formError: "Approve the synthesized brief before generating variants.",
+      formError: "Approve the synthesized brief before generating output.",
     });
   }
 

@@ -60,7 +60,6 @@ const experiment = {
   brandConstraints: "Avoid discount framing",
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three quality-led headlines.",
-  variantCount: 3,
   lockedElements: ["Lock hero image", "Lock logo"],
   approvedBrief: {
     hypothesis: "We believe quality-led copy improves clickthrough rate.",
@@ -120,7 +119,6 @@ describe("generation service", () => {
       lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      variantCount: 3,
     });
   });
 
@@ -152,45 +150,28 @@ describe("generation service", () => {
     );
   });
 
-  it("persists variants and hidden config for a successful generation", async () => {
+  it("persists one saved output and hidden config for a successful generation", async () => {
     const provider = {
       synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockResolvedValue({
-        variants: [
-          {
-            label: "Quality-led",
-            headline: "Wear what lasts",
-            subheadline: "Crafted for the season ahead.",
-            bodyCopy: "Leads with product materiality.",
-            ctaText: "Explore now",
-            layoutNotes: "Quality-led direction",
-            previewConfig: {
-              layout: "spotlight",
-              emphasis: "headline",
-              theme: "atelier-spring",
-              assetSetKey: "atelier-spring",
-              lockedElements: ["Lock hero image", "Lock logo"],
-            },
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          layoutNotes: "Quality-led direction",
+          previewConfig: {
+            layout: "spotlight",
+            emphasis: "headline",
+            theme: "atelier-spring",
+            assetSetKey: "atelier-spring",
+            lockedElements: ["Lock hero image", "Lock logo"],
           },
-          {
-            label: "Scarcity + personal",
-            headline: "Your next favorite is here",
-            subheadline: "Curated for repeat shoppers.",
-            bodyCopy: "Adds urgency and curation.",
-            ctaText: "Claim yours",
-            layoutNotes: "Scarcity-led direction",
-            previewConfig: {
-              layout: "split",
-              emphasis: "cta",
-              theme: "midnight-ledger",
-              assetSetKey: "atelier-spring",
-              lockedElements: ["Lock hero image", "Lock logo"],
-            },
-          },
-        ],
+        },
       }),
       generateLaunchConfig: vi.fn().mockResolvedValue({
-        variantIds: ["quality-led-1", "scarcity-personal-2"],
+        variantIds: ["quality-led-1"],
         trafficSplit: "50/50",
         primaryMetric: "Increase clickthrough rate",
         featureFlagKey: "storefront-exp-spring-hero-banner-test",
@@ -217,7 +198,7 @@ describe("generation service", () => {
     expect(completeGenerationRun).toHaveBeenCalled();
   });
 
-  it("records a failed run without persisting malformed partial variants", async () => {
+  it("records a failed run without persisting malformed partial output", async () => {
     const provider = {
       synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockRejectedValue(new Error("invalid structured response")),
@@ -244,7 +225,7 @@ describe("generation service", () => {
 
     expect(result).toEqual({
       runId: "run_123",
-      variantCount: 3,
+      variantCount: 1,
     });
     expect(openAIProviderConstructorMock).not.toHaveBeenCalled();
   });

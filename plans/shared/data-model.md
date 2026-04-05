@@ -50,7 +50,7 @@ Relationships:
 - has many generation runs
 
 ### CodexGenerationRun
-Represents one attempt to generate experiment variants from a saved experiment brief.
+Represents one attempt to generate experiment output from a saved experiment brief.
 
 Required fields:
 
@@ -73,10 +73,10 @@ Recommended status values:
 Relationships:
 
 - belongs to one experiment
-- has many variants
+- produces one saved output record per run in normal operation
 
 ### ExperimentVariant
-Represents one generated variant returned from Codex.
+Represents one generated output returned from Codex for a specific run.
 
 Required fields:
 
@@ -114,7 +114,7 @@ This entity is not required for MVP.
 ## Persistence Rules
 - The experiment brief is persisted independently from generation output.
 - Each generation run stores a snapshot of the prompt input used at that time.
-- Generated variants are immutable records linked to a single generation run.
+- Generated outputs are immutable records linked to a single generation run.
 - Reruns create new generation runs rather than overwriting historical ones.
 - The experiment stores a pointer to the latest successful or latest attempted run for efficient page loading.
 
@@ -123,12 +123,12 @@ This entity is not required for MVP.
 - user-entered experiment brief fields
 - generation run status and timestamps
 - prompt snapshot sent to Codex
-- generated variant content
+- generated output content
 - latest run pointer
 
 ### Derived at read time
 - dashboard summary labels
-- variant comparison ordering beyond saved `position`
+- preview ordering metadata beyond saved `position`
 - UI-only formatting of experiment metadata
 
 ## Query Shapes Needed
@@ -149,7 +149,7 @@ Needs draft creation and draft update support for the experiment brief.
 Needs:
 
 - experiment metadata
-- latest variants
+- latest saved output
 - generation history list
 - latest generation error state when present
 

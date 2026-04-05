@@ -1,12 +1,12 @@
 # Experiment Lab
 
 ## Overview
-Experiment Lab is a web app for eCommerce teams to create storefront experiments and use Codex programmatically to generate landing-page variants. The demo is built to prove two things during the hackathon:
+Experiment Lab is a web app for eCommerce teams to create storefront experiments and use Codex programmatically to generate one landing-page output per run. The demo is built to prove two things during the hackathon:
 
 - Codex can be used to quickly build a polished product workflow.
 - Codex can be embedded inside the product as a real generation engine, not just used during development.
 
-The app lets an authenticated user log in, create an experiment brief, generate UI and copy variants with Codex, persist the output, and review the saved variants in a preview-oriented detail view.
+The app lets an authenticated user log in, create an experiment brief, generate UI and copy output with Codex, persist the result, and review the latest saved output with generation history in a preview-oriented detail view.
 
 ## Audience
 The primary audience is an OpenAI customer operating a major eCommerce platform. The product should feel relevant to merchandisers, growth teams, and product marketers who want to launch experiments faster without hand-authoring every landing-page variation.
@@ -18,8 +18,8 @@ The demo should show a single continuous user flow:
 2. Open the dashboard and show existing experiments.
 3. Create a new experiment from structured inputs.
 4. Trigger Codex generation from inside the app.
-5. Persist the generated variants.
-6. Open the experiment detail page and compare the saved variants.
+5. Persist the generated output.
+6. Open the experiment detail page and review the latest saved output plus history.
 
 This flow makes the Codex integration visible and ties it directly to a business use case.
 
@@ -36,7 +36,7 @@ The product includes:
 - user authentication
 - persisted experiments and generation history
 - a Codex-powered generation workflow
-- a previewable detail page for generated variants
+- a previewable detail page for generated outputs
 - a small but meaningful automated test suite
 
 The product does not include:
@@ -44,7 +44,7 @@ The product does not include:
 - multi-user collaboration
 - real experiment analytics from production traffic
 - storefront deployment
-- design editing beyond the generated experiment variants
+- design editing beyond the generated experiment outputs
 - team or workspace administration
 
 ## Chosen Stack
@@ -71,13 +71,13 @@ The builder collects structured inputs:
 - brand constraints
 - optional seed copy or context
 
-The user can save a draft before generation or submit the brief to Codex to generate variants.
+The user can save a draft before generation or submit the brief to Codex to generate the next saved output.
 
 ### 4. Codex Generation
-The app sends the structured experiment brief to a server-side generation layer. Codex returns structured variants that the app stores with the experiment and associates with the generation run.
+The app sends the structured experiment brief to a server-side generation layer. Codex returns one structured output for the current run, which the app stores with the experiment and associates with the generation run.
 
 ### 5. Experiment Detail
-The user reviews generated variants, sees the latest generation state, compares the saved output, and optionally reruns generation from the saved experiment brief.
+The user reviews the latest generated output, sees the latest generation state, inspects prior runs, and optionally reruns generation from the saved experiment brief.
 
 ## Success Criteria
 The project is successful if it demonstrates all of the following:

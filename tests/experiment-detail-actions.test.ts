@@ -56,7 +56,7 @@ describe("experiment detail actions", () => {
     getServerSessionMock.mockResolvedValue(null);
 
     await expect(rerunExperimentAction("exp_123")).resolves.toEqual({
-      formError: "Your session expired. Sign in again to regenerate variants.",
+      formError: "Your session expired. Sign in again to regenerate output.",
     });
   });
 
@@ -66,7 +66,7 @@ describe("experiment detail actions", () => {
     });
     generateExperimentVariantsMock.mockResolvedValue({
       runId: "run_456",
-      variantCount: 3,
+      variantCount: 1,
     });
 
     await expect(rerunExperimentAction("exp_123")).resolves.toEqual({ ok: true });
@@ -74,6 +74,29 @@ describe("experiment detail actions", () => {
     expect(generateExperimentVariantsMock).toHaveBeenCalledWith({
       experimentId: "exp_123",
       userId: "user_1",
+    });
+  });
+
+  it("passes custom rerun guidance when provided", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { id: "user_1", email: "demo@example.com" },
+    });
+    generateExperimentVariantsMock.mockResolvedValue({
+      runId: "run_789",
+      variantCount: 1,
+    });
+
+    await expect(
+      rerunExperimentAction(
+        "exp_123",
+        "Push a more urgency-led CTA while keeping the editorial tone.",
+      ),
+    ).resolves.toEqual({ ok: true });
+
+    expect(generateExperimentVariantsMock).toHaveBeenCalledWith({
+      experimentId: "exp_123",
+      userId: "user_1",
+      promptOverride: "Push a more urgency-led CTA while keeping the editorial tone.",
     });
   });
 

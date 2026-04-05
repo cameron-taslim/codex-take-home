@@ -14,7 +14,7 @@ export default async function HomePage() {
   const primaryLabel = "Start your first experiment";
 
   const metrics = [
-    { value: "2-3", label: "Structured variants per run" },
+    { value: "1", label: "Structured output per run" },
     { value: "<2 min", label: "From brief to saved output" },
     { value: "100%", label: "Server-side Codex orchestration" },
   ];
@@ -28,10 +28,10 @@ export default async function HomePage() {
     {
       title: "Generate on the server",
       description:
-        "Codex turns the saved brief into structured landing-page variants without exposing providers in the client.",
+        "Codex turns the saved brief into one structured landing-page output without exposing providers in the client.",
     },
     {
-      title: "Review saved variants",
+      title: "Review saved output history",
       description:
         "Compare headline, body copy, CTA, and layout notes in a durable preview workflow with rerun history.",
     },
@@ -39,7 +39,7 @@ export default async function HomePage() {
 
   const surfaces = [
     "Dashboard scanability with visible status signals",
-    "Preview-first variant cards for headline and CTA comparison",
+    "Preview-first output card for headline and CTA review",
     "Append-only generation history for reruns and failures",
   ];
 
@@ -75,7 +75,7 @@ export default async function HomePage() {
               Ship <span>winning</span> hero banners, faster.
             </h1>
             <p className="landing-description">
-              Generate eCommerce landing-page variants from a structured brief, persist every run,
+              Generate one eCommerce landing-page output from a structured brief, persist every run,
               and review the saved output in one focused experiment console.
             </p>
             <div className="landing-actions">
@@ -103,7 +103,7 @@ export default async function HomePage() {
             <p className="eyebrow">Workflow</p>
             <h2>Structured generation for merchandisers and growth teams.</h2>
             <p className="muted">
-              The product stays narrow: brief in, Codex generation on the server, saved variants
+              The product stays narrow: brief in, Codex generation on the server, saved output
               out.
             </p>
           </div>
@@ -145,7 +145,7 @@ export default async function HomePage() {
             </div>
             <div className="landing-preview-main">
               <div className="landing-preview-toolbar">
-                <h3>Variant review console</h3>
+                <h3>Output review console</h3>
                 <span className="status-badge status-generated">
                   <span className="status-dot" />
                   Generated
@@ -153,19 +153,11 @@ export default async function HomePage() {
               </div>
               <div className="landing-preview-cards">
                 <article className="landing-variant-card">
-                  <p className="landing-variant-label">Variant A</p>
+                  <p className="landing-variant-label">Latest output</p>
                   <div className="landing-variant-surface">
                     <h4>New arrivals are here</h4>
                     <p>Refresh your wardrobe with premium layers and faster decision-ready copy.</p>
                     <span>Shop now</span>
-                  </div>
-                </article>
-                <article className="landing-variant-card">
-                  <p className="landing-variant-label">Variant B</p>
-                  <div className="landing-variant-surface is-secondary">
-                    <h4>Your spring wardrobe is waiting</h4>
-                    <p>Lean into benefit-led positioning with a more editorial hero treatment.</p>
-                    <span>Explore the edit</span>
                   </div>
                 </article>
               </div>

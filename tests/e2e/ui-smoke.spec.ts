@@ -26,7 +26,7 @@ test("login route renders scaffold", async ({ page }) => {
   });
 });
 
-test("seeded login can create an experiment, generate variants, and review saved output", async ({
+test("seeded login can create an experiment, generate output, and review saved history", async ({
   page,
 }) => {
   const experimentName = `Playwright demo ${Date.now()}`;
@@ -36,32 +36,34 @@ test("seeded login can create an experiment, generate variants, and review saved
   await page.getByRole("link", { name: "New" }).click();
 
   await expect(page.getByRole("heading", { name: "Create experiment" })).toBeVisible();
-  await page.getByLabel("Name *").fill(experimentName);
-  await page
-    .getByLabel("Goal *")
-    .fill("Increase clickthrough into the spring capsule collection.");
-  await page.getByLabel("Target page type *").fill("Homepage hero");
+  await page.getByLabel("Experiment name *").fill(experimentName);
+  await page.getByLabel("Primary goal *").selectOption("Increase clickthrough rate");
+  await page.getByLabel("Component type *").selectOption("Hero banner");
   await page
     .getByLabel("Target audience *")
     .fill("Returning shoppers looking for premium seasonal pieces");
-  await page.getByLabel("Tone *").fill("Confident and editorial");
+  await page.getByLabel("Brand tone *").selectOption("Editorial");
   await page
-    .getByLabel("Brand constraints")
+    .getByLabel("Brand constraints *")
     .fill("Avoid discount framing and keep the copy product-led.");
   await page
-    .getByLabel("Seed context")
+    .getByLabel("Seed context *")
     .fill("Feature lightweight outerwear and transitional layering.");
-  await page.getByRole("button", { name: "Generate Variants" }).click();
+  await page
+    .getByLabel("What to test *")
+    .fill("Generate one premium, product-led headline direction with concise CTA copy.");
+
+  await page.getByRole("button", { name: "Analyze Inputs" }).click();
+  await expect(page.getByText("Brief confirmation")).toBeVisible();
+  await page.getByRole("button", { name: "Approve Brief & Generate Output" }).click();
 
   await page.waitForURL(/\/experiments\/[^/]+$/);
   await expect(page.getByRole("heading", { name: experimentName })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Latest saved variants" })).toBeVisible();
-  await expect(page.getByText(`${experimentName}: editorial hero`)).toBeVisible();
-  await expect(page.getByText(`${experimentName}: conversion-led split`)).toBeVisible();
-  await expect(page.getByText("Variant A")).toBeVisible();
-  await expect(page.getByText("Variant B")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Wear what lasts" })).toBeVisible();
+  await expect(page.getByText("Quality-led", { exact: true })).toBeVisible();
+  await expect(page.getByText("Layout note")).toHaveCount(1);
   await expect(page.getByRole("heading", { name: "Generation history" })).toBeVisible();
-  await expect(page.getByText("2 saved variants", { exact: true })).toBeVisible();
+  await expect(page.getByText(/1 saved output/)).toBeVisible();
 
   await page.screenshot({
     path: "test-results/experiment-happy-path.png",

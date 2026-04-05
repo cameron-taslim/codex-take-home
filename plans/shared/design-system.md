@@ -47,7 +47,7 @@ Implementation should converge on a small set of reusable primitives:
 - Labels are always visible.
 - Required fields are marked consistently.
 - Validation errors appear inline near the field and optionally as a form-level summary.
-- Primary actions use stable naming: `Save Draft`, `Generate Variants`, `Regenerate`.
+- Primary actions use stable naming: `Save Draft`, `Generate Output`, `Regenerate`.
 
 ## Status Language
 Use a small consistent vocabulary:
@@ -94,10 +94,10 @@ Prioritize form clarity and action confidence:
 - generation action visually prominent
 
 ### Detail
-Prioritize generated output comparison:
+Prioritize the latest generated output and run history:
 
 - experiment metadata summary
-- latest generated variants
+- latest generated output
 - generation history
 
 ## Accessibility Baseline

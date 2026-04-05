@@ -12,12 +12,15 @@ async function getUserId() {
   return session?.user?.id;
 }
 
-export async function rerunExperimentAction(experimentId: string) {
+export async function rerunExperimentAction(
+  experimentId: string,
+  promptOverride?: string,
+) {
   const userId = await getUserId();
 
   if (!userId) {
     return {
-      formError: "Your session expired. Sign in again to regenerate variants.",
+      formError: "Your session expired. Sign in again to regenerate output.",
     };
   }
 
@@ -25,6 +28,7 @@ export async function rerunExperimentAction(experimentId: string) {
     await generateExperimentVariants({
       experimentId,
       userId,
+      promptOverride,
     });
 
     revalidatePath("/");
@@ -34,7 +38,7 @@ export async function rerunExperimentAction(experimentId: string) {
     return { ok: true };
   } catch (error) {
     return {
-      formError: error instanceof Error ? error.message : "Variant generation failed.",
+      formError: error instanceof Error ? error.message : "Output generation failed.",
     };
   }
 }

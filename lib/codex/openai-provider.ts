@@ -46,14 +46,14 @@ export class OpenAICodexProvider implements CodexProvider {
       model: this.model,
       input: buildMessages(
         [
-          "Generate distinct storefront experiment copy variants from the approved merchandiser brief.",
-          "Each variant must include a creative angle label, headline, optional subheadline, CTA, rationale, and preview metadata.",
+          "Generate one storefront experiment output from the approved merchandiser brief.",
+          "The output must include a creative angle label, headline, optional subheadline, CTA, rationale, and preview metadata.",
           "Do not emit HTML, JSX, arbitrary code, file paths, or technical identifiers.",
         ].join(" "),
         input,
       ),
       text: {
-        format: zodTextFormat(codexGenerationResultSchema, "experiment_variants"),
+        format: zodTextFormat(codexGenerationResultSchema, "experiment_output"),
       },
     });
 
@@ -67,7 +67,7 @@ export class OpenAICodexProvider implements CodexProvider {
   async generateLaunchConfig(input: {
     input: CodexGenerationInput;
     approvedBrief: CodexBriefSynthesis;
-    variants: CodexGenerationResult["variants"];
+    variant: CodexGenerationResult["variant"];
   }): Promise<CodexLaunchConfig> {
     const response = await this.client.responses.parse({
       model: this.model,

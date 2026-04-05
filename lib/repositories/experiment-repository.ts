@@ -30,7 +30,7 @@ export async function createDraftExperiment(
       seedContext: parsed.seedContext ?? null,
       whatToTest: parsed.whatToTest ?? "",
       trafficSplit: parsed.trafficSplit ?? "50/50",
-      variantCount: parsed.variantCount ?? 3,
+      variantCount: 1,
       lockedElements: parsed.lockedElements ?? [],
       brandAssetSetKey: parsed.brandAssetSetKey ?? "atelier-spring",
       status: "draft",
@@ -87,6 +87,21 @@ export async function listExperimentsForUser(userId: string) {
   });
 }
 
+export async function deleteExperimentForUser(experimentId: string, userId: string) {
+  const result = await prisma.experiment.deleteMany({
+    where: {
+      id: experimentId,
+      userId,
+    },
+  });
+
+  if (result.count === 0) {
+    throw new Error("Experiment not found.");
+  }
+
+  return { id: experimentId };
+}
+
 export async function getExperimentDetailForUser(
   experimentId: string,
   userId: string,
@@ -107,7 +122,6 @@ export async function getExperimentDetailForUser(
       seedContext: true,
       whatToTest: true,
       trafficSplit: true,
-      variantCount: true,
       lockedElements: true,
       approvedBrief: true,
       launchMetric: true,

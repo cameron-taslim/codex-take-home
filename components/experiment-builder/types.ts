@@ -18,7 +18,6 @@ export type ExperimentBuilderValues = {
   lockedElements: LockedElement[];
   seedContext: string;
   whatToTest: string;
-  variantCount: 2 | 3 | 4;
   approvedBrief?: CodexBriefSynthesis;
 };
 
@@ -32,8 +31,7 @@ export type ExperimentBuilderField =
   | "brandConstraints"
   | "lockedElements"
   | "seedContext"
-  | "whatToTest"
-  | "variantCount";
+  | "whatToTest";
 
 export type ExperimentBuilderFieldErrors = Partial<
   Record<ExperimentBuilderField, string>
@@ -60,5 +58,4 @@ export const emptyExperimentBuilderValues: ExperimentBuilderValues = {
   lockedElements: ["Lock hero image", "Lock logo"],
   seedContext: "",
   whatToTest: "",
-  variantCount: 3,
 };

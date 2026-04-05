@@ -44,7 +44,7 @@ model Experiment {
   seedContext           String?
   whatToTest            String               @default("")
   trafficSplit          String               @default("50/50")
-  variantCount          Int                  @default(3)
+  variantCount          Int                  @default(1)
   lockedElements        Json?
   approvedBrief         Json?
   launchMetric          String?

@@ -10,7 +10,7 @@ export const codexGenerationInputSchema = experimentInputSchema;
 export const codexBriefSynthesisSchema = briefSynthesisSchema;
 
 export const codexGenerationResultSchema = z.object({
-  variants: z.array(generatedVariantSchema).min(2).max(4),
+  variant: generatedVariantSchema,
 });
 export const codexLaunchConfigSchema = experimentLaunchConfigSchema;
 
@@ -25,6 +25,6 @@ export interface CodexProvider {
   generateLaunchConfig(input: {
     input: CodexGenerationInput;
     approvedBrief: CodexBriefSynthesis;
-    variants: CodexGenerationResult["variants"];
+    variant: CodexGenerationResult["variant"];
   }): Promise<CodexLaunchConfig>;
 }
