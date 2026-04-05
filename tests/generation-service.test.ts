@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExperimentStatus } from "@prisma/client";
 import { buildPromptSnapshot, generateExperimentVariants } from "@/lib/codex/service";
 
@@ -30,6 +30,39 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     $transaction: mockTransaction,
   },
+}));
+
+const openAIProviderConstructorMock = vi.fn();
+
+vi.mock("@/lib/codex/openai-provider", () => ({
+  OpenAICodexProvider: vi.fn().mockImplementation((apiKey: string) => {
+    openAIProviderConstructorMock(apiKey);
+
+    return {
+      generateVariants: vi.fn().mockResolvedValue({
+        variants: [
+          {
+            label: "Provider A",
+            headline: "Provider headline",
+            subheadline: "Provider subheadline",
+            bodyCopy: "Provider body",
+            ctaText: "Provider CTA",
+            layoutNotes: "Provider layout",
+            previewConfig: { align: "center", emphasis: "headline", theme: "linen" },
+          },
+          {
+            label: "Provider B",
+            headline: "Provider headline B",
+            subheadline: "Provider subheadline B",
+            bodyCopy: "Provider body B",
+            ctaText: "Provider CTA B",
+            layoutNotes: "Provider layout B",
+            previewConfig: { align: "split", emphasis: "cta", theme: "charcoal" },
+          },
+        ],
+      }),
+    };
+  }),
 }));
 
 const experiment = {
@@ -64,6 +97,8 @@ vi.mock("@/lib/repositories/variant-repository", () => ({
 }));
 
 describe("generateExperimentVariants", () => {
+  const originalCodexProviderMode = process.env.CODEX_PROVIDER_MODE;
+  const originalOpenAIApiKey = process.env.OPENAI_API_KEY;
   const expectedPromptSnapshot = {
     experimentName: "Holiday push",
     goal: "Improve conversions",
@@ -79,6 +114,22 @@ describe("generateExperimentVariants", () => {
     transactionContexts.length = 0;
     getExperimentForUser.mockResolvedValue(experiment);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
+    delete process.env.CODEX_PROVIDER_MODE;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  afterEach(() => {
+    if (originalCodexProviderMode === undefined) {
+      delete process.env.CODEX_PROVIDER_MODE;
+    } else {
+      process.env.CODEX_PROVIDER_MODE = originalCodexProviderMode;
+    }
+
+    if (originalOpenAIApiKey === undefined) {
+      delete process.env.OPENAI_API_KEY;
+    } else {
+      process.env.OPENAI_API_KEY = originalOpenAIApiKey;
+    }
   });
 
   it("normalizes the saved experiment brief into the Codex input contract", () => {
@@ -173,6 +224,69 @@ describe("generateExperimentVariants", () => {
       transactionContexts[0],
       "run_123",
       "exp_123",
+    );
+  });
+
+  it("uses mock variants by default when no provider mode is configured", async () => {
+    const result = await generateExperimentVariants({
+      experimentId: "exp_123",
+      userId: "user_123",
+    });
+
+    expect(result).toEqual({
+      runId: "run_123",
+      variantCount: 2,
+    });
+    expect(createVariants).toHaveBeenCalledWith(
+      transactionContexts[1],
+      "exp_123",
+      "run_123",
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Variant A",
+          headline: "Holiday push: editorial hero",
+          position: 0,
+        }),
+        expect.objectContaining({
+          label: "Variant B",
+          headline: "Holiday push: conversion-led split",
+          position: 1,
+        }),
+      ]),
+    );
+    expect(openAIProviderConstructorMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the OpenAI provider only when CODEX_PROVIDER_MODE is openai", async () => {
+    process.env.CODEX_PROVIDER_MODE = "openai";
+    process.env.OPENAI_API_KEY = "test-key";
+
+    const result = await generateExperimentVariants({
+      experimentId: "exp_123",
+      userId: "user_123",
+    });
+
+    expect(result).toEqual({
+      runId: "run_123",
+      variantCount: 2,
+    });
+    expect(openAIProviderConstructorMock).toHaveBeenCalledWith("test-key");
+    expect(createVariants).toHaveBeenCalledWith(
+      transactionContexts[1],
+      "exp_123",
+      "run_123",
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Provider A",
+          headline: "Provider headline",
+          position: 0,
+        }),
+        expect.objectContaining({
+          label: "Provider B",
+          headline: "Provider headline B",
+          position: 1,
+        }),
+      ]),
     );
   });
 });

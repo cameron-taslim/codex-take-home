@@ -29,6 +29,12 @@ From the repo root:
 npm install
 ```
 
+Or use the repo helper for the full local bootstrap:
+
+```bash
+npm run local
+```
+
 ## 2. Create local environment variables
 
 Copy the example env file:
@@ -45,6 +51,7 @@ NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 AUTH_DEMO_EMAIL="demo@example.com"
 AUTH_DEMO_PASSWORD="password123"
+CODEX_PROVIDER_MODE="mock"
 OPENAI_API_KEY=""
 OPENAI_MODEL="gpt-4.1"
 ```
@@ -52,7 +59,8 @@ OPENAI_MODEL="gpt-4.1"
 Notes:
 
 - Set `NEXTAUTH_SECRET` to a real random string for local use.
-- `OPENAI_API_KEY` is optional for the current scaffold because the Codex boundary exists but no page flow triggers it yet.
+- Generation defaults to mock variants for local development when `CODEX_PROVIDER_MODE="mock"`.
+- To use the real OpenAI provider later, set `CODEX_PROVIDER_MODE="openai"` and provide `OPENAI_API_KEY`.
 
 ## 3. Start PostgreSQL with Docker
 
@@ -116,6 +124,12 @@ Run:
 npm run dev
 ```
 
+Or use the helper script, which will also ensure Postgres, Prisma, and seed data are ready:
+
+```bash
+npm run local
+```
+
 Then open:
 
 ```text
@@ -139,6 +153,18 @@ Run the tests:
 
 ```bash
 npm test
+```
+
+Start the app in Playwright mode in one terminal:
+
+```bash
+npm run local:playwright
+```
+
+Then run browser tests in a second terminal:
+
+```bash
+npm run test:e2e
 ```
 
 Run the typecheck:
