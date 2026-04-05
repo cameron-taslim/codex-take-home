@@ -64,7 +64,7 @@ test("seeded login can create an experiment, generate variants, and review saved
   await expect(page.getByText("Variant A")).toBeVisible();
   await expect(page.getByText("Variant B")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Generation history" })).toBeVisible();
-  await expect(page.getByText("2 saved variants")).toBeVisible();
+  await expect(page.getByText("2 saved variants", { exact: true })).toBeVisible();
 
   await page.screenshot({
     path: "test-results/experiment-happy-path.png",

@@ -117,19 +117,16 @@ export function ExperimentBuilderForm({
   }
 
   return (
-    <div
-      className="builder-layout"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 1.4fr) minmax(300px, 0.9fr)",
-        gap: 20,
-      }}
-    >
-      <Card style={{ padding: 24 }}>
-        <div className="stack" style={{ gap: 18 }}>
-          <div className="stack" style={{ gap: 6 }}>
-            <h2 style={{ margin: 0, fontSize: "1.3rem" }}>Structured brief</h2>
-            <p className="muted" style={{ margin: 0 }}>
+    <div className="builder-layout">
+      <Card className="builder-form-panel">
+        <div className="stack builder-panel-stack">
+          <div className="builder-section-header stack">
+            <div className="cluster builder-kicker-row">
+              <p className="builder-kicker">Brief editor</p>
+              <span className="shell-badge">Server-side generation</span>
+            </div>
+            <h2 className="builder-section-title">Structured brief</h2>
+            <p className="muted builder-section-copy">
               Save a recoverable draft first or send the full brief to Codex to
               generate 2 to 3 storefront variants.
             </p>
@@ -137,135 +134,155 @@ export function ExperimentBuilderForm({
 
           {formError ? <ErrorBanner message={formError} /> : null}
           {savedMessage ? (
-            <div
-              role="status"
-              style={{
-                padding: "12px 14px",
-                borderRadius: "var(--radius-sm)",
-                background: "var(--success-soft)",
-                color: "var(--success)",
-                border: "1px solid rgba(2, 122, 72, 0.18)",
-              }}
-            >
+            <div role="status" className="builder-success-banner">
               {savedMessage}
             </div>
           ) : null}
 
-          <div className="stack" style={{ gap: 16 }}>
-            <FormField
-              label="Name"
-              htmlFor="name"
-              required
-              error={fieldErrors.name}
-            >
-              <Input
-                id="name"
-                name="name"
-                value={values.name}
-                onChange={(event) => setFieldValue("name", event.target.value)}
-                placeholder="Holiday hero refresh"
-              />
-            </FormField>
+          <div className="stack builder-sections">
+            <section className="builder-section-card stack">
+              <div className="builder-section-header stack">
+                <p className="builder-section-kicker">Core inputs</p>
+                <p className="muted builder-section-copy">
+                  Capture the required business inputs first so the run can stay
+                  aligned to the experiment goal.
+                </p>
+              </div>
 
-            <FormField
-              label="Goal"
-              htmlFor="goal"
-              required
-              error={fieldErrors.goal}
-            >
-              <TextArea
-                id="goal"
-                name="goal"
-                value={values.goal}
-                onChange={(event) => setFieldValue("goal", event.target.value)}
-                placeholder="Increase homepage clickthrough to a seasonal gift collection."
-              />
-            </FormField>
+              <div className="stack builder-fields-grid">
+                <FormField
+                  label="Name"
+                  htmlFor="name"
+                  required
+                  error={fieldErrors.name}
+                >
+                  <Input
+                    id="name"
+                    name="name"
+                    value={values.name}
+                    onChange={(event) => setFieldValue("name", event.target.value)}
+                    placeholder="Holiday hero refresh"
+                  />
+                </FormField>
 
-            <FormField
-              label="Target page type"
-              htmlFor="pageType"
-              required
-              error={fieldErrors.pageType}
-            >
-              <Input
-                id="pageType"
-                name="pageType"
-                value={values.pageType}
-                onChange={(event) => setFieldValue("pageType", event.target.value)}
-                placeholder="Homepage hero"
-              />
-            </FormField>
+                <FormField
+                  label="Goal"
+                  htmlFor="goal"
+                  required
+                  error={fieldErrors.goal}
+                >
+                  <TextArea
+                    id="goal"
+                    name="goal"
+                    value={values.goal}
+                    onChange={(event) => setFieldValue("goal", event.target.value)}
+                    placeholder="Increase homepage clickthrough to a seasonal gift collection."
+                  />
+                </FormField>
 
-            <FormField
-              label="Target audience"
-              htmlFor="targetAudience"
-              required
-              error={fieldErrors.targetAudience}
-            >
-              <Input
-                id="targetAudience"
-                name="targetAudience"
-                value={values.targetAudience}
-                onChange={(event) =>
-                  setFieldValue("targetAudience", event.target.value)
-                }
-                placeholder="Gift buyers shopping for premium home goods"
-              />
-            </FormField>
+                <div className="builder-two-column-grid">
+                  <FormField
+                    label="Target page type"
+                    htmlFor="pageType"
+                    required
+                    error={fieldErrors.pageType}
+                  >
+                    <Input
+                      id="pageType"
+                      name="pageType"
+                      value={values.pageType}
+                      onChange={(event) => setFieldValue("pageType", event.target.value)}
+                      placeholder="Homepage hero"
+                    />
+                  </FormField>
 
-            <FormField
-              label="Tone"
-              htmlFor="tone"
-              required
-              error={fieldErrors.tone}
-            >
-              <Input
-                id="tone"
-                name="tone"
-                value={values.tone}
-                onChange={(event) => setFieldValue("tone", event.target.value)}
-                placeholder="Confident, editorial, premium"
-              />
-            </FormField>
+                  <FormField
+                    label="Target audience"
+                    htmlFor="targetAudience"
+                    required
+                    error={fieldErrors.targetAudience}
+                  >
+                    <Input
+                      id="targetAudience"
+                      name="targetAudience"
+                      value={values.targetAudience}
+                      onChange={(event) =>
+                        setFieldValue("targetAudience", event.target.value)
+                      }
+                      placeholder="Gift buyers shopping for premium home goods"
+                    />
+                  </FormField>
+                </div>
 
-            <FormField
-              label="Brand constraints"
-              htmlFor="brandConstraints"
-              error={fieldErrors.brandConstraints}
-            >
-              <TextArea
-                id="brandConstraints"
-                name="brandConstraints"
-                value={values.brandConstraints}
-                onChange={(event) =>
-                  setFieldValue("brandConstraints", event.target.value)
-                }
-                placeholder="Avoid discount language. Keep claims grounded in product quality and craft."
-              />
-            </FormField>
+                <FormField
+                  label="Tone"
+                  htmlFor="tone"
+                  required
+                  error={fieldErrors.tone}
+                >
+                  <Input
+                    id="tone"
+                    name="tone"
+                    value={values.tone}
+                    onChange={(event) => setFieldValue("tone", event.target.value)}
+                    placeholder="Confident, editorial, premium"
+                  />
+                </FormField>
+              </div>
+            </section>
 
-            <FormField
-              label="Seed context"
-              htmlFor="seedContext"
-              error={fieldErrors.seedContext}
-            >
-              <TextArea
-                id="seedContext"
-                name="seedContext"
-                value={values.seedContext}
-                onChange={(event) => setFieldValue("seedContext", event.target.value)}
-                placeholder="Optional campaign notes, existing copy, or merchandising context."
-              />
-            </FormField>
+            <section className="builder-section-card stack">
+              <div className="builder-section-header stack">
+                <p className="builder-section-kicker">Context</p>
+                <p className="muted builder-section-copy">
+                  Add guardrails and seed material to improve the quality of the
+                  generated copy without changing the MVP workflow.
+                </p>
+              </div>
+
+              <div className="stack builder-fields-grid">
+                <FormField
+                  label="Brand constraints"
+                  htmlFor="brandConstraints"
+                  error={fieldErrors.brandConstraints}
+                >
+                  <TextArea
+                    id="brandConstraints"
+                    name="brandConstraints"
+                    value={values.brandConstraints}
+                    onChange={(event) =>
+                      setFieldValue("brandConstraints", event.target.value)
+                    }
+                    placeholder="Avoid discount language. Keep claims grounded in product quality and craft."
+                  />
+                </FormField>
+
+                <FormField
+                  label="Seed context"
+                  htmlFor="seedContext"
+                  error={fieldErrors.seedContext}
+                >
+                  <TextArea
+                    id="seedContext"
+                    name="seedContext"
+                    value={values.seedContext}
+                    onChange={(event) => setFieldValue("seedContext", event.target.value)}
+                    placeholder="Optional campaign notes, existing copy, or merchandising context."
+                  />
+                </FormField>
+              </div>
+            </section>
           </div>
 
-          <div className="cluster" style={{ justifyContent: "space-between" }}>
-            <p className="muted" style={{ margin: 0 }}>
-              Required for generation: name, goal, page type, target audience,
-              and tone.
-            </p>
-            <div className="cluster" style={{ justifyContent: "flex-end" }}>
+          <div className="builder-action-rail">
+            <div className="stack builder-action-copy">
+              <p className="builder-section-kicker">Launch rail</p>
+              <p className="muted builder-action-note">
+                Required for generation: name, goal, page type, target audience,
+                and tone.
+              </p>
+            </div>
+            <div className="cluster builder-action-buttons">
               <Button
                 type="button"
                 variant="secondary"
@@ -288,25 +305,23 @@ export function ExperimentBuilderForm({
         </div>
       </Card>
 
-      <div className="stack">
-        <Card style={{ padding: 24 }}>
-          <div className="stack" style={{ gap: 14 }}>
-            <h2 style={{ margin: 0, fontSize: "1.15rem" }}>Generation guide</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Codex runs on the server after the brief is persisted. Generated
-              variants are saved with prompt snapshots and kept in run history.
-            </p>
-            <div
-              style={{
-                padding: 14,
-                borderRadius: "var(--radius-sm)",
-                background: "var(--accent-primary-soft)",
-              }}
-            >
-              <p style={{ margin: "0 0 8px", fontWeight: 700 }}>
-                What the run will emphasize
+      <div className="stack builder-side-column">
+        <Card className="builder-side-panel">
+          <div className="stack builder-side-stack">
+            <div className="builder-section-header stack">
+              <div className="cluster builder-kicker-row">
+                <h2 className="builder-side-title">Generation guide</h2>
+                <span className="builder-side-pill">2-3 variants</span>
+              </div>
+              <p className="muted builder-section-copy">
+                Codex runs on the server after the brief is persisted. Generated
+                variants are saved with prompt snapshots and kept in run history.
               </p>
-              <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-secondary)" }}>
+            </div>
+
+            <div className="builder-guidance-card">
+              <p className="builder-guidance-title">What the run will emphasize</p>
+              <ul className="builder-guidance-list">
                 <li>Audience and tone alignment</li>
                 <li>Brand-safe CTA and messaging</li>
                 <li>Structured preview content, not arbitrary code</li>
@@ -315,88 +330,93 @@ export function ExperimentBuilderForm({
           </div>
         </Card>
 
-        <Card style={{ padding: 24 }}>
-          <div className="stack" style={{ gap: 14 }}>
-            <div className="cluster" style={{ justifyContent: "space-between" }}>
-              <h2 style={{ margin: 0, fontSize: "1.15rem" }}>Preview placeholder</h2>
-              <span
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: "rgba(255, 255, 255, 0.05)",
-                  color: "var(--text-secondary)",
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
-              >
-                Awaiting generation
-              </span>
+        <Card className="builder-side-panel">
+          <div className="stack builder-side-stack">
+            <div className="cluster builder-kicker-row">
+              <h2 className="builder-side-title">Preview placeholder</h2>
+              <span className="builder-status-chip">Awaiting generation</span>
             </div>
-            <div
-              style={{
-                padding: 18,
-                borderRadius: "var(--radius-md)",
-                background:
-                  "linear-gradient(135deg, rgba(124, 140, 255, 0.18), rgba(21, 31, 51, 0.96))",
-                border: "1px solid var(--border-subtle)",
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 12,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--text-tertiary)",
-                  fontWeight: 700,
-                }}
-              >
-                Draft summary
-              </p>
-              <h3 style={{ margin: "10px 0 8px", fontSize: "1.5rem" }}>
-                {values.name || "Your experiment name will appear here"}
-              </h3>
-              <p className="muted" style={{ margin: 0 }}>
-                {values.goal ||
-                  "Add a business goal so the generated variants have a clear conversion target."}
-              </p>
+
+            <div className="builder-preview-frame">
+              <div className="builder-preview-stage">
+                <p className="builder-preview-kicker">Draft summary</p>
+                <h3 className="builder-preview-title">
+                  {values.name || "Your experiment name will appear here"}
+                </h3>
+                <p className="muted builder-preview-copy">
+                  {values.goal ||
+                    "Add a business goal so the generated variants have a clear conversion target."}
+                </p>
+              </div>
+
+              <dl className="builder-preview-metadata">
+                <div className="builder-preview-meta-item">
+                  <dt className="builder-preview-meta-label">Page type</dt>
+                  <dd className="builder-preview-meta-value">
+                    {values.pageType || "Select the storefront surface."}
+                  </dd>
+                </div>
+                <div className="builder-preview-meta-item">
+                  <dt className="builder-preview-meta-label">Audience</dt>
+                  <dd className="builder-preview-meta-value">
+                    {values.targetAudience ||
+                      "Clarify who this variant should persuade."}
+                  </dd>
+                </div>
+                <div className="builder-preview-meta-item">
+                  <dt className="builder-preview-meta-label">Tone</dt>
+                  <dd className="builder-preview-meta-value">
+                    {values.tone || "Set the voice for the generated copy."}
+                  </dd>
+                </div>
+              </dl>
             </div>
-            <dl
-              style={{
-                margin: 0,
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr)",
-                gap: 12,
-              }}
-            >
-              <div>
-                <dt className="muted" style={{ fontSize: 13, fontWeight: 700 }}>
-                  Page type
-                </dt>
-                <dd style={{ margin: "4px 0 0" }}>
-                  {values.pageType || "Select the storefront surface."}
-                </dd>
-              </div>
-              <div>
-                <dt className="muted" style={{ fontSize: 13, fontWeight: 700 }}>
-                  Audience
-                </dt>
-                <dd style={{ margin: "4px 0 0" }}>
-                  {values.targetAudience || "Clarify who this variant should persuade."}
-                </dd>
-              </div>
-              <div>
-                <dt className="muted" style={{ fontSize: 13, fontWeight: 700 }}>
-                  Tone
-                </dt>
-                <dd style={{ margin: "4px 0 0" }}>
-                  {values.tone || "Set the voice for the generated copy."}
-                </dd>
-              </div>
-            </dl>
+          </div>
+        </Card>
+
+        <Card className="builder-side-panel builder-checklist-panel">
+          <div className="stack builder-side-stack">
+            <h2 className="builder-side-title">Run readiness</h2>
+            <div className="builder-readiness-list">
+              <ReadinessRow
+                label="Experiment name"
+                ready={values.name.trim().length > 0}
+              />
+              <ReadinessRow label="Business goal" ready={values.goal.trim().length > 0} />
+              <ReadinessRow
+                label="Page type"
+                ready={values.pageType.trim().length > 0}
+              />
+              <ReadinessRow
+                label="Target audience"
+                ready={values.targetAudience.trim().length > 0}
+              />
+              <ReadinessRow label="Tone" ready={values.tone.trim().length > 0} />
+            </div>
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function ReadinessRow({
+  label,
+  ready,
+}: {
+  label: string;
+  ready: boolean;
+}) {
+  return (
+    <div className="builder-readiness-row">
+      <div className="cluster" style={{ gap: 10 }}>
+        <span
+          aria-hidden="true"
+          className={`builder-readiness-dot ${ready ? "is-ready" : ""}`}
+        />
+        <span>{label}</span>
+      </div>
+      <span className="builder-readiness-state">{ready ? "Ready" : "Needed"}</span>
     </div>
   );
 }

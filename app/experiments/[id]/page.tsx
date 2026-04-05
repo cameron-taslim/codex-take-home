@@ -37,98 +37,74 @@ export default async function ExperimentDetailPage({
       description="Review the saved brief, compare the latest persisted variants, and rerun generation from the same structured input."
       headerAction={<RerunControls experimentId={experiment.id} />}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.45fr) minmax(300px, 0.95fr)",
-          gap: 20,
-        }}
-      >
-        <div className="stack" style={{ gap: 20 }}>
-          <Card style={{ padding: 24 }}>
-            <div className="stack" style={{ gap: 16 }}>
-              <div
-                className="cluster"
-                style={{ justifyContent: "space-between", alignItems: "flex-start" }}
-              >
-                <div className="stack" style={{ gap: 6 }}>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "var(--accent-primary-strong)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    Experiment summary
-                  </p>
-                  <h2 style={{ margin: 0, fontSize: "1.35rem" }}>{experiment.name}</h2>
-                </div>
-                <StatusBadge status={experiment.status} />
-              </div>
-
-              {latestRun?.status === "failed" ? (
-                <ErrorBanner
-                  message={
-                    latestRun.errorMessage
-                      ? `Latest generation failed: ${latestRun.errorMessage}`
-                      : "Latest generation failed. You can retry from the saved brief."
-                  }
-                />
-              ) : null}
-
-              {showingPriorSavedVariants ? (
-                <p className="muted" style={{ margin: 0 }}>
-                  Showing variants from the most recent successful run while the latest
-                  attempt remains recoverable in history.
+      <div className="detail-layout">
+        <div className="stack detail-main-column">
+          <Card className="detail-summary-panel">
+            <div className="detail-summary-topbar">
+              <div className="stack detail-summary-heading">
+                <p className="builder-kicker">Experiment summary</p>
+                <h2 className="detail-section-title">{experiment.name}</h2>
+                <p className="muted detail-summary-copy">
+                  Stored brief inputs, latest run status, and the current variant set
+                  available for review.
                 </p>
-              ) : null}
-
-              <dl
-                style={{
-                  margin: 0,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                  gap: 16,
-                }}
-              >
-                <MetadataItem label="Goal" value={experiment.goal} />
-                <MetadataItem label="Page type" value={experiment.pageType} />
-                <MetadataItem
-                  label="Target audience"
-                  value={experiment.targetAudience}
-                />
-                <MetadataItem label="Tone" value={experiment.tone} />
-                <MetadataItem
-                  label="Brand constraints"
-                  value={experiment.brandConstraints || "None provided"}
-                />
-                <MetadataItem
-                  label="Seed context"
-                  value={experiment.seedContext || "None provided"}
-                />
-              </dl>
+              </div>
+              <StatusBadge status={experiment.status} />
             </div>
+
+            {latestRun?.status === "failed" ? (
+              <ErrorBanner
+                message={
+                  latestRun.errorMessage
+                    ? `Latest generation failed: ${latestRun.errorMessage}`
+                    : "Latest generation failed. You can retry from the saved brief."
+                }
+              />
+            ) : null}
+
+            {showingPriorSavedVariants ? (
+              <p className="muted detail-recovery-note">
+                Showing variants from the most recent successful run while the latest
+                attempt remains recoverable in history.
+              </p>
+            ) : null}
+
+            <dl className="detail-summary-grid">
+              <MetadataItem label="Goal" value={experiment.goal} />
+              <MetadataItem label="Page type" value={experiment.pageType} />
+              <MetadataItem label="Target audience" value={experiment.targetAudience} />
+              <MetadataItem label="Tone" value={experiment.tone} />
+              <MetadataItem
+                label="Brand constraints"
+                value={experiment.brandConstraints || "None provided"}
+              />
+              <MetadataItem
+                label="Seed context"
+                value={experiment.seedContext || "None provided"}
+              />
+            </dl>
           </Card>
 
-          <section className="stack" style={{ gap: 12 }}>
-            <div className="stack" style={{ gap: 4 }}>
-              <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Latest saved variants</h2>
-              <p className="muted" style={{ margin: 0 }}>
-                Compare the persisted variant set that is currently available for review.
-              </p>
+          <section className="stack detail-section">
+            <div className="detail-section-header">
+              <div className="stack" style={{ gap: 6 }}>
+                <p className="builder-section-kicker">Preview surfaces</p>
+                <h2 className="detail-section-title">Latest saved variants</h2>
+                <p className="muted detail-section-copy">
+                  Compare the persisted variant set that is currently available for
+                  review.
+                </p>
+              </div>
+              {latestVariants.length > 0 ? (
+                <span className="detail-count-chip">
+                  {latestVariants.length} saved variant
+                  {latestVariants.length === 1 ? "" : "s"}
+                </span>
+              ) : null}
             </div>
 
             {latestVariants.length > 0 ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                  gap: 16,
-                }}
-              >
+              <div className="detail-variant-grid">
                 {latestVariants.map((variant) => (
                   <VariantPreviewCard key={variant.id} variant={variant} />
                 ))}
@@ -143,19 +119,20 @@ export default async function ExperimentDetailPage({
           </section>
         </div>
 
-        <div className="stack" style={{ gap: 20 }}>
-          <Card style={{ padding: 24 }}>
-            <div className="stack" style={{ gap: 16 }}>
-              <div className="stack" style={{ gap: 4 }}>
-                <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Generation history</h2>
-                <p className="muted" style={{ margin: 0 }}>
+        <aside className="stack detail-side-column">
+          <Card className="detail-history-panel">
+            <div className="stack detail-history-stack">
+              <div className="stack" style={{ gap: 6 }}>
+                <p className="builder-section-kicker">Run ledger</p>
+                <h2 className="detail-section-title">Generation history</h2>
+                <p className="muted detail-section-copy">
                   Every rerun is preserved as a separate persisted record.
                 </p>
               </div>
 
               {experiment.generationHistory.length > 0 ? (
-                <div className="stack" style={{ gap: 12 }}>
-                  {experiment.generationHistory.map((run) => (
+                <div className="stack detail-history-list">
+                  {experiment.generationHistory.map((run, index) => (
                     <HistoryItem
                       key={run.id}
                       id={run.id}
@@ -164,6 +141,7 @@ export default async function ExperimentDetailPage({
                       completedAt={run.completedAt}
                       errorMessage={run.errorMessage}
                       variantCount={run.variantCount}
+                      isLatest={index === 0}
                     />
                   ))}
                 </div>
@@ -175,7 +153,7 @@ export default async function ExperimentDetailPage({
               )}
             </div>
           </Card>
-        </div>
+        </aside>
       </div>
     </AppShell>
   );
@@ -189,11 +167,9 @@ function MetadataItem({
   value: string;
 }) {
   return (
-    <div className="stack" style={{ gap: 6 }}>
-      <dt className="muted" style={{ margin: 0, fontSize: 14 }}>
-        {label}
-      </dt>
-      <dd style={{ margin: 0, fontWeight: 600 }}>{value}</dd>
+    <div className="detail-meta-item">
+      <dt className="detail-meta-label">{label}</dt>
+      <dd className="detail-meta-value">{value}</dd>
     </div>
   );
 }
@@ -205,6 +181,7 @@ function HistoryItem({
   completedAt,
   errorMessage,
   variantCount,
+  isLatest,
 }: {
   id: string;
   status: "pending" | "running" | "succeeded" | "failed";
@@ -212,25 +189,22 @@ function HistoryItem({
   completedAt: Date | null;
   errorMessage: string | null;
   variantCount: number;
+  isLatest: boolean;
 }) {
   return (
-    <Card style={{ padding: 18 }}>
-      <div className="stack" style={{ gap: 8 }}>
-        <div className="cluster" style={{ justifyContent: "space-between" }}>
-          <strong>{formatRunStatus(status)}</strong>
-          <span className="muted">{formatDate(startedAt)}</span>
-        </div>
-        <p className="muted" style={{ margin: 0 }}>
-          {variantCount} saved variant{variantCount === 1 ? "" : "s"}
-          {completedAt ? ` • Completed ${formatDate(completedAt)}` : ""}
-        </p>
-        {errorMessage ? (
-          <p style={{ margin: 0, color: "var(--danger)" }}>{errorMessage}</p>
-        ) : null}
-        <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-          Run {id}
-        </p>
+    <Card className={`detail-history-item ${isLatest ? "is-latest" : ""}`}>
+      <div className="detail-history-item-topbar">
+        <strong>{formatRunStatus(status)}</strong>
+        <span className="detail-history-date">{formatDate(startedAt)}</span>
       </div>
+      <p className="detail-history-copy">
+        {variantCount} saved variant{variantCount === 1 ? "" : "s"}
+        {completedAt ? ` • Completed ${formatDate(completedAt)}` : ""}
+      </p>
+      {errorMessage ? (
+        <p className="detail-history-error">{errorMessage}</p>
+      ) : null}
+      <p className="detail-history-id">Run {id}</p>
     </Card>
   );
 }
