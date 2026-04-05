@@ -153,6 +153,7 @@ export async function saveDraftExperimentAction(
   try {
     const experiment = await persistExperiment(normalizedValues, userId);
 
+    revalidatePath("/");
     revalidatePath("/dashboard");
     revalidatePath(`/experiments/${experiment.id}`);
 
@@ -200,6 +201,7 @@ export async function prepareExperimentBriefAction(
       userId,
     });
 
+    revalidatePath("/");
     revalidatePath("/dashboard");
     revalidatePath(`/experiments/${experiment.id}`);
 
@@ -256,6 +258,7 @@ export async function generateExperimentAction(
       userId,
     });
 
+    revalidatePath("/");
     revalidatePath("/dashboard");
     revalidatePath(`/experiments/${experiment.id}`);
 

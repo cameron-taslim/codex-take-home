@@ -641,7 +641,7 @@ samp {
 
 .shell-layout {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -659,27 +659,50 @@ samp {
   box-shadow: var(--shadow-lg);
 }
 
+.shell-sidebar-stack {
+  gap: 18px;
+}
+
+.shell-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.shell-sidebar-label {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.shell-sidebar-count {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 .shell-main {
   min-width: 0;
 }
 
-.shell-brand {
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.shell-nav {
+.shell-experiment-nav {
   display: grid;
   gap: 8px;
 }
 
-.shell-nav-link {
-  display: grid;
-  grid-template-columns: 1fr auto;
+.shell-experiment-link {
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   align-items: center;
-  min-height: 48px;
-  padding: 0 14px;
+  min-height: 52px;
+  padding: 12px 14px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   color: var(--text-secondary);
@@ -690,14 +713,14 @@ samp {
     transform 140ms ease;
 }
 
-.shell-nav-link:hover {
+.shell-experiment-link:hover {
   border-color: var(--border-subtle);
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-primary);
   transform: translateY(-1px);
 }
 
-.shell-nav-link[data-active="true"] {
+.shell-experiment-link[data-active="true"] {
   border-color: rgba(124, 140, 255, 0.36);
   background:
     linear-gradient(90deg, rgba(124, 140, 255, 0.16), transparent 70%),
@@ -705,15 +728,10 @@ samp {
   color: var(--text-primary);
 }
 
-.shell-nav-label {
+.shell-experiment-name {
+  min-width: 0;
   font-weight: 600;
-}
-
-.shell-nav-kicker {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
+  line-height: 1.35;
 }
 
 .shell-badge {
@@ -730,13 +748,17 @@ samp {
   text-transform: uppercase;
 }
 
+.shell-empty-copy {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .shell-topbar {
   margin-bottom: 20px;
-  padding: 16px 18px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: rgba(10, 16, 32, 0.72);
-  backdrop-filter: blur(14px);
+  padding: 6px 0 0;
 }
 
 .shell-user-email {

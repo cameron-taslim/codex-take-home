@@ -138,7 +138,7 @@ describe("experiment builder page", () => {
     render(await NewExperimentPage());
 
     expect(
-      screen.getByRole("heading", { name: "Storefront Experiment Lab" }),
+      screen.getByRole("heading", { name: "Create experiment" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save Draft" })).toBeInTheDocument();
     expect(

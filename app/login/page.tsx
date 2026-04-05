@@ -3,13 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getServerSession } from "@/lib/auth/session";
+import { getAuthenticatedHomePath } from "@/lib/navigation";
 import { Card } from "@/components/ui/card";
 
 export default async function LoginPage() {
   const session = await getServerSession();
 
-  if (session) {
-    redirect("/dashboard");
+  if (session?.user?.id) {
+    redirect(await getAuthenticatedHomePath(session.user.id));
   }
 
   return (
@@ -52,8 +53,8 @@ export default async function LoginPage() {
                 Enter your credentials
               </h2>
               <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
-                Invalid credentials stay inline, successful sign-in still redirects straight to the
-                dashboard.
+                Invalid credentials stay inline, successful sign-in drops you straight into the
+                experiment workspace.
               </p>
             </div>
             <LoginForm />

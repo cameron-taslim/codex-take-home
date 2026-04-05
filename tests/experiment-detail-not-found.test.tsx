@@ -23,7 +23,7 @@ vi.mock("@/components/layout/app-shell", () => ({
 import ExperimentNotFound from "@/app/experiments/[id]/not-found";
 
 describe("experiment detail not-found page", () => {
-  it("sends the recovery action back to the dashboard", () => {
+  it("sends the recovery action to the create experiment flow", () => {
     render(<ExperimentNotFound />);
 
     expect(
@@ -33,7 +33,7 @@ describe("experiment detail not-found page", () => {
       screen.getByRole("heading", { level: 2, name: "Choose another experiment" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Return to Dashboard" }),
-    ).toHaveAttribute("href", "/dashboard");
+      screen.getByRole("link", { name: "Create Experiment" }),
+    ).toHaveAttribute("href", "/experiments/new");
   });
 });

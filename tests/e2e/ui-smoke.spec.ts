@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.getByLabel("Email *").fill(demoEmail);
   await page.getByLabel("Password *").fill(demoPassword);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL(/\/(experiments\/new|experiments\/[^/]+)$/);
 }
 
 test("login route renders scaffold", async ({ page }) => {
@@ -32,13 +32,10 @@ test("seeded login can create an experiment, generate variants, and review saved
   const experimentName = `Playwright demo ${Date.now()}`;
 
   await login(page);
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Create New Experiment" }).first(),
-  ).toHaveAttribute("href", "/experiments/new");
-  await page.getByRole("link", { name: "Create New Experiment" }).first().click();
+  await expect(page.getByRole("link", { name: "New" })).toBeVisible();
+  await page.getByRole("link", { name: "New" }).click();
 
-  await expect(page.getByRole("heading", { name: "Experiment Builder" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Create experiment" })).toBeVisible();
   await page.getByLabel("Name *").fill(experimentName);
   await page
     .getByLabel("Goal *")

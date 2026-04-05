@@ -25,7 +25,7 @@ export function LoginForm() {
         email,
         password,
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl: "/",
       });
 
       if (response?.error) {
@@ -37,7 +37,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
     } catch {
       setError("Sign in failed. Try again.");

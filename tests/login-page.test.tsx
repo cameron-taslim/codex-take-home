@@ -7,12 +7,14 @@ const {
   refreshMock,
   signInMock,
   getServerSessionMock,
+  getAuthenticatedHomePathMock,
   redirectMock,
 } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   refreshMock: vi.fn(),
   signInMock: vi.fn(),
   getServerSessionMock: vi.fn(),
+  getAuthenticatedHomePathMock: vi.fn(),
   redirectMock: vi.fn(),
 }));
 
@@ -32,6 +34,10 @@ vi.mock("@/lib/auth/session", () => ({
   getServerSession: getServerSessionMock,
 }));
 
+vi.mock("@/lib/navigation", () => ({
+  getAuthenticatedHomePath: getAuthenticatedHomePathMock,
+}));
+
 import LoginPage from "@/app/login/page";
 import { LoginForm } from "@/components/auth/login-form";
 
@@ -41,17 +47,20 @@ describe("login page", () => {
     refreshMock.mockReset();
     signInMock.mockReset();
     getServerSessionMock.mockReset();
+    getAuthenticatedHomePathMock.mockReset();
     redirectMock.mockReset();
   });
 
-  it("redirects authenticated users to the dashboard", async () => {
+  it("redirects authenticated users into the experiment workspace", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
+    getAuthenticatedHomePathMock.mockResolvedValue("/experiments/exp_123");
 
     await LoginPage();
 
-    expect(redirectMock).toHaveBeenCalledWith("/dashboard");
+    expect(getAuthenticatedHomePathMock).toHaveBeenCalledWith("user_1");
+    expect(redirectMock).toHaveBeenCalledWith("/experiments/exp_123");
   });
 
   it("shows an inline error for invalid credentials and preserves values", async () => {
@@ -75,7 +84,7 @@ describe("login page", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
-  it("redirects to the dashboard after a successful sign-in", async () => {
+  it("routes to the authenticated home resolver after a successful sign-in", async () => {
     signInMock.mockResolvedValue({ ok: true, error: undefined });
 
     render(<LoginForm />);
@@ -93,9 +102,9 @@ describe("login page", () => {
         email: "demo@example.com",
         password: "password123",
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl: "/",
       });
-      expect(pushMock).toHaveBeenCalledWith("/dashboard");
+      expect(pushMock).toHaveBeenCalledWith("/");
       expect(refreshMock).toHaveBeenCalled();
     });
   });

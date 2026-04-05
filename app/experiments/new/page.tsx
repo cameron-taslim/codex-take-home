@@ -8,8 +8,9 @@ export default async function NewExperimentPage() {
 
   return (
     <AppShell
-      title="Storefront Experiment Lab"
+      title="Create experiment"
       description="Capture the merchandiser brief, approve the synthesized hypothesis, and trigger the mocked storefront generation workflow."
+      activeSidebarItem="new"
     >
       <ExperimentBuilderForm />
     </AppShell>

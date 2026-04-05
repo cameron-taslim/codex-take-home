@@ -25,7 +25,7 @@ describe("auth middleware", () => {
     );
   });
 
-  it("redirects authenticated login requests to the dashboard", async () => {
+  it("redirects authenticated login requests to the authenticated entry route", async () => {
     getTokenMock.mockResolvedValue({ sub: "user_1" });
 
     const response = await middleware(
@@ -33,7 +33,7 @@ describe("auth middleware", () => {
     );
 
     expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toMatch(/\/dashboard$/);
+    expect(response.headers.get("location")).toMatch(/\/$/);
   });
 
   it("allows authenticated requests to protected routes", async () => {

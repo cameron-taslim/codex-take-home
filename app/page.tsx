@@ -1,11 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth/session";
+import { getAuthenticatedHomePath } from "@/lib/navigation";
 
 export default async function HomePage() {
   const session = await getServerSession();
 
-  const primaryHref = session ? "/dashboard" : "/login";
-  const primaryLabel = session ? "Open dashboard" : "Start your first experiment";
+  if (session?.user?.id) {
+    redirect(await getAuthenticatedHomePath(session.user.id));
+  }
+
+  const primaryHref = "/login";
+  const primaryLabel = "Start your first experiment";
 
   const metrics = [
     { value: "2-3", label: "Structured variants per run" },
@@ -37,7 +43,7 @@ export default async function HomePage() {
     "Append-only generation history for reruns and failures",
   ];
 
-  const navLabel = session ? "Dashboard" : "Sign in";
+  const navLabel = "Sign in";
 
   return (
     <main className="landing-page">

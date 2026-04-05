@@ -32,6 +32,7 @@ export default async function ExperimentDetailPage({
       title={experiment.name}
       description="Review the approved brief, edit generated copy in live previews, and launch the storefront experiment."
       headerAction={<RerunControls experimentId={experiment.id} />}
+      activeExperimentId={experiment.id}
     >
       <div className="detail-layout">
         <div className="stack detail-main-column">

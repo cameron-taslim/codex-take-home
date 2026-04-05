@@ -11,10 +11,10 @@ export default function ExperimentNotFound() {
     >
       <EmptyState
         title="Choose another experiment"
-        description="Return to the dashboard to open one of your saved experiments or start a new brief."
+        description="Return to the experiment workspace to open one of your saved experiments or start a new brief."
         action={
           <Link
-            href="/dashboard"
+            href="/experiments/new"
             style={{
               background:
                 "linear-gradient(180deg, var(--accent-primary-strong), var(--accent-primary))",
@@ -30,7 +30,7 @@ export default function ExperimentNotFound() {
               fontWeight: 700,
             }}
           >
-            Return to Dashboard
+            Create Experiment
           </Link>
         }
       />

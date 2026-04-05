@@ -27,6 +27,7 @@ export async function rerunExperimentAction(experimentId: string) {
       userId,
     });
 
+    revalidatePath("/");
     revalidatePath(`/experiments/${experimentId}`);
     revalidatePath("/dashboard");
 
@@ -100,6 +101,7 @@ export async function launchExperimentAction(input: {
         | "Reduce bounce rate",
     });
 
+    revalidatePath("/");
     revalidatePath(`/experiments/${input.experimentId}`);
     revalidatePath("/dashboard");
 
