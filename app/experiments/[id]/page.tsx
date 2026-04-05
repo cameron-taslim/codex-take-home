@@ -73,34 +73,6 @@ export default async function ExperimentDetailPage({
               />
             </dl>
           }
-          approvedBrief={
-            experiment.approvedBrief ? (
-              <div className="detail-approved-brief detail-approved-brief-compact">
-                <h2 className="detail-section-title">Approved brief</h2>
-                <p className="detail-brief-hypothesis">
-                  {safeBriefValue(experiment.approvedBrief, "hypothesis")}
-                </p>
-                <div className="detail-brief-grid">
-                  <DetailList
-                    title="What is changing"
-                    items={safeBriefList(experiment.approvedBrief, "whatIsChanging")}
-                  />
-                  <DetailList
-                    title="What is locked"
-                    items={safeBriefList(experiment.approvedBrief, "whatIsLocked")}
-                  />
-                  <DetailList
-                    title="Success metric"
-                    items={[safeBriefValue(experiment.approvedBrief, "successMetric")]}
-                  />
-                  <DetailList
-                    title="Audience signal"
-                    items={[safeBriefValue(experiment.approvedBrief, "audienceSignal")]}
-                  />
-                </div>
-              </div>
-            ) : undefined
-          }
         />
       }
       activeExperimentId={experiment.id}
@@ -120,13 +92,7 @@ export default async function ExperimentDetailPage({
 
               <Card className="detail-history-panel detail-history-panel-inline">
                 <div className="stack detail-history-stack">
-                  <div className="stack" style={{ gap: 6 }}>
-                    <p className="builder-section-kicker">Run ledger</p>
-                    <h2 className="detail-section-title">Generation history</h2>
-                    <p className="muted detail-section-copy">
-                      Every saved run stays visible below the active output workspace.
-                    </p>
-                  </div>
+                  <h2 className="detail-section-title">Generation history</h2>
 
                   {experiment.generationHistory.length > 0 ? (
                     <div className="stack detail-history-list">
@@ -209,19 +175,6 @@ function HistoryItem({
   );
 }
 
-function DetailList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="builder-brief-card">
-      <span className="builder-brief-label">{title}</span>
-      <ul className="builder-brief-list">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -242,23 +195,6 @@ function formatRunStatus(status: "pending" | "running" | "succeeded" | "failed")
   return "Generating";
 }
 
-function safeBriefValue(value: unknown, key: string) {
-  if (value && typeof value === "object" && key in value) {
-    const item = (value as Record<string, unknown>)[key];
-    return typeof item === "string" ? item : "";
-  }
-
-  return "";
-}
-
-function safeBriefList(value: unknown, key: string) {
-  if (value && typeof value === "object" && key in value) {
-    const item = (value as Record<string, unknown>)[key];
-    return Array.isArray(item) ? item.filter((entry): entry is string => typeof entry === "string") : [];
-  }
-
-  return [];
-}
 
 function buildPromptSuggestions(
   experiment: {
@@ -279,20 +215,20 @@ function buildPromptSuggestions(
     {
       title: "Push a sharper headline",
       prompt: leadVariant
-        ? `Generate a stronger urgency-led headline direction than "${leadVariant.headline}" while still targeting ${experiment.targetAudience.toLowerCase()} and protecting this constraint: ${experiment.brandConstraints}.`
-        : `Generate a sharper headline direction for ${experiment.targetAudience.toLowerCase()} while protecting this constraint: ${experiment.brandConstraints}.`,
+        ? `Sharpen the headline beyond "${leadVariant.headline}" for ${experiment.targetAudience.toLowerCase()}. Keep: ${experiment.brandConstraints}.`
+        : `Sharpen the headline for ${experiment.targetAudience.toLowerCase()}. Keep: ${experiment.brandConstraints}.`,
     },
     {
       title: "Test a new CTA angle",
       prompt: leadVariant
-        ? `Keep the current positioning but replace the CTA "${leadVariant.ctaText}" with a higher-intent alternative that supports ${experiment.goal.toLowerCase()}.`
-        : `Generate a CTA-led output that supports ${experiment.goal.toLowerCase()} without changing the approved audience focus.`,
+        ? `Replace "${leadVariant.ctaText}" with a stronger CTA for ${experiment.goal.toLowerCase()}.`
+        : `Use a stronger CTA to support ${experiment.goal.toLowerCase()}.`,
     },
     {
       title: "Explore a fresh subheadline",
       prompt: leadVariant?.subheadline
-        ? `Keep the overall ${experiment.tone.toLowerCase()} tone but propose a more benefit-led subheadline than "${leadVariant.subheadline}".`
-        : `Keep the overall ${experiment.tone.toLowerCase()} tone but introduce a more benefit-led subheadline and supporting copy direction.`,
+        ? `Keep the ${experiment.tone.toLowerCase()} tone. Improve the subheadline beyond "${leadVariant.subheadline}".`
+        : `Keep the ${experiment.tone.toLowerCase()} tone. Add a more benefit-led subheadline.`,
     },
   ];
 }

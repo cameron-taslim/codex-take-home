@@ -60,8 +60,6 @@ test("seeded login can create an experiment, generate output, and review saved h
   await page.waitForURL(/\/experiments\/[^/]+$/);
   await expect(page.getByRole("heading", { name: experimentName })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Wear what lasts" })).toBeVisible();
-  await expect(page.getByText("Quality-led", { exact: true })).toBeVisible();
-  await expect(page.getByText("Layout note")).toHaveCount(1);
   await expect(page.getByRole("heading", { name: "Generation history" })).toBeVisible();
   await expect(page.getByText(/1 saved output/)).toBeVisible();
 

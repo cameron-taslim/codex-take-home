@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { VariantPreviewCard } from "@/components/ui/variant-preview-card";
 
 describe("variant preview card", () => {
-  it("renders long generated copy without dropping the layout note", () => {
+  it("renders long generated copy in the preview", () => {
     render(
       <VariantPreviewCard
         variant={{
@@ -37,10 +37,19 @@ describe("variant preview card", () => {
         name: "Playwright demand 17753505001 conversion-led split for premium returning shoppers",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Layout note")).toBeInTheDocument();
+    expect(screen.getByText("Explore Collection")).toBeInTheDocument();
     expect(
-      screen.getByText("Highlights the offer for returning shoppers with concise supporting copy."),
+      screen.getByText(
+        "Avoid discount framing and keep the direction product-led while preserving premium cues across the offer.",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("spotlight")).toBeInTheDocument();
+    expect(screen.queryByText("Variant B")).not.toBeInTheDocument();
+    expect(screen.queryByText("headline emphasis")).not.toBeInTheDocument();
+    expect(screen.queryByText("hero image")).not.toBeInTheDocument();
+    expect(screen.queryByText("spotlight")).not.toBeInTheDocument();
+    expect(screen.queryByText("Layout note")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Highlights the offer for returning shoppers with concise supporting copy."),
+    ).not.toBeInTheDocument();
   });
 });

@@ -32,20 +32,6 @@ export function VariantPreviewCard({
         color: assetSet.text,
       }}
     >
-      <div className="variant-preview-topbar">
-        <div className="stack" style={{ gap: 6 }}>
-          <p className="variant-preview-label">{variant.label}</p>
-          <p className="variant-preview-index">{previewConfig.emphasis} emphasis</p>
-        </div>
-        <div className="variant-locked-rail">
-          {previewConfig.lockedElements.map((item) => (
-            <span key={item} className="variant-preview-chip">
-              {item.replace("Lock ", "")}
-            </span>
-          ))}
-        </div>
-      </div>
-
       <div className="variant-live-preview">
         <div
           className="variant-preview-surface"
@@ -54,19 +40,6 @@ export function VariantPreviewCard({
           }}
         >
           <div className="variant-preview-hero-block">
-            <div className="variant-preview-brand-row">
-              <div className="stack" style={{ gap: 6 }}>
-                <p className="variant-preview-kicker">{assetSet.eyebrow}</p>
-                <p className="variant-preview-brandmark">{assetSet.logoWordmark}</p>
-              </div>
-              <span
-                className="variant-preview-chip variant-preview-chip-accent"
-                style={{ background: assetSet.accent, color: assetSet.text }}
-              >
-                {previewConfig.layout}
-              </span>
-            </div>
-
             <div className="variant-preview-copy variant-preview-copy-hero">
               <h3 className="variant-preview-headline">{variant.headline}</h3>
               {variant.subheadline ? (
@@ -79,11 +52,6 @@ export function VariantPreviewCard({
             <div className="variant-preview-footer">
               <span className="variant-preview-cta">{variant.ctaText}</span>
               <p className="variant-preview-body">{variant.bodyCopy}</p>
-            </div>
-
-            <div className="variant-preview-strategy">
-              <span className="variant-preview-strategy-label">Layout note</span>
-              <p className="variant-preview-strategy-copy">{variant.layoutNotes}</p>
             </div>
           </div>
         </div>

@@ -50,10 +50,7 @@ export function RerunControls({
       {formError ? <ErrorBanner message={formError} /> : null}
 
       <div className="detail-suggestion-panel">
-        <div className="stack" style={{ gap: 6 }}>
-          <p className="builder-section-kicker">Generation workspace</p>
-          <h2 className="detail-section-title">AI suggestions</h2>
-        </div>
+        <h2 className="detail-section-title">AI suggestions</h2>
 
         <div className="stack detail-suggestion-list">
           {suggestions.map((suggestion) => (
@@ -67,7 +64,6 @@ export function RerunControls({
                 setCustomPrompt(suggestion.prompt);
               }}
             >
-              <span className="detail-suggestion-title">{suggestion.title}</span>
               <span className="detail-suggestion-copy">{suggestion.prompt}</span>
             </button>
           ))}
@@ -77,13 +73,9 @@ export function RerunControls({
       <div className="detail-custom-prompt-panel">
         <div className="stack" style={{ gap: 6 }}>
           <p className="builder-section-kicker">Custom prompt</p>
-          <p className="muted detail-section-copy">
-            Ignore the suggestions and write your own generation guidance instead.
-          </p>
         </div>
 
         <label className="stack form-field">
-          <span className="form-label">Next generation guidance</span>
           <textarea
             className="field-base detail-custom-prompt-input"
             value={customPrompt}
@@ -95,17 +87,16 @@ export function RerunControls({
           />
         </label>
 
-        <div className="detail-rerun-note">
-          {activeSuggestion ? (
-            <p className="muted rerun-note">Selected suggestion: {activeSuggestion}</p>
-          ) : (
-            <p className="muted rerun-note">
-              The saved experiment brief remains the base context for the next run.
-            </p>
-          )}
-        </div>
+        {activeSuggestion ? (
+          <p className="muted rerun-note">Selected suggestion: {activeSuggestion}</p>
+        ) : null}
 
-        <Button type="button" onClick={handleRerun} loading={isPending}>
+        <Button
+          type="button"
+          onClick={handleRerun}
+          loading={isPending}
+          style={{ minHeight: 36, paddingInline: 14, fontSize: 12, width: "fit-content" }}
+        >
           Generate output
         </Button>
       </div>

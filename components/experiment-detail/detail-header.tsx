@@ -9,13 +9,11 @@ export function ExperimentDetailHeader({
   title,
   failureMessage,
   metadata,
-  approvedBrief,
 }: {
   experimentId: string;
   title: string;
   failureMessage?: React.ReactNode;
   metadata: React.ReactNode;
-  approvedBrief?: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -46,7 +44,6 @@ export function ExperimentDetailHeader({
         <div className="stack detail-summary-body">
           {failureMessage}
           {metadata}
-          {approvedBrief}
         </div>
       ) : null}
     </section>

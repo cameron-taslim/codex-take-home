@@ -74,17 +74,14 @@ vi.mock("@/components/experiment-detail/rerun-controls", () => ({
 vi.mock("@/components/experiment-detail/detail-header", () => ({
   ExperimentDetailHeader: ({
     title,
-    approvedBrief,
   }: {
     title: string;
-    approvedBrief?: React.ReactNode;
   }) => (
     <section>
       <h2>{title}</h2>
       <button type="button" aria-expanded={false}>
         Expand overview
       </button>
-      {approvedBrief}
     </section>
   ),
 }));
@@ -203,10 +200,6 @@ describe("experiment detail page", () => {
       "aria-expanded",
       "false",
     );
-    expect(screen.getByText("Approved brief")).toBeInTheDocument();
-    expect(
-      screen.getByText("We believe stronger quality-led copy will improve clickthrough rate."),
-    ).toBeInTheDocument();
     expect(screen.getByText("Wear what lasts")).toBeInTheDocument();
     expect(screen.getByText("AI suggestions")).toBeInTheDocument();
     expect(screen.getByText("Push a sharper headline")).toBeInTheDocument();
