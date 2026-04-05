@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
 import { getServerSession } from "@/lib/auth/session";
@@ -13,39 +14,27 @@ export default async function LoginPage() {
 
   return (
     <main className="auth-frame">
-      <div className="auth-shell">
-        <section className="auth-aside">
-          <div className="stack" style={{ gap: 24, position: "relative", zIndex: 1 }}>
-            <div className="cluster" style={{ justifyContent: "space-between" }}>
-              <p className="eyebrow">Experiment Lab</p>
-              <span className="shell-badge">Codex workflow</span>
-            </div>
-            <div className="stack" style={{ gap: 14 }}>
-              <h1 style={{ margin: 0, fontSize: "clamp(2.4rem, 5vw, 4.25rem)", lineHeight: 0.94 }}>
-                Launch, save, and review landing-page experiments from one console.
-              </h1>
-              <p className="muted" style={{ margin: 0, maxWidth: 520, fontSize: 16, lineHeight: 1.7 }}>
-                Structured briefs go in. Server-side Codex generations, saved variants, and rerun history come back out in a durable review flow.
-              </p>
-            </div>
-            <div
-              className="panel"
-              style={{
-                padding: 18,
-                background:
-                  "linear-gradient(180deg, rgba(124, 140, 255, 0.14), transparent 80%), var(--bg-panel-strong)",
-              }}
-            >
-              <div className="stack" style={{ gap: 10 }}>
-                <div className="cluster" style={{ justifyContent: "space-between" }}>
-                  <strong>Workflow proof points</strong>
-                  <span className="shell-badge">MVP</span>
-                </div>
-                <p className="muted" style={{ margin: 0 }}>
-                  Protected dashboard, structured generation, persisted history, and preview-first review surfaces.
-                </p>
-              </div>
-            </div>
+      <div className="login-shell">
+        <section className="login-intro">
+          <div className="cluster" style={{ justifyContent: "space-between" }}>
+            <p className="eyebrow">Experiment Lab</p>
+            <Link href="/" className="landing-nav-link">
+              Back to landing
+            </Link>
+          </div>
+          <div className="stack" style={{ gap: 12 }}>
+            <h1 className="login-title">Sign in to the experiment console.</h1>
+            <p className="login-description">
+              Access the authenticated workspace to build briefs, trigger Codex generation, and
+              review saved landing-page variants.
+            </p>
+          </div>
+          <div className="login-note">
+            <span className="login-note-dot" aria-hidden="true" />
+            <p>
+              Demo auth stays unchanged. This refresh only tightens layout, hierarchy, and visual
+              treatment.
+            </p>
           </div>
         </section>
 
@@ -53,17 +42,18 @@ export default async function LoginPage() {
           style={{
             padding: 32,
             alignSelf: "center",
-            background: "var(--bg-panel)",
+            background: "linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%), var(--bg-panel)",
           }}
         >
           <div className="stack" style={{ gap: 24 }}>
             <div className="stack" style={{ gap: 10 }}>
               <p className="eyebrow">Secure sign in</p>
-              <h2 style={{ margin: 0, fontSize: "2rem", lineHeight: 1.05 }}>
-                Sign in to launch and review experiment variants
+              <h2 style={{ margin: 0, fontSize: "1.9rem", lineHeight: 1.02 }}>
+                Enter your credentials
               </h2>
               <p className="muted" style={{ margin: 0, lineHeight: 1.6 }}>
-                Access the authenticated workspace to create experiment briefs, generate landing-page variants, and review saved outputs.
+                Invalid credentials stay inline, successful sign-in still redirects straight to the
+                dashboard.
               </p>
             </div>
             <LoginForm />

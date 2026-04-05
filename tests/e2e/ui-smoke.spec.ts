@@ -16,7 +16,7 @@ test("login route renders scaffold", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: "Sign in to launch and review experiment variants",
+      name: "Sign in to the experiment console.",
     }),
   ).toBeVisible();
 
