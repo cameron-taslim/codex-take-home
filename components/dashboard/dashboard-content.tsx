@@ -38,6 +38,8 @@ function getStatusSummary(experiments: DashboardExperimentSummary[]) {
     (summary, experiment) => {
       if (experiment.status === "generated") {
         summary.generated += 1;
+      } else if (experiment.status === "live") {
+        summary.live += 1;
       } else if (experiment.status === "generating") {
         summary.generating += 1;
       } else if (experiment.status === "generation_failed") {
@@ -48,7 +50,7 @@ function getStatusSummary(experiments: DashboardExperimentSummary[]) {
 
       return summary;
     },
-    { generated: 0, generating: 0, failed: 0, draft: 0 },
+    { generated: 0, live: 0, generating: 0, failed: 0, draft: 0 },
   );
 }
 
@@ -83,7 +85,7 @@ export function DashboardContent({
     return (
       <EmptyState
         title="Create your first experiment"
-        description="Start with a structured brief, generate storefront variants, and return here to review saved experiments."
+        description="Start with a merchandiser brief, approve the synthesized hypothesis, and return here to review saved experiments."
         action={<CreateExperimentLink />}
       />
     );
@@ -97,7 +99,7 @@ export function DashboardContent({
             <p className="eyebrow">Overview</p>
             <h2 className="dashboard-summary-title">Recent experiment activity</h2>
             <p className="dashboard-summary-description">
-              Scan saved briefs, generation progress, and the latest runnable ideas
+              Scan saved briefs, live launches, and the latest creative directions
               before opening a detail view.
             </p>
           </div>
@@ -110,6 +112,10 @@ export function DashboardContent({
             <div className="dashboard-metric">
               <span className="dashboard-metric-label">Generated</span>
               <strong>{statusSummary.generated}</strong>
+            </div>
+            <div className="dashboard-metric">
+              <span className="dashboard-metric-label">Live</span>
+              <strong>{statusSummary.live}</strong>
             </div>
             <div className="dashboard-metric">
               <span className="dashboard-metric-label">Generating</span>
@@ -143,7 +149,7 @@ export function DashboardContent({
               <div className="dashboard-row-primary">
                 <div className="dashboard-row-title-block">
                   <h2 className="dashboard-row-title">{experiment.name}</h2>
-                  <p className="dashboard-row-id">ID {experiment.id}</p>
+                  <p className="dashboard-row-id">{experiment.trafficSplit} traffic split</p>
                 </div>
                 <StatusBadge status={experiment.status} />
               </div>
@@ -162,7 +168,7 @@ export function DashboardContent({
                 <div className="dashboard-row-meta-block">
                   <span className="dashboard-row-meta-label">State</span>
                   <span className="dashboard-row-meta-value">
-                    {experiment.latestGenerationRun?.status ?? "No run yet"}
+                    {experiment.latestGenerationRun?.status ?? "Ready for first run"}
                   </span>
                 </div>
               </div>

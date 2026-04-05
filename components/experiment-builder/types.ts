@@ -1,22 +1,39 @@
+import type { CodexBriefSynthesis } from "@/lib/codex/provider";
+
+export type LockedElement =
+  | "Lock hero image"
+  | "Lock logo"
+  | "Lock legal copy"
+  | "Lock price display";
+
 export type ExperimentBuilderValues = {
   experimentId?: string;
   name: string;
-  goal: string;
-  pageType: string;
+  componentType: string;
+  primaryGoal: string;
+  trafficSplit: "50/50" | "70/30" | "80/20";
   targetAudience: string;
-  tone: string;
+  brandTone: string;
   brandConstraints: string;
+  lockedElements: LockedElement[];
   seedContext: string;
+  whatToTest: string;
+  variantCount: 2 | 3 | 4;
+  approvedBrief?: CodexBriefSynthesis;
 };
 
 export type ExperimentBuilderField =
   | "name"
-  | "goal"
-  | "pageType"
+  | "componentType"
+  | "primaryGoal"
+  | "trafficSplit"
   | "targetAudience"
-  | "tone"
+  | "brandTone"
   | "brandConstraints"
-  | "seedContext";
+  | "lockedElements"
+  | "seedContext"
+  | "whatToTest"
+  | "variantCount";
 
 export type ExperimentBuilderFieldErrors = Partial<
   Record<ExperimentBuilderField, string>
@@ -29,14 +46,19 @@ export type ExperimentBuilderActionResult = {
   experimentId?: string;
   savedMessage?: string;
   redirectTo?: string;
+  stage?: "draft" | "brief_ready" | "generated";
 };
 
 export const emptyExperimentBuilderValues: ExperimentBuilderValues = {
   name: "",
-  goal: "",
-  pageType: "",
+  componentType: "Hero banner",
+  primaryGoal: "Increase clickthrough rate",
+  trafficSplit: "50/50",
   targetAudience: "",
-  tone: "",
+  brandTone: "Editorial",
   brandConstraints: "",
+  lockedElements: ["Lock hero image", "Lock logo"],
   seedContext: "",
+  whatToTest: "",
+  variantCount: 3,
 };

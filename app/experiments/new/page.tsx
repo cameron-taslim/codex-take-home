@@ -8,8 +8,8 @@ export default async function NewExperimentPage() {
 
   return (
     <AppShell
-      title="Experiment Builder"
-      description="Capture the structured brief, save a recoverable draft, and trigger a server-side Codex generation run."
+      title="Storefront Experiment Lab"
+      description="Capture the merchandiser brief, approve the synthesized hypothesis, and trigger the mocked storefront generation workflow."
     >
       <ExperimentBuilderForm />
     </AppShell>

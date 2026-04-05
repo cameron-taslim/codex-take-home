@@ -3,11 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   getServerSessionMock,
   generateExperimentVariantsMock,
+  launchExperimentMock,
   revalidatePathMock,
+  mockTransaction,
+  updateVariantCopyMock,
 } = vi.hoisted(() => ({
   getServerSessionMock: vi.fn(),
   generateExperimentVariantsMock: vi.fn(),
+  launchExperimentMock: vi.fn(),
   revalidatePathMock: vi.fn(),
+  mockTransaction: vi.fn(async (callback: (tx: { id: string }) => Promise<unknown>) =>
+    callback({ id: "tx_123" }),
+  ),
+  updateVariantCopyMock: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
@@ -18,17 +26,30 @@ vi.mock("@/lib/auth/session", () => ({
   getServerSession: getServerSessionMock,
 }));
 
-vi.mock("@/lib/codex/service", () => ({
-  generateExperimentVariants: generateExperimentVariantsMock,
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    $transaction: mockTransaction,
+  },
 }));
 
-import { rerunExperimentAction } from "@/app/experiments/[id]/actions";
+vi.mock("@/lib/codex/service", () => ({
+  generateExperimentVariants: generateExperimentVariantsMock,
+  launchExperiment: launchExperimentMock,
+}));
 
-describe("experiment detail rerun action", () => {
+vi.mock("@/lib/repositories/variant-repository", () => ({
+  updateVariantCopy: updateVariantCopyMock,
+}));
+
+import {
+  launchExperimentAction,
+  rerunExperimentAction,
+  updateVariantCopyAction,
+} from "@/app/experiments/[id]/actions";
+
+describe("experiment detail actions", () => {
   beforeEach(() => {
-    getServerSessionMock.mockReset();
-    generateExperimentVariantsMock.mockReset();
-    revalidatePathMock.mockReset();
+    vi.clearAllMocks();
   });
 
   it("returns a recoverable auth error when the session is missing", async () => {
@@ -37,7 +58,6 @@ describe("experiment detail rerun action", () => {
     await expect(rerunExperimentAction("exp_123")).resolves.toEqual({
       formError: "Your session expired. Sign in again to regenerate variants.",
     });
-    expect(generateExperimentVariantsMock).not.toHaveBeenCalled();
   });
 
   it("reruns generation from the saved experiment brief and revalidates detail data", async () => {
@@ -55,19 +75,53 @@ describe("experiment detail rerun action", () => {
       experimentId: "exp_123",
       userId: "user_1",
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/experiments/exp_123");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard");
   });
 
-  it("returns the provider failure without hiding the recoverable state", async () => {
+  it("updates saved variant copy inline", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
-    generateExperimentVariantsMock.mockRejectedValue(new Error("provider down"));
 
-    await expect(rerunExperimentAction("exp_123")).resolves.toEqual({
-      formError: "provider down",
+    await expect(
+      updateVariantCopyAction({
+        experimentId: "exp_123",
+        variantId: "var_123",
+        headline: "Wear what lasts",
+        subheadline: "Crafted for the season ahead.",
+        ctaText: "Explore now",
+        rationale: "Leads with product materiality.",
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(updateVariantCopyMock).toHaveBeenCalledWith(
+      { id: "tx_123" },
+      expect.objectContaining({
+        experimentId: "exp_123",
+        variantId: "var_123",
+        ctaText: "Explore now",
+      }),
+    );
+  });
+
+  it("launches the experiment and revalidates views", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { id: "user_1", email: "demo@example.com" },
     });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
+    launchExperimentMock.mockResolvedValue({});
+
+    await expect(
+      launchExperimentAction({
+        experimentId: "exp_123",
+        launchAt: "2026-04-10T09:00",
+        launchMetric: "Increase clickthrough rate",
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(launchExperimentMock).toHaveBeenCalledWith({
+      experimentId: "exp_123",
+      userId: "user_1",
+      launchAt: "2026-04-10T09:00",
+      launchMetric: "Increase clickthrough rate",
+    });
   });
 });

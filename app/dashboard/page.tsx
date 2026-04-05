@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   return (
     <AppShell
       title="Dashboard"
-      description="Review saved experiments, track their status, and open the next variant workflow."
+      description="Review saved storefront experiments, track launch status, and open the next merchandiser workflow."
       headerAction={<CreateExperimentLink />}
     >
       <DashboardContent experiments={experiments} hasError={hasError} />

@@ -5,11 +5,16 @@ describe("experiment generation validation", () => {
   it("rejects incomplete generation requests", () => {
     const result = validateGenerationInput({
       experimentName: "Spring launch",
-      goal: "Increase clickthrough",
-      pageType: "",
+      componentType: "Hero banner",
+      primaryGoal: "Increase clickthrough rate",
+      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
-      tone: "Confident",
+      brandTone: "Confident",
       brandConstraints: "",
+      lockedElements: [],
+      seedContext: "",
+      whatToTest: "",
+      variantCount: 3,
     });
 
     expect(result.success).toBe(false);

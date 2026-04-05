@@ -25,9 +25,7 @@ describe("OpenAICodexProvider", () => {
   const originalOpenAIModel = process.env.OPENAI_MODEL;
 
   beforeEach(() => {
-    parseMock.mockReset();
-    openAIConstructorMock.mockReset();
-    zodTextFormatMock.mockClear();
+    vi.clearAllMocks();
     delete process.env.OPENAI_MODEL;
   });
 
@@ -42,20 +40,30 @@ describe("OpenAICodexProvider", () => {
 
   it("uses the Codex model by default when no environment override is present", async () => {
     parseMock.mockResolvedValue({
-      output_parsed: { variants: [] },
+      output_parsed: {
+        hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
+        whatIsChanging: ["headline copy"],
+        whatIsLocked: ["hero image"],
+        successMetric: "Increase clickthrough rate",
+        audienceSignal: "Returning shoppers",
+      },
     });
 
     const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
     const provider = new OpenAICodexProvider("test-key");
 
-    await provider.generateVariants({
-      experimentName: "Holiday push",
-      goal: "Improve conversions",
-      pageType: "Landing page",
-      targetAudience: "Gift buyers",
-      tone: "Energetic",
-      brandConstraints: "No discount language",
-      seedContext: "Hero campaign",
+    await provider.synthesizeBrief({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      primaryGoal: "Increase clickthrough rate",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      lockedElements: ["Lock hero image", "Lock logo"],
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      variantCount: 3,
     });
 
     expect(openAIConstructorMock).toHaveBeenCalledWith({ apiKey: "test-key" });
@@ -69,20 +77,57 @@ describe("OpenAICodexProvider", () => {
   it("prefers the OPENAI_MODEL override when it is configured", async () => {
     process.env.OPENAI_MODEL = "codex-custom";
     parseMock.mockResolvedValue({
-      output_parsed: { variants: [] },
+      output_parsed: {
+        variants: [
+          {
+            label: "Quality-led",
+            headline: "Wear what lasts",
+            subheadline: "Crafted for the season ahead.",
+            bodyCopy: "Leads with product materiality.",
+            ctaText: "Explore now",
+            layoutNotes: "Quality-led direction",
+            previewConfig: {
+              layout: "spotlight",
+              emphasis: "headline",
+              theme: "atelier-spring",
+              assetSetKey: "atelier-spring",
+              lockedElements: ["Lock hero image", "Lock logo"],
+            },
+          },
+          {
+            label: "Scarcity + personal",
+            headline: "Your next favorite is here",
+            subheadline: "Curated for repeat shoppers.",
+            bodyCopy: "Adds urgency and curation.",
+            ctaText: "Claim yours",
+            layoutNotes: "Scarcity-led direction",
+            previewConfig: {
+              layout: "split",
+              emphasis: "cta",
+              theme: "midnight-ledger",
+              assetSetKey: "atelier-spring",
+              lockedElements: ["Lock hero image", "Lock logo"],
+            },
+          },
+        ],
+      },
     });
 
     const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
     const provider = new OpenAICodexProvider("test-key");
 
     await provider.generateVariants({
-      experimentName: "Holiday push",
-      goal: "Improve conversions",
-      pageType: "Landing page",
-      targetAudience: "Gift buyers",
-      tone: "Energetic",
-      brandConstraints: "No discount language",
-      seedContext: "Hero campaign",
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      primaryGoal: "Increase clickthrough rate",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      lockedElements: ["Lock hero image", "Lock logo"],
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      variantCount: 3,
     });
 
     expect(parseMock).toHaveBeenCalledWith(

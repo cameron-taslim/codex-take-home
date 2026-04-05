@@ -1,121 +1,74 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import type { VariantRecord } from "@/lib/domain/types";
+import { getBrandAssetSet } from "@/lib/brand-assets";
 import { previewConfigSchema } from "@/lib/validation/experiments";
 
-export function VariantPreviewCard({ variant }: { variant: VariantRecord }) {
+export function VariantPreviewCard({
+  variant,
+  editableCopy,
+}: {
+  variant: VariantRecord;
+  editableCopy?: React.ReactNode;
+}) {
   const preview = previewConfigSchema.safeParse(variant.previewConfig);
   const previewConfig = preview.success
     ? preview.data
-    : { align: "left" as const, emphasis: "headline" as const, theme: "linen" };
-  const themeStyles = getThemeStyles(previewConfig.theme);
-  const alignmentClass =
-    previewConfig.align === "center"
-      ? "is-center"
-      : previewConfig.align === "split"
-        ? "is-split"
-        : "is-left";
+    : {
+        layout: "spotlight" as const,
+        emphasis: "headline" as const,
+        theme: "atelier-spring" as const,
+        assetSetKey: "atelier-spring",
+        lockedElements: [],
+      };
+  const assetSet = getBrandAssetSet(previewConfig.assetSetKey);
 
   return (
     <Card
-      className={`variant-preview-card ${alignmentClass}`}
+      className={`variant-preview-card variant-layout-${previewConfig.layout}`}
       style={{
-        background: themeStyles.background,
-        color: themeStyles.text,
+        background: assetSet.panel,
+        color: assetSet.text,
       }}
     >
       <div className="variant-preview-topbar">
         <div className="stack" style={{ gap: 6 }}>
           <p className="variant-preview-label">{variant.label}</p>
-          <p className="variant-preview-index" style={{ color: themeStyles.muted }}>
-            Variant {variant.position + 1}
-          </p>
+          <p className="variant-preview-index">{previewConfig.emphasis}</p>
         </div>
-        <span className="variant-preview-chip" style={themeStyles.chip}>
-          {previewConfig.emphasis}
-        </span>
+        <div className="variant-locked-rail">
+          {previewConfig.lockedElements.map((item) => (
+            <span key={item} className="variant-preview-chip">
+              {item.replace("Lock ", "")}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <div className="stack variant-preview-stage" style={{ gap: 14 }}>
-        <div className="stack" style={{ gap: 8 }}>
+      <div className="variant-live-preview">
+        <div
+          className="variant-preview-hero"
+          style={{ background: assetSet.heroImage }}
+          aria-hidden="true"
+        />
+        <div className="variant-preview-surface">
+          <div className="variant-logo-row">
+            <span className="variant-logo-mark" style={{ background: assetSet.accent }} />
+            <span className="variant-logo-wordmark">{assetSet.logoWordmark}</span>
+          </div>
+          <p className="variant-preview-kicker">{assetSet.eyebrow}</p>
           <h3 className="variant-preview-headline">{variant.headline}</h3>
           {variant.subheadline ? (
             <p className="variant-preview-subheadline">{variant.subheadline}</p>
           ) : null}
-        </div>
-
-        <p className="variant-preview-body" style={{ color: themeStyles.muted }}>
-          {variant.bodyCopy}
-        </p>
-      </div>
-
-      <div className="variant-preview-footer">
-        <div className="variant-preview-cta-row">
-          <span className="variant-preview-cta" style={themeStyles.cta}>
-            {variant.ctaText}
-          </span>
-          <span className="variant-preview-layout" style={{ color: themeStyles.muted }}>
-            {variant.layoutNotes}
-          </span>
+          <div className="variant-preview-footer">
+            <span className="variant-preview-cta">{variant.ctaText}</span>
+            <p className="variant-preview-body">{variant.bodyCopy}</p>
+          </div>
         </div>
       </div>
+
+      {editableCopy ? <div className="variant-editor-shell">{editableCopy}</div> : null}
     </Card>
   );
-}
-
-function getThemeStyles(theme: string) {
-  if (theme === "charcoal") {
-    return {
-      background:
-        "linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 38%), #1b2434",
-      text: "#f9fbff",
-      muted: "rgba(238, 242, 255, 0.72)",
-      chip: {
-        background: "rgba(124, 140, 255, 0.12)",
-        color: "#dce2ff",
-        border: "1px solid rgba(124, 140, 255, 0.24)",
-      },
-      cta: {
-        background: "rgba(255, 255, 255, 0.08)",
-        color: "#f9fbff",
-        border: "1px solid rgba(255, 255, 255, 0.12)",
-      },
-    };
-  }
-
-  if (theme === "linen") {
-    return {
-      background:
-        "linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 38%), #fbf5ea",
-      text: "#32261b",
-      muted: "rgba(50, 38, 27, 0.72)",
-      chip: {
-        background: "rgba(50, 38, 27, 0.08)",
-        color: "#574130",
-        border: "1px solid rgba(50, 38, 27, 0.14)",
-      },
-      cta: {
-        background: "#2e2450",
-        color: "#f8f4ff",
-        border: "1px solid rgba(46, 36, 80, 0.18)",
-      },
-    };
-  }
-
-  return {
-    background:
-      "linear-gradient(180deg, rgba(124, 140, 255, 0.1), transparent 38%), var(--bg-panel)",
-    text: "var(--text-primary)",
-    muted: "var(--text-secondary)",
-    chip: {
-      background: "rgba(124, 140, 255, 0.12)",
-      color: "var(--accent-primary-strong)",
-      border: "1px solid rgba(124, 140, 255, 0.2)",
-    },
-    cta: {
-      background: "rgba(255, 255, 255, 0.05)",
-      color: "var(--text-primary)",
-      border: "1px solid var(--border-subtle)",
-    },
-  };
 }

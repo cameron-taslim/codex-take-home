@@ -87,8 +87,9 @@ describe("dashboard page", () => {
       {
         id: "exp_newer",
         name: "Holiday hero refresh",
-        status: "generated",
+        status: "live",
         pageType: "Homepage hero",
+        trafficSplit: "70/30",
         updatedAt: new Date("2026-04-02T15:00:00.000Z"),
         latestGenerationRun: { status: "succeeded" },
       },
@@ -97,6 +98,7 @@ describe("dashboard page", () => {
         name: "PDP urgency experiment",
         status: "draft",
         pageType: "Product detail page",
+        trafficSplit: "50/50",
         updatedAt: new Date("2026-03-30T10:00:00.000Z"),
         latestGenerationRun: null,
       },
@@ -112,7 +114,8 @@ describe("dashboard page", () => {
     expect(newerExperimentLink).toHaveAttribute("href", "/experiments/exp_newer");
     expect(olderExperimentLink).toHaveAttribute("href", "/experiments/exp_older");
     expect(newerExperimentLink).toHaveTextContent("Holiday hero refresh");
-    expect(newerExperimentLink).toHaveTextContent("Generated");
+    expect(newerExperimentLink).toHaveTextContent("Live");
+    expect(newerExperimentLink).toHaveTextContent("70/30 traffic split");
     expect(olderExperimentLink).toHaveTextContent("PDP urgency experiment");
     expect(olderExperimentLink).toHaveTextContent("Draft");
   });

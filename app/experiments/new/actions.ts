@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/auth/session";
-import { generateExperimentVariants } from "@/lib/codex/service";
+import {
+  generateExperimentVariants,
+  synthesizeExperimentBrief,
+} from "@/lib/codex/service";
 import {
   createDraftExperiment,
   updateExperimentBrief,
@@ -15,18 +18,21 @@ import type {
   ExperimentBuilderValues,
 } from "@/components/experiment-builder/types";
 
-function normalizeValues(
-  values: ExperimentBuilderValues,
-): ExperimentBuilderValues {
+function normalizeValues(values: ExperimentBuilderValues): ExperimentBuilderValues {
   return {
     experimentId: values.experimentId,
     name: values.name.trim(),
-    goal: values.goal.trim(),
-    pageType: values.pageType.trim(),
+    componentType: values.componentType.trim(),
+    primaryGoal: values.primaryGoal.trim(),
+    trafficSplit: values.trafficSplit,
     targetAudience: values.targetAudience.trim(),
-    tone: values.tone.trim(),
+    brandTone: values.brandTone.trim(),
     brandConstraints: values.brandConstraints.trim(),
+    lockedElements: values.lockedElements,
     seedContext: values.seedContext.trim(),
+    whatToTest: values.whatToTest.trim(),
+    variantCount: values.variantCount,
+    approvedBrief: values.approvedBrief,
   };
 }
 
@@ -53,12 +59,16 @@ function validateDraft(values: ExperimentBuilderValues) {
 function mapGenerationErrors(values: ExperimentBuilderValues) {
   const validation = validateGenerationInput({
     experimentName: values.name,
-    goal: values.goal,
-    pageType: values.pageType,
+    componentType: values.componentType,
+    primaryGoal: values.primaryGoal,
+    trafficSplit: values.trafficSplit,
     targetAudience: values.targetAudience,
-    tone: values.tone,
-    brandConstraints: values.brandConstraints || undefined,
-    seedContext: values.seedContext || undefined,
+    brandTone: values.brandTone,
+    brandConstraints: values.brandConstraints,
+    lockedElements: values.lockedElements,
+    seedContext: values.seedContext,
+    whatToTest: values.whatToTest,
+    variantCount: values.variantCount,
   });
 
   if (validation.success) {
@@ -70,42 +80,34 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
   for (const issue of validation.error.issues) {
     const path = issue.path[0];
 
-    if (path === "experimentName") {
-      fieldErrors.name = issue.message;
-    }
-
-    if (path === "goal") {
-      fieldErrors.goal = issue.message;
-    }
-
-    if (path === "pageType") {
-      fieldErrors.pageType = issue.message;
-    }
-
-    if (path === "targetAudience") {
-      fieldErrors.targetAudience = issue.message;
-    }
-
-    if (path === "tone") {
-      fieldErrors.tone = issue.message;
-    }
+    if (path === "experimentName") fieldErrors.name = issue.message;
+    if (path === "componentType") fieldErrors.componentType = issue.message;
+    if (path === "primaryGoal") fieldErrors.primaryGoal = issue.message;
+    if (path === "targetAudience") fieldErrors.targetAudience = issue.message;
+    if (path === "brandTone") fieldErrors.brandTone = issue.message;
+    if (path === "brandConstraints") fieldErrors.brandConstraints = issue.message;
+    if (path === "lockedElements") fieldErrors.lockedElements = issue.message;
+    if (path === "seedContext") fieldErrors.seedContext = issue.message;
+    if (path === "whatToTest") fieldErrors.whatToTest = issue.message;
+    if (path === "variantCount") fieldErrors.variantCount = issue.message;
   }
 
   return fieldErrors;
 }
 
-async function persistExperiment(
-  values: ExperimentBuilderValues,
-  userId: string,
-) {
+async function persistExperiment(values: ExperimentBuilderValues, userId: string) {
   const experimentInput = {
     name: values.name,
-    goal: values.goal,
-    pageType: values.pageType,
+    goal: values.primaryGoal,
+    pageType: values.componentType,
     targetAudience: values.targetAudience,
-    tone: values.tone,
+    tone: values.brandTone,
     brandConstraints: values.brandConstraints,
     seedContext: values.seedContext || undefined,
+    whatToTest: values.whatToTest,
+    trafficSplit: values.trafficSplit,
+    variantCount: values.variantCount,
+    lockedElements: values.lockedElements,
   };
 
   if (values.experimentId) {
@@ -113,12 +115,14 @@ async function persistExperiment(
       ...experimentInput,
       seedContext: values.seedContext || null,
       status: "draft",
+      approvedBrief: values.approvedBrief,
     });
   }
 
   return createDraftExperiment(prisma, {
     userId,
     ...experimentInput,
+    approvedBrief: values.approvedBrief,
   });
 }
 
@@ -159,15 +163,61 @@ export async function saveDraftExperimentAction(
       },
       {
         experimentId: experiment.id,
-        savedMessage: "Draft saved. Continue editing or generate variants.",
+        savedMessage: "Draft saved. Keep refining the brief or analyze it when ready.",
+        stage: "draft",
       },
     );
   } catch (error) {
     return buildResult(normalizedValues, {
       formError:
-        error instanceof Error
-          ? error.message
-          : "Draft save failed. Try again.",
+        error instanceof Error ? error.message : "Draft save failed. Try again.",
+    });
+  }
+}
+
+export async function prepareExperimentBriefAction(
+  values: ExperimentBuilderValues,
+): Promise<ExperimentBuilderActionResult> {
+  const normalizedValues = normalizeValues(values);
+  const userId = await getUserId();
+
+  if (!userId) {
+    return buildResult(normalizedValues, {
+      formError: "Your session expired. Sign in again to analyze this brief.",
+    });
+  }
+
+  const fieldErrors = mapGenerationErrors(normalizedValues);
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return buildResult(normalizedValues, { fieldErrors });
+  }
+
+  try {
+    const experiment = await persistExperiment(normalizedValues, userId);
+    const approvedBrief = await synthesizeExperimentBrief({
+      experimentId: experiment.id,
+      userId,
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/experiments/${experiment.id}`);
+
+    return buildResult(
+      {
+        ...normalizedValues,
+        experimentId: experiment.id,
+        approvedBrief,
+      },
+      {
+        experimentId: experiment.id,
+        stage: "brief_ready",
+      },
+    );
+  } catch (error) {
+    return buildResult(normalizedValues, {
+      formError:
+        error instanceof Error ? error.message : "Brief analysis failed. Try again.",
     });
   }
 }
@@ -191,6 +241,12 @@ export async function generateExperimentAction(
     return buildResult(normalizedValues, { fieldErrors });
   }
 
+  if (!normalizedValues.approvedBrief) {
+    return buildResult(normalizedValues, {
+      formError: "Approve the synthesized brief before generating variants.",
+    });
+  }
+
   try {
     const experiment = await persistExperiment(normalizedValues, userId);
     persistedExperimentId = experiment.id;
@@ -211,6 +267,7 @@ export async function generateExperimentAction(
       {
         experimentId: experiment.id,
         redirectTo: `/experiments/${experiment.id}`,
+        stage: "generated",
       },
     );
   } catch (error) {

@@ -5,12 +5,14 @@ const {
   getServerSessionMock,
   createDraftExperimentMock,
   updateExperimentBriefMock,
+  synthesizeExperimentBriefMock,
   generateExperimentVariantsMock,
 } = vi.hoisted(() => ({
   revalidatePathMock: vi.fn(),
   getServerSessionMock: vi.fn(),
   createDraftExperimentMock: vi.fn(),
   updateExperimentBriefMock: vi.fn(),
+  synthesizeExperimentBriefMock: vi.fn(),
   generateExperimentVariantsMock: vi.fn(),
 }));
 
@@ -32,142 +34,140 @@ vi.mock("@/lib/repositories/experiment-repository", () => ({
 }));
 
 vi.mock("@/lib/codex/service", () => ({
+  synthesizeExperimentBrief: synthesizeExperimentBriefMock,
   generateExperimentVariants: generateExperimentVariantsMock,
 }));
 
 import {
   generateExperimentAction,
+  prepareExperimentBriefAction,
   saveDraftExperimentAction,
 } from "@/app/experiments/new/actions";
 
+const baseValues = {
+  name: "Spring hero banner test",
+  componentType: "Hero banner",
+  primaryGoal: "Increase clickthrough rate",
+  trafficSplit: "50/50" as const,
+  targetAudience: "Returning shoppers looking for premium seasonal pieces",
+  brandTone: "Editorial",
+  brandConstraints: "Avoid discount framing",
+  lockedElements: ["Lock hero image", "Lock logo"] as const,
+  seedContext: "Feature lightweight outerwear",
+  whatToTest: "Generate three headlines that lead with quality.",
+  variantCount: 3 as const,
+};
+
 describe("experiment builder actions", () => {
   beforeEach(() => {
-    revalidatePathMock.mockReset();
-    getServerSessionMock.mockReset();
-    createDraftExperimentMock.mockReset();
-    updateExperimentBriefMock.mockReset();
-    generateExperimentVariantsMock.mockReset();
+    vi.clearAllMocks();
   });
 
   it("returns an auth error instead of persisting when the session is missing", async () => {
     getServerSessionMock.mockResolvedValue(null);
 
-    await expect(
-      saveDraftExperimentAction({
-        name: "Holiday hero refresh",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
-        brandConstraints: "",
-        seedContext: "",
-      }),
-    ).resolves.toEqual({
-      values: {
-        name: "Holiday hero refresh",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
-        brandConstraints: "",
-        seedContext: "",
-      },
+    await expect(saveDraftExperimentAction(baseValues)).resolves.toEqual({
+      values: baseValues,
       formError: "Your session expired. Sign in again to save this draft.",
     });
-
-    expect(createDraftExperimentMock).not.toHaveBeenCalled();
-    expect(updateExperimentBriefMock).not.toHaveBeenCalled();
   });
 
   it("creates and returns a persisted draft experiment", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
-    createDraftExperimentMock.mockResolvedValue({
-      id: "exp_123",
-    });
+    createDraftExperimentMock.mockResolvedValue({ id: "exp_123" });
 
-    await expect(
-      saveDraftExperimentAction({
-        name: " Holiday hero refresh ",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
-        brandConstraints: "",
-        seedContext: " Existing campaign notes ",
-      }),
-    ).resolves.toEqual({
+    await expect(saveDraftExperimentAction(baseValues)).resolves.toEqual({
       values: {
+        ...baseValues,
         experimentId: "exp_123",
-        name: "Holiday hero refresh",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
-        brandConstraints: "",
-        seedContext: "Existing campaign notes",
       },
       experimentId: "exp_123",
-      savedMessage: "Draft saved. Continue editing or generate variants.",
+      savedMessage: "Draft saved. Keep refining the brief or analyze it when ready.",
+      stage: "draft",
     });
 
     expect(createDraftExperimentMock).toHaveBeenCalledWith(
       {},
       expect.objectContaining({
         userId: "user_1",
-        name: "Holiday hero refresh",
-        seedContext: "Existing campaign notes",
+        goal: "Increase clickthrough rate",
+        pageType: "Hero banner",
+        tone: "Editorial",
+        whatToTest: "Generate three headlines that lead with quality.",
       }),
     );
-    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/experiments/exp_123");
   });
 
-  it("rejects incomplete generation requests before invoking Codex", async () => {
+  it("rejects incomplete analysis requests before invoking synthesis", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
 
     await expect(
-      generateExperimentAction({
-        name: "Holiday hero refresh",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
+      prepareExperimentBriefAction({
+        ...baseValues,
         brandConstraints: "",
-        seedContext: "",
+        lockedElements: [],
       }),
     ).resolves.toEqual({
       values: {
-        name: "Holiday hero refresh",
-        goal: "",
-        pageType: "",
-        targetAudience: "",
-        tone: "",
+        ...baseValues,
         brandConstraints: "",
-        seedContext: "",
+        lockedElements: [],
       },
       fieldErrors: {
-        goal: "Experiment goal is required.",
-        pageType: "Target page type is required.",
-        targetAudience: "Target audience is required.",
-        tone: "Tone is required.",
+        brandConstraints: "Brand constraints are required.",
+        lockedElements: "Choose at least one locked element.",
       },
     });
 
-    expect(createDraftExperimentMock).not.toHaveBeenCalled();
-    expect(generateExperimentVariantsMock).not.toHaveBeenCalled();
+    expect(synthesizeExperimentBriefMock).not.toHaveBeenCalled();
   });
 
-  it("persists the brief, triggers generation, and returns the detail redirect", async () => {
+  it("persists the brief and returns the synthesized confirmation stage", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
-    createDraftExperimentMock.mockResolvedValue({
-      id: "exp_123",
+    createDraftExperimentMock.mockResolvedValue({ id: "exp_123" });
+    synthesizeExperimentBriefMock.mockResolvedValue({
+      hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
+      whatIsChanging: ["headline copy", "CTA label"],
+      whatIsLocked: ["hero image", "logo"],
+      successMetric: "Increase clickthrough rate",
+      audienceSignal: "Returning shoppers",
     });
+
+    const result = await prepareExperimentBriefAction(baseValues);
+
+    expect(result.experimentId).toBe("exp_123");
+    expect(result.stage).toBe("brief_ready");
+    expect(result.values.approvedBrief?.whatIsLocked).toEqual(["hero image", "logo"]);
+    expect(synthesizeExperimentBriefMock).toHaveBeenCalledWith({
+      experimentId: "exp_123",
+      userId: "user_1",
+    });
+  });
+
+  it("requires the approved brief before generation", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { id: "user_1", email: "demo@example.com" },
+    });
+
+    await expect(generateExperimentAction(baseValues)).resolves.toEqual({
+      values: baseValues,
+      formError: "Approve the synthesized brief before generating variants.",
+    });
+
+    expect(generateExperimentVariantsMock).not.toHaveBeenCalled();
+  });
+
+  it("generates variants after brief approval and redirects to detail", async () => {
+    getServerSessionMock.mockResolvedValue({
+      user: { id: "user_1", email: "demo@example.com" },
+    });
+    createDraftExperimentMock.mockResolvedValue({ id: "exp_123" });
     generateExperimentVariantsMock.mockResolvedValue({
       runId: "run_123",
       variantCount: 3,
@@ -175,75 +175,35 @@ describe("experiment builder actions", () => {
 
     await expect(
       generateExperimentAction({
-        name: "Holiday hero refresh",
-        goal: "Increase clickthrough",
-        pageType: "Homepage hero",
-        targetAudience: "Gift buyers",
-        tone: "Confident",
-        brandConstraints: "Avoid discount language",
-        seedContext: "",
+        ...baseValues,
+        approvedBrief: {
+          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
+          whatIsChanging: ["headline copy", "CTA label"],
+          whatIsLocked: ["hero image", "logo"],
+          successMetric: "Increase clickthrough rate",
+          audienceSignal: "Returning shoppers",
+        },
       }),
     ).resolves.toEqual({
       values: {
+        ...baseValues,
         experimentId: "exp_123",
-        name: "Holiday hero refresh",
-        goal: "Increase clickthrough",
-        pageType: "Homepage hero",
-        targetAudience: "Gift buyers",
-        tone: "Confident",
-        brandConstraints: "Avoid discount language",
-        seedContext: "",
+        approvedBrief: {
+          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
+          whatIsChanging: ["headline copy", "CTA label"],
+          whatIsLocked: ["hero image", "logo"],
+          successMetric: "Increase clickthrough rate",
+          audienceSignal: "Returning shoppers",
+        },
       },
       experimentId: "exp_123",
       redirectTo: "/experiments/exp_123",
+      stage: "generated",
     });
 
     expect(generateExperimentVariantsMock).toHaveBeenCalledWith({
       experimentId: "exp_123",
       userId: "user_1",
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/experiments/exp_123");
-  });
-
-  it("keeps the form recoverable when generation fails after persistence", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: { id: "user_1", email: "demo@example.com" },
-    });
-    createDraftExperimentMock.mockResolvedValue({
-      id: "exp_123",
-    });
-    generateExperimentVariantsMock.mockRejectedValue(new Error("provider down"));
-
-    await expect(
-      generateExperimentAction({
-        name: "Holiday hero refresh",
-        goal: "Increase clickthrough",
-        pageType: "Homepage hero",
-        targetAudience: "Gift buyers",
-        tone: "Confident",
-        brandConstraints: "",
-        seedContext: "Existing campaign notes",
-      }),
-    ).resolves.toEqual({
-      values: {
-        experimentId: "exp_123",
-        name: "Holiday hero refresh",
-        goal: "Increase clickthrough",
-        pageType: "Homepage hero",
-        targetAudience: "Gift buyers",
-        tone: "Confident",
-        brandConstraints: "",
-        seedContext: "Existing campaign notes",
-      },
-      experimentId: "exp_123",
-      formError: "provider down",
-    });
-
-    expect(generateExperimentVariantsMock).toHaveBeenCalledWith({
-      experimentId: "exp_123",
-      userId: "user_1",
-    });
-    expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 });

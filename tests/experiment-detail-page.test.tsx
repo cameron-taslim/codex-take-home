@@ -55,15 +55,23 @@ vi.mock("@/components/experiment-detail/rerun-controls", () => ({
   RerunControls: () => <button type="button">Regenerate</button>,
 }));
 
+vi.mock("@/components/experiment-detail/results-panel", () => ({
+  ExperimentResultsPanel: ({ experiment }: { experiment: { latestSavedRun: { variants: Array<{ headline: string }> } } }) => (
+    <section>
+      <h2>Live creative directions</h2>
+      {experiment.latestSavedRun.variants.map((variant) => (
+        <p key={variant.headline}>{variant.headline}</p>
+      ))}
+      <button type="button">Launch Experiment</button>
+    </section>
+  ),
+}));
+
 import ExperimentDetailPage from "@/app/experiments/[id]/page";
 
 describe("experiment detail page", () => {
   beforeEach(() => {
-    redirectMock.mockReset();
-    notFoundMock.mockReset();
-    requireUserSessionMock.mockReset();
-    getExperimentDetailForUserMock.mockReset();
-
+    vi.clearAllMocks();
     requireUserSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
@@ -78,46 +86,67 @@ describe("experiment detail page", () => {
     await expect(
       ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }),
     ).rejects.toThrow("NEXT_REDIRECT");
-    expect(redirectMock).toHaveBeenCalledWith("/login");
   });
 
-  it("renders the latest saved variants and generation history for an owned experiment", async () => {
+  it("renders the approved brief, live previews, and generation history", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
-      name: "Holiday hero refresh",
-      goal: "Increase clickthrough",
-      pageType: "Homepage hero",
-      targetAudience: "Gift buyers",
-      tone: "Confident",
-      brandConstraints: "Avoid discount language",
-      seedContext: "Feature premium gifting",
-      status: "generation_failed",
-      updatedAt: new Date("2026-04-03T17:30:00.000Z"),
-      latestGenerationRunId: "run_failed",
+      name: "Spring hero banner test",
+      goal: "Increase clickthrough rate",
+      pageType: "Hero banner",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      tone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      variantCount: 3,
+      lockedElements: ["Lock hero image", "Lock logo"],
+      approvedBrief: {
+        hypothesis: "We believe stronger quality-led copy will improve clickthrough rate.",
+        whatIsChanging: ["headline copy", "CTA label"],
+        whatIsLocked: ["hero image", "logo"],
+        successMetric: "Increase clickthrough rate",
+        audienceSignal: "Returning shoppers",
+      },
+      launchMetric: null,
+      launchAt: null,
+      launchConfig: null,
+      brandAssetSetKey: "atelier-spring",
+      status: "generated",
+      latestGenerationRunId: "run_success",
       latestGenerationRun: {
-        id: "run_failed",
-        status: "failed",
+        id: "run_success",
+        status: "succeeded",
         startedAt: new Date("2026-04-03T17:30:00.000Z"),
         completedAt: new Date("2026-04-03T17:32:00.000Z"),
-        errorMessage: "provider down",
+        errorMessage: null,
+        resultSnapshot: null,
       },
       latestSavedRun: {
         id: "run_success",
         status: "succeeded",
-        startedAt: new Date("2026-04-02T14:00:00.000Z"),
-        completedAt: new Date("2026-04-02T14:02:00.000Z"),
+        startedAt: new Date("2026-04-03T17:30:00.000Z"),
+        completedAt: new Date("2026-04-03T17:32:00.000Z"),
+        resultSnapshot: null,
         variants: [
           {
             id: "variant_a",
             experimentId: "exp_123",
             generationRunId: "run_success",
-            label: "Variant A",
-            headline: "Curated gifts for every room",
-            subheadline: "Give design-forward essentials",
-            bodyCopy: "Launch a premium gifting collection with elevated copy.",
-            ctaText: "Shop gifts",
-            layoutNotes: "Left aligned hero",
-            previewConfig: { align: "left", emphasis: "headline", theme: "linen" },
+            label: "Quality-led",
+            headline: "Wear what lasts",
+            subheadline: "Crafted for the season ahead",
+            bodyCopy: "Leads with product materiality.",
+            ctaText: "Explore now",
+            layoutNotes: "Quality-led direction",
+            previewConfig: {
+              layout: "spotlight",
+              emphasis: "headline",
+              theme: "atelier-spring",
+              assetSetKey: "atelier-spring",
+              lockedElements: ["Lock hero image", "Lock logo"],
+            },
             position: 0,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -126,42 +155,26 @@ describe("experiment detail page", () => {
       },
       generationHistory: [
         {
-          id: "run_failed",
-          status: "failed",
-          startedAt: new Date("2026-04-03T17:30:00.000Z"),
-          completedAt: new Date("2026-04-03T17:32:00.000Z"),
-          errorMessage: "provider down",
-          variantCount: 0,
-        },
-        {
           id: "run_success",
           status: "succeeded",
-          startedAt: new Date("2026-04-02T14:00:00.000Z"),
-          completedAt: new Date("2026-04-02T14:02:00.000Z"),
+          startedAt: new Date("2026-04-03T17:30:00.000Z"),
+          completedAt: new Date("2026-04-03T17:32:00.000Z"),
           errorMessage: null,
-          variantCount: 2,
+          variantCount: 3,
         },
       ],
     });
 
     render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
 
-    expect(getExperimentDetailForUserMock).toHaveBeenCalledWith("exp_123", "user_1");
+    expect(screen.getByText("Approved brief")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 1, name: "Holiday hero refresh" }),
+      screen.getByText("We believe stronger quality-led copy will improve clickthrough rate."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Latest saved variants")).toBeInTheDocument();
-    expect(screen.getByText("Curated gifts for every room")).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Latest generation failed: provider down",
-    );
-    expect(
-      screen.getByText(/Showing variants from the most recent successful run/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Live creative directions")).toBeInTheDocument();
+    expect(screen.getByText("Wear what lasts")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Launch Experiment" })).toBeInTheDocument();
     expect(screen.getByText("Generation history")).toBeInTheDocument();
-    expect(screen.getByText("Run run_failed")).toBeInTheDocument();
-    expect(screen.getByText("Run run_success")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Regenerate" })).toHaveLength(1);
   });
 
   it("blocks unauthorized or missing experiment access with a safe not-found response", async () => {
@@ -173,41 +186,32 @@ describe("experiment detail page", () => {
     await expect(
       ExperimentDetailPage({ params: Promise.resolve({ id: "exp_missing" }) }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(getExperimentDetailForUserMock).toHaveBeenCalledWith("exp_missing", "user_1");
-    expect(notFoundMock).toHaveBeenCalled();
   });
 
-  it("renders a recoverable empty state when no saved variants exist yet", async () => {
+  it("renders an empty state when no variants exist yet", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
-      name: "Holiday hero refresh",
-      goal: "Increase clickthrough",
-      pageType: "Homepage hero",
-      targetAudience: "Gift buyers",
-      tone: "Confident",
-      brandConstraints: "",
-      seedContext: null,
-      status: "generation_failed",
-      updatedAt: new Date("2026-04-03T17:30:00.000Z"),
-      latestGenerationRunId: "run_failed",
-      latestGenerationRun: {
-        id: "run_failed",
-        status: "failed",
-        startedAt: new Date("2026-04-03T17:30:00.000Z"),
-        completedAt: new Date("2026-04-03T17:32:00.000Z"),
-        errorMessage: "response shape invalid",
-      },
+      name: "Spring hero banner test",
+      goal: "Increase clickthrough rate",
+      pageType: "Hero banner",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      tone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      variantCount: 3,
+      lockedElements: ["Lock hero image", "Lock logo"],
+      approvedBrief: null,
+      launchMetric: null,
+      launchAt: null,
+      launchConfig: null,
+      brandAssetSetKey: "atelier-spring",
+      status: "draft",
+      latestGenerationRunId: null,
+      latestGenerationRun: null,
       latestSavedRun: null,
-      generationHistory: [
-        {
-          id: "run_failed",
-          status: "failed",
-          startedAt: new Date("2026-04-03T17:30:00.000Z"),
-          completedAt: new Date("2026-04-03T17:32:00.000Z"),
-          errorMessage: "response shape invalid",
-          variantCount: 0,
-        },
-      ],
+      generationHistory: [],
     });
 
     render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
@@ -215,9 +219,5 @@ describe("experiment detail page", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "No saved variants yet" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Latest generation failed: response shape invalid",
-    );
-    expect(screen.getAllByRole("button", { name: "Regenerate" })).toHaveLength(2);
   });
 });

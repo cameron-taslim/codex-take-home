@@ -1,12 +1,12 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
+import { ExperimentResultsPanel } from "@/components/experiment-detail/results-panel";
 import { RerunControls } from "@/components/experiment-detail/rerun-controls";
+import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { VariantPreviewCard } from "@/components/ui/variant-preview-card";
 import { requireUserSession } from "@/lib/auth/session";
 import { getExperimentDetailForUser } from "@/lib/repositories/experiment-repository";
 
@@ -26,15 +26,11 @@ export default async function ExperimentDetailPage({
   const latestRun = experiment.latestGenerationRun;
   const latestSavedRun = experiment.latestSavedRun;
   const latestVariants = latestSavedRun?.variants ?? [];
-  const showingPriorSavedVariants =
-    latestRun?.status === "failed" &&
-    latestSavedRun &&
-    latestSavedRun.id !== latestRun.id;
 
   return (
     <AppShell
       title={experiment.name}
-      description="Review the saved brief, compare the latest persisted variants, and rerun generation from the same structured input."
+      description="Review the approved brief, edit generated copy in live previews, and launch the storefront experiment."
       headerAction={<RerunControls experimentId={experiment.id} />}
     >
       <div className="detail-layout">
@@ -45,8 +41,8 @@ export default async function ExperimentDetailPage({
                 <p className="builder-kicker">Experiment summary</p>
                 <h2 className="detail-section-title">{experiment.name}</h2>
                 <p className="muted detail-summary-copy">
-                  Stored brief inputs, latest run status, and the current variant set
-                  available for review.
+                  Approved brief context, current launch state, and the latest
+                  saved creative directions.
                 </p>
               </div>
               <StatusBadge status={experiment.status} />
@@ -62,61 +58,69 @@ export default async function ExperimentDetailPage({
               />
             ) : null}
 
-            {showingPriorSavedVariants ? (
-              <p className="muted detail-recovery-note">
-                Showing variants from the most recent successful run while the latest
-                attempt remains recoverable in history.
-              </p>
-            ) : null}
-
             <dl className="detail-summary-grid">
-              <MetadataItem label="Goal" value={experiment.goal} />
-              <MetadataItem label="Page type" value={experiment.pageType} />
-              <MetadataItem label="Target audience" value={experiment.targetAudience} />
-              <MetadataItem label="Tone" value={experiment.tone} />
+              <MetadataItem label="Component type" value={experiment.pageType} />
+              <MetadataItem label="Primary goal" value={experiment.goal} />
+              <MetadataItem label="Traffic split" value={experiment.trafficSplit} />
+              <MetadataItem label="Audience" value={experiment.targetAudience} />
+              <MetadataItem label="Brand tone" value={experiment.tone} />
+              <MetadataItem label="Brand constraints" value={experiment.brandConstraints} />
               <MetadataItem
-                label="Brand constraints"
-                value={experiment.brandConstraints || "None provided"}
+                label="What to test"
+                value={experiment.whatToTest || "No test prompt saved"}
               />
               <MetadataItem
-                label="Seed context"
-                value={experiment.seedContext || "None provided"}
+                label="Locked elements"
+                value={
+                  Array.isArray(experiment.lockedElements)
+                    ? experiment.lockedElements
+                        .map((item) =>
+                          typeof item === "string" ? item.replace("Lock ", "") : "",
+                        )
+                        .filter(Boolean)
+                        .join(", ")
+                    : "None selected"
+                }
               />
             </dl>
+
+            {experiment.approvedBrief ? (
+              <div className="detail-approved-brief">
+                <h3 className="detail-section-title">Approved brief</h3>
+                <p className="detail-brief-hypothesis">
+                  {safeBriefValue(experiment.approvedBrief, "hypothesis")}
+                </p>
+                <div className="detail-brief-grid">
+                  <DetailList
+                    title="What is changing"
+                    items={safeBriefList(experiment.approvedBrief, "whatIsChanging")}
+                  />
+                  <DetailList
+                    title="What is locked"
+                    items={safeBriefList(experiment.approvedBrief, "whatIsLocked")}
+                  />
+                  <DetailList
+                    title="Success metric"
+                    items={[safeBriefValue(experiment.approvedBrief, "successMetric")]}
+                  />
+                  <DetailList
+                    title="Audience signal"
+                    items={[safeBriefValue(experiment.approvedBrief, "audienceSignal")]}
+                  />
+                </div>
+              </div>
+            ) : null}
           </Card>
 
-          <section className="stack detail-section">
-            <div className="detail-section-header">
-              <div className="stack" style={{ gap: 6 }}>
-                <p className="builder-section-kicker">Preview surfaces</p>
-                <h2 className="detail-section-title">Latest saved variants</h2>
-                <p className="muted detail-section-copy">
-                  Compare the persisted variant set that is currently available for
-                  review.
-                </p>
-              </div>
-              {latestVariants.length > 0 ? (
-                <span className="detail-count-chip">
-                  {latestVariants.length} saved variant
-                  {latestVariants.length === 1 ? "" : "s"}
-                </span>
-              ) : null}
-            </div>
-
-            {latestVariants.length > 0 ? (
-              <div className="detail-variant-grid">
-                {latestVariants.map((variant) => (
-                  <VariantPreviewCard key={variant.id} variant={variant} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="No saved variants yet"
-                description="Generate variants from this saved brief to populate the comparison view."
-                action={<RerunControls experimentId={experiment.id} />}
-              />
-            )}
-          </section>
+          {latestVariants.length > 0 ? (
+            <ExperimentResultsPanel experiment={experiment} />
+          ) : (
+            <EmptyState
+              title="No saved variants yet"
+              description="Approve the brief and generate variants before editing copy or launching this experiment."
+              action={<RerunControls experimentId={experiment.id} />}
+            />
+          )}
         </div>
 
         <aside className="stack detail-side-column">
@@ -126,7 +130,8 @@ export default async function ExperimentDetailPage({
                 <p className="builder-section-kicker">Run ledger</p>
                 <h2 className="detail-section-title">Generation history</h2>
                 <p className="muted detail-section-copy">
-                  Every rerun is preserved as a separate persisted record.
+                  Each mocked generation run preserves variants and hidden config
+                  output for later review.
                 </p>
               </div>
 
@@ -148,7 +153,7 @@ export default async function ExperimentDetailPage({
               ) : (
                 <EmptyState
                   title="No generation runs yet"
-                  description="Start the first run from the saved brief to populate generation history."
+                  description="Start the first run from the approved brief to populate generation history."
                 />
               )}
             </div>
@@ -159,13 +164,7 @@ export default async function ExperimentDetailPage({
   );
 }
 
-function MetadataItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetadataItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="detail-meta-item">
       <dt className="detail-meta-label">{label}</dt>
@@ -201,11 +200,22 @@ function HistoryItem({
         {variantCount} saved variant{variantCount === 1 ? "" : "s"}
         {completedAt ? ` • Completed ${formatDate(completedAt)}` : ""}
       </p>
-      {errorMessage ? (
-        <p className="detail-history-error">{errorMessage}</p>
-      ) : null}
+      {errorMessage ? <p className="detail-history-error">{errorMessage}</p> : null}
       <p className="detail-history-id">Run {id}</p>
     </Card>
+  );
+}
+
+function DetailList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="builder-brief-card">
+      <span className="builder-brief-label">{title}</span>
+      <ul className="builder-brief-list">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -227,4 +237,22 @@ function formatRunStatus(status: "pending" | "running" | "succeeded" | "failed")
   }
 
   return "Generating";
+}
+
+function safeBriefValue(value: unknown, key: string) {
+  if (value && typeof value === "object" && key in value) {
+    const item = (value as Record<string, unknown>)[key];
+    return typeof item === "string" ? item : "";
+  }
+
+  return "";
+}
+
+function safeBriefList(value: unknown, key: string) {
+  if (value && typeof value === "object" && key in value) {
+    const item = (value as Record<string, unknown>)[key];
+    return Array.isArray(item) ? item.filter((entry): entry is string => typeof entry === "string") : [];
+  }
+
+  return [];
 }

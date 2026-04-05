@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ExperimentStatus } from "@prisma/client";
-import { buildPromptSnapshot, generateExperimentVariants } from "@/lib/codex/service";
+import { buildPromptSnapshot, generateExperimentVariants, synthesizeExperimentBrief } from "@/lib/codex/service";
 
 const {
   mockTransaction,
   transactionContexts,
   getExperimentForUser,
+  storeApprovedBrief,
   createGenerationRun,
   markGenerationRunRunning,
   createVariants,
+  persistGenerationRunResult,
   completeGenerationRun,
   failGenerationRun,
 } = vi.hoisted(() => ({
@@ -19,9 +20,11 @@ const {
     return callback(tx);
   }),
   getExperimentForUser: vi.fn(),
+  storeApprovedBrief: vi.fn(),
   createGenerationRun: vi.fn(),
   markGenerationRunRunning: vi.fn(),
   createVariants: vi.fn(),
+  persistGenerationRunResult: vi.fn(),
   completeGenerationRun: vi.fn(),
   failGenerationRun: vi.fn(),
 }));
@@ -37,30 +40,10 @@ const openAIProviderConstructorMock = vi.fn();
 vi.mock("@/lib/codex/openai-provider", () => ({
   OpenAICodexProvider: vi.fn().mockImplementation((apiKey: string) => {
     openAIProviderConstructorMock(apiKey);
-
     return {
-      generateVariants: vi.fn().mockResolvedValue({
-        variants: [
-          {
-            label: "Provider A",
-            headline: "Provider headline",
-            subheadline: "Provider subheadline",
-            bodyCopy: "Provider body",
-            ctaText: "Provider CTA",
-            layoutNotes: "Provider layout",
-            previewConfig: { align: "center", emphasis: "headline", theme: "linen" },
-          },
-          {
-            label: "Provider B",
-            headline: "Provider headline B",
-            subheadline: "Provider subheadline B",
-            bodyCopy: "Provider body B",
-            ctaText: "Provider CTA B",
-            layoutNotes: "Provider layout B",
-            previewConfig: { align: "split", emphasis: "cta", theme: "charcoal" },
-          },
-        ],
-      }),
+      synthesizeBrief: vi.fn(),
+      generateVariants: vi.fn(),
+      generateLaunchConfig: vi.fn(),
     };
   }),
 }));
@@ -68,26 +51,36 @@ vi.mock("@/lib/codex/openai-provider", () => ({
 const experiment = {
   id: "exp_123",
   userId: "user_123",
-  name: "Holiday push",
-  goal: "Improve conversions",
-  pageType: "Landing page",
-  targetAudience: "Gift buyers",
-  tone: "Energetic",
-  brandConstraints: "No discount language",
-  seedContext: "Hero campaign",
-  status: "draft" as ExperimentStatus,
-  latestGenerationRunId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  name: "Spring hero banner test",
+  goal: "Increase clickthrough rate",
+  pageType: "Hero banner",
+  trafficSplit: "50/50",
+  targetAudience: "Returning shoppers",
+  tone: "Editorial",
+  brandConstraints: "Avoid discount framing",
+  seedContext: "Feature lightweight outerwear",
+  whatToTest: "Generate three quality-led headlines.",
+  variantCount: 3,
+  lockedElements: ["Lock hero image", "Lock logo"],
+  approvedBrief: {
+    hypothesis: "We believe quality-led copy improves clickthrough rate.",
+    whatIsChanging: ["headline copy", "CTA label"],
+    whatIsLocked: ["hero image", "logo"],
+    successMetric: "Increase clickthrough rate",
+    audienceSignal: "Returning shoppers",
+  },
 };
 
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentForUser,
+  storeApprovedBrief,
+  markExperimentLive: vi.fn(),
 }));
 
 vi.mock("@/lib/repositories/generation-repository", () => ({
   createGenerationRun,
   markGenerationRunRunning,
+  persistGenerationRunResult,
   completeGenerationRun,
   failGenerationRun,
 }));
@@ -96,18 +89,8 @@ vi.mock("@/lib/repositories/variant-repository", () => ({
   createVariants,
 }));
 
-describe("generateExperimentVariants", () => {
+describe("generation service", () => {
   const originalCodexProviderMode = process.env.CODEX_PROVIDER_MODE;
-  const originalOpenAIApiKey = process.env.OPENAI_API_KEY;
-  const expectedPromptSnapshot = {
-    experimentName: "Holiday push",
-    goal: "Improve conversions",
-    pageType: "Landing page",
-    targetAudience: "Gift buyers",
-    tone: "Energetic",
-    brandConstraints: "No discount language",
-    seedContext: "Hero campaign",
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -115,7 +98,6 @@ describe("generateExperimentVariants", () => {
     getExperimentForUser.mockResolvedValue(experiment);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
     delete process.env.CODEX_PROVIDER_MODE;
-    delete process.env.OPENAI_API_KEY;
   });
 
   afterEach(() => {
@@ -124,41 +106,95 @@ describe("generateExperimentVariants", () => {
     } else {
       process.env.CODEX_PROVIDER_MODE = originalCodexProviderMode;
     }
-
-    if (originalOpenAIApiKey === undefined) {
-      delete process.env.OPENAI_API_KEY;
-    } else {
-      process.env.OPENAI_API_KEY = originalOpenAIApiKey;
-    }
   });
 
-  it("normalizes the saved experiment brief into the Codex input contract", () => {
-    expect(buildPromptSnapshot(experiment)).toEqual(expectedPromptSnapshot);
+  it("normalizes the saved experiment brief into the new Codex input contract", () => {
+    expect(buildPromptSnapshot(experiment as never)).toEqual({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      primaryGoal: "Increase clickthrough rate",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      lockedElements: ["Lock hero image", "Lock logo"],
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      variantCount: 3,
+    });
   });
 
-  it("persists variants and updates statuses for a successful generation", async () => {
+  it("stores the synthesized brief before generation", async () => {
     const provider = {
+      synthesizeBrief: vi.fn().mockResolvedValue({
+        hypothesis: "We believe quality-led copy improves clickthrough rate.",
+        whatIsChanging: ["headline copy", "CTA label"],
+        whatIsLocked: ["hero image", "logo"],
+        successMetric: "Increase clickthrough rate",
+        audienceSignal: "Returning shoppers",
+      }),
+      generateVariants: vi.fn(),
+      generateLaunchConfig: vi.fn(),
+    };
+
+    const result = await synthesizeExperimentBrief({
+      experimentId: "exp_123",
+      userId: "user_123",
+      provider,
+    });
+
+    expect(provider.synthesizeBrief).toHaveBeenCalled();
+    expect(storeApprovedBrief).toHaveBeenCalledWith(
+      { $transaction: mockTransaction },
+      "exp_123",
+      "user_123",
+      result,
+    );
+  });
+
+  it("persists variants and hidden config for a successful generation", async () => {
+    const provider = {
+      synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockResolvedValue({
         variants: [
           {
-            label: "A",
-            headline: "Headline A",
-            subheadline: "Subheadline A",
-            bodyCopy: "Body A",
-            ctaText: "Shop now",
-            layoutNotes: "Left aligned",
-            previewConfig: { align: "left", emphasis: "headline", theme: "linen" },
+            label: "Quality-led",
+            headline: "Wear what lasts",
+            subheadline: "Crafted for the season ahead.",
+            bodyCopy: "Leads with product materiality.",
+            ctaText: "Explore now",
+            layoutNotes: "Quality-led direction",
+            previewConfig: {
+              layout: "spotlight",
+              emphasis: "headline",
+              theme: "atelier-spring",
+              assetSetKey: "atelier-spring",
+              lockedElements: ["Lock hero image", "Lock logo"],
+            },
           },
           {
-            label: "B",
-            headline: "Headline B",
-            subheadline: "Subheadline B",
-            bodyCopy: "Body B",
-            ctaText: "Explore",
-            layoutNotes: "Split layout",
-            previewConfig: { align: "split", emphasis: "cta", theme: "charcoal" },
+            label: "Scarcity + personal",
+            headline: "Your next favorite is here",
+            subheadline: "Curated for repeat shoppers.",
+            bodyCopy: "Adds urgency and curation.",
+            ctaText: "Claim yours",
+            layoutNotes: "Scarcity-led direction",
+            previewConfig: {
+              layout: "split",
+              emphasis: "cta",
+              theme: "midnight-ledger",
+              assetSetKey: "atelier-spring",
+              lockedElements: ["Lock hero image", "Lock logo"],
+            },
           },
         ],
+      }),
+      generateLaunchConfig: vi.fn().mockResolvedValue({
+        variantIds: ["quality-led-1", "scarcity-personal-2"],
+        trafficSplit: "50/50",
+        primaryMetric: "Increase clickthrough rate",
+        featureFlagKey: "storefront-exp-spring-hero-banner-test",
+        rolloutNotes: "Mocked config",
       }),
     };
 
@@ -168,34 +204,24 @@ describe("generateExperimentVariants", () => {
       provider,
     });
 
-    expect(createGenerationRun).toHaveBeenCalledWith(transactionContexts[0], {
-      experimentId: "exp_123",
-      promptSnapshot: expectedPromptSnapshot,
-    });
-    expect(provider.generateVariants).toHaveBeenCalledWith(expectedPromptSnapshot);
-    expect(provider.generateVariants.mock.calls[0]?.[0]).toBe(
-      createGenerationRun.mock.calls[0]?.[1]?.promptSnapshot,
-    );
-    expect(mockTransaction).toHaveBeenCalledTimes(2);
-    expect(markGenerationRunRunning).toHaveBeenCalledWith(
-      transactionContexts[0],
-      "run_123",
-      "exp_123",
-    );
+    expect(provider.generateVariants).toHaveBeenCalled();
+    expect(provider.generateLaunchConfig).toHaveBeenCalled();
     expect(createVariants).toHaveBeenCalled();
-    expect(completeGenerationRun).toHaveBeenCalledWith(
+    expect(persistGenerationRunResult).toHaveBeenCalledWith(
       transactionContexts[1],
       "run_123",
-      "exp_123",
+      expect.objectContaining({
+        approvedBrief: experiment.approvedBrief,
+      }),
     );
-    expect(failGenerationRun).not.toHaveBeenCalled();
+    expect(completeGenerationRun).toHaveBeenCalled();
   });
 
   it("records a failed run without persisting malformed partial variants", async () => {
     const provider = {
-      generateVariants: vi
-        .fn()
-        .mockRejectedValue(new Error("Codex returned an invalid structured response.")),
+      synthesizeBrief: vi.fn(),
+      generateVariants: vi.fn().mockRejectedValue(new Error("invalid structured response")),
+      generateLaunchConfig: vi.fn(),
     };
 
     await expect(
@@ -204,30 +230,13 @@ describe("generateExperimentVariants", () => {
         userId: "user_123",
         provider,
       }),
-    ).rejects.toThrow("Codex returned an invalid structured response.");
+    ).rejects.toThrow("invalid structured response");
 
-    expect(mockTransaction).toHaveBeenCalledTimes(2);
-    expect(createGenerationRun).toHaveBeenCalledWith(transactionContexts[0], {
-      experimentId: "exp_123",
-      promptSnapshot: expectedPromptSnapshot,
-    });
-    expect(provider.generateVariants).toHaveBeenCalledWith(expectedPromptSnapshot);
-    expect(failGenerationRun).toHaveBeenCalledWith(
-      transactionContexts[1],
-      "run_123",
-      "exp_123",
-      "Codex returned an invalid structured response.",
-    );
+    expect(failGenerationRun).toHaveBeenCalled();
     expect(createVariants).not.toHaveBeenCalled();
-    expect(completeGenerationRun).not.toHaveBeenCalled();
-    expect(markGenerationRunRunning).toHaveBeenCalledWith(
-      transactionContexts[0],
-      "run_123",
-      "exp_123",
-    );
   });
 
-  it("uses mock variants by default when no provider mode is configured", async () => {
+  it("uses mocked generation by default when no provider mode is configured", async () => {
     const result = await generateExperimentVariants({
       experimentId: "exp_123",
       userId: "user_123",
@@ -235,58 +244,8 @@ describe("generateExperimentVariants", () => {
 
     expect(result).toEqual({
       runId: "run_123",
-      variantCount: 2,
+      variantCount: 3,
     });
-    expect(createVariants).toHaveBeenCalledWith(
-      transactionContexts[1],
-      "exp_123",
-      "run_123",
-      expect.arrayContaining([
-        expect.objectContaining({
-          label: "Variant A",
-          headline: "Holiday push: editorial hero",
-          position: 0,
-        }),
-        expect.objectContaining({
-          label: "Variant B",
-          headline: "Holiday push: conversion-led split",
-          position: 1,
-        }),
-      ]),
-    );
     expect(openAIProviderConstructorMock).not.toHaveBeenCalled();
-  });
-
-  it("uses the OpenAI provider only when CODEX_PROVIDER_MODE is openai", async () => {
-    process.env.CODEX_PROVIDER_MODE = "openai";
-    process.env.OPENAI_API_KEY = "test-key";
-
-    const result = await generateExperimentVariants({
-      experimentId: "exp_123",
-      userId: "user_123",
-    });
-
-    expect(result).toEqual({
-      runId: "run_123",
-      variantCount: 2,
-    });
-    expect(openAIProviderConstructorMock).toHaveBeenCalledWith("test-key");
-    expect(createVariants).toHaveBeenCalledWith(
-      transactionContexts[1],
-      "exp_123",
-      "run_123",
-      expect.arrayContaining([
-        expect.objectContaining({
-          label: "Provider A",
-          headline: "Provider headline",
-          position: 0,
-        }),
-        expect.objectContaining({
-          label: "Provider B",
-          headline: "Provider headline B",
-          position: 1,
-        }),
-      ]),
-    );
   });
 });

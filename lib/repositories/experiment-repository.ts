@@ -1,7 +1,9 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import {
+  briefSynthesisSchema,
   experimentDraftSchema,
   experimentInputSchema,
+  experimentLaunchConfigSchema,
 } from "@/lib/validation/experiments";
 import { prisma } from "@/lib/prisma";
 
@@ -26,6 +28,11 @@ export async function createDraftExperiment(
       tone: parsed.tone ?? "",
       brandConstraints: parsed.brandConstraints ?? "",
       seedContext: parsed.seedContext ?? null,
+      whatToTest: parsed.whatToTest ?? "",
+      trafficSplit: parsed.trafficSplit ?? "50/50",
+      variantCount: parsed.variantCount ?? 3,
+      lockedElements: parsed.lockedElements ?? [],
+      brandAssetSetKey: parsed.brandAssetSetKey ?? "atelier-spring",
       status: "draft",
     },
   });
@@ -69,6 +76,7 @@ export async function listExperimentsForUser(userId: string) {
       name: true,
       status: true,
       pageType: true,
+      trafficSplit: true,
       updatedAt: true,
       latestGenerationRun: {
         select: {
@@ -97,6 +105,15 @@ export async function getExperimentDetailForUser(
       tone: true,
       brandConstraints: true,
       seedContext: true,
+      whatToTest: true,
+      trafficSplit: true,
+      variantCount: true,
+      lockedElements: true,
+      approvedBrief: true,
+      launchMetric: true,
+      launchAt: true,
+      launchConfig: true,
+      brandAssetSetKey: true,
       status: true,
       updatedAt: true,
       latestGenerationRunId: true,
@@ -107,6 +124,7 @@ export async function getExperimentDetailForUser(
           startedAt: true,
           completedAt: true,
           errorMessage: true,
+          resultSnapshot: true,
         },
       },
     },
@@ -131,6 +149,7 @@ export async function getExperimentDetailForUser(
         status: true,
         startedAt: true,
         completedAt: true,
+        resultSnapshot: true,
         variants: {
           orderBy: {
             position: "asc",
@@ -183,7 +202,7 @@ export async function updateExperimentGenerationState(
   db: DbClient,
   experimentId: string,
   input: {
-    status: "generating" | "generated" | "generation_failed";
+    status: "generating" | "generated" | "generation_failed" | "live";
     latestGenerationRunId: string;
   },
 ) {
@@ -191,4 +210,60 @@ export async function updateExperimentGenerationState(
     where: { id: experimentId },
     data: input,
   });
+}
+
+export async function storeApprovedBrief(
+  db: DbClient,
+  experimentId: string,
+  userId: string,
+  approvedBrief: unknown,
+) {
+  const parsed = briefSynthesisSchema.parse(approvedBrief);
+
+  return updateExperimentBrief(db, experimentId, userId, {
+    approvedBrief: parsed,
+  });
+}
+
+export async function updateVariantEditingState(
+  db: DbClient,
+  experimentId: string,
+  userId: string,
+) {
+  const result = await db.experiment.findFirst({
+    where: { id: experimentId, userId },
+    select: { id: true },
+  });
+
+  if (!result) {
+    throw new Error("Experiment not found.");
+  }
+
+  return result;
+}
+
+export async function markExperimentLive(
+  db: DbClient,
+  experimentId: string,
+  userId: string,
+  input: {
+    launchAt: Date;
+    launchMetric: string;
+    launchConfig: unknown;
+  },
+) {
+  const parsedConfig = experimentLaunchConfigSchema.parse(input.launchConfig);
+  const result = await db.experiment.updateMany({
+    where: { id: experimentId, userId },
+    data: {
+      status: "live",
+      launchAt: input.launchAt,
+      launchMetric: input.launchMetric,
+      launchConfig: parsedConfig,
+    },
+  });
+
+  if (result.count === 0) {
+    throw new Error("Experiment not found.");
+  }
 }

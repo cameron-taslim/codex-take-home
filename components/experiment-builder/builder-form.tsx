@@ -1,15 +1,19 @@
 "use client";
 
-import React from "react";
-import { useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { saveDraftExperimentAction, generateExperimentAction } from "@/app/experiments/new/actions";
+import {
+  generateExperimentAction,
+  prepareExperimentBriefAction,
+  saveDraftExperimentAction,
+} from "@/app/experiments/new/actions";
 import {
   emptyExperimentBuilderValues,
   type ExperimentBuilderActionResult,
   type ExperimentBuilderFieldErrors,
   type ExperimentBuilderValues,
+  type LockedElement,
 } from "@/components/experiment-builder/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,13 +22,37 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { TextArea } from "@/components/ui/text-area";
 
-const requiredLabels: Record<string, string> = {
-  name: "Experiment name is required.",
-  goal: "Experiment goal is required.",
-  pageType: "Target page type is required.",
-  targetAudience: "Target audience is required.",
-  tone: "Tone is required.",
-};
+const componentTypes = [
+  "Hero banner",
+  "Landing page",
+  "Product detail page (PDP) buy box",
+  "Navigation CTA",
+  "Category page header",
+] as const;
+
+const primaryGoals = [
+  "Increase clickthrough rate",
+  "Increase add-to-cart rate",
+  "Increase revenue per visitor",
+  "Reduce bounce rate",
+] as const;
+
+const trafficSplitOptions = ["50/50", "70/30", "80/20"] as const;
+const brandTones = [
+  "Editorial",
+  "Urgent",
+  "Playful",
+  "Minimalist",
+  "Confident",
+  "Warm",
+] as const;
+const variantCounts = [2, 3, 4] as const;
+const lockedElementOptions: LockedElement[] = [
+  "Lock hero image",
+  "Lock logo",
+  "Lock legal copy",
+  "Lock price display",
+];
 
 export function ExperimentBuilderForm({
   initialValues = emptyExperimentBuilderValues,
@@ -36,10 +64,12 @@ export function ExperimentBuilderForm({
   const [fieldErrors, setFieldErrors] = useState<ExperimentBuilderFieldErrors>({});
   const [formError, setFormError] = useState<string>();
   const [savedMessage, setSavedMessage] = useState<string>();
+  const [workflowStage, setWorkflowStage] = useState<"draft" | "brief_ready">("draft");
   const [isSaving, startSaving] = useTransition();
+  const [isAnalyzing, startAnalyzing] = useTransition();
   const [isGenerating, startGenerating] = useTransition();
 
-  const isBusy = isSaving || isGenerating;
+  const isBusy = isSaving || isAnalyzing || isGenerating;
 
   function setFieldValue<K extends keyof ExperimentBuilderValues>(
     field: K,
@@ -49,17 +79,17 @@ export function ExperimentBuilderForm({
       ...current,
       [field]: value,
     }));
-
-    setFieldErrors((current) => {
-      if (!current[field as keyof ExperimentBuilderFieldErrors]) {
-        return current;
-      }
-
-      return {
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
+    if (field !== "approvedBrief" && workflowStage === "brief_ready") {
+      setWorkflowStage("draft");
+      setValues((current) => ({
         ...current,
-        [field]: undefined,
-      };
-    });
+        approvedBrief: undefined,
+      }));
+    }
     setFormError(undefined);
   }
 
@@ -68,25 +98,17 @@ export function ExperimentBuilderForm({
     setFieldErrors(result.fieldErrors ?? {});
     setFormError(result.formError);
     setSavedMessage(result.savedMessage);
+    if (result.stage === "brief_ready") {
+      setWorkflowStage("brief_ready");
+    }
+    if (result.stage === "draft") {
+      setWorkflowStage(result.values.approvedBrief ? "brief_ready" : "draft");
+    }
 
     if (result.redirectTo) {
       router.push(result.redirectTo as Route);
       router.refresh();
     }
-  }
-
-  function validateGenerate(valuesToValidate: ExperimentBuilderValues) {
-    const nextErrors: ExperimentBuilderFieldErrors = {};
-
-    for (const [field, message] of Object.entries(requiredLabels)) {
-      const value = valuesToValidate[field as keyof ExperimentBuilderValues];
-
-      if (typeof value === "string" && value.trim().length === 0) {
-        nextErrors[field as keyof ExperimentBuilderFieldErrors] = message;
-      }
-    }
-
-    return nextErrors;
   }
 
   function handleSaveDraft() {
@@ -98,16 +120,16 @@ export function ExperimentBuilderForm({
     });
   }
 
+  function handleAnalyzeBrief() {
+    setSavedMessage(undefined);
+
+    startAnalyzing(async () => {
+      const result = await prepareExperimentBriefAction(values);
+      applyActionResult(result);
+    });
+  }
+
   function handleGenerate() {
-    const nextErrors = validateGenerate(values);
-
-    if (Object.keys(nextErrors).length > 0) {
-      setFieldErrors(nextErrors);
-      setSavedMessage(undefined);
-      setFormError(undefined);
-      return;
-    }
-
     setSavedMessage(undefined);
 
     startGenerating(async () => {
@@ -122,13 +144,14 @@ export function ExperimentBuilderForm({
         <div className="stack builder-panel-stack">
           <div className="builder-section-header stack">
             <div className="cluster builder-kicker-row">
-              <p className="builder-kicker">Brief editor</p>
-              <span className="shell-badge">Server-side generation</span>
+              <p className="builder-kicker">Merchandiser brief</p>
+              <span className="shell-badge">Mocked agent pipeline</span>
             </div>
-            <h2 className="builder-section-title">Structured brief</h2>
+            <h2 className="builder-section-title">Storefront experiment setup</h2>
             <p className="muted builder-section-copy">
-              Save a recoverable draft first or send the full brief to Codex to
-              generate 2 to 3 storefront variants.
+              Define the storefront surface, approve the synthesized brief, then
+              generate copy-first creative directions without exposing technical
+              implementation details.
             </p>
           </div>
 
@@ -142,90 +165,190 @@ export function ExperimentBuilderForm({
           <div className="stack builder-sections">
             <section className="builder-section-card stack">
               <div className="builder-section-header stack">
-                <p className="builder-section-kicker">Core inputs</p>
+                <p className="builder-section-kicker">Step 1</p>
                 <p className="muted builder-section-copy">
-                  Capture the required business inputs first so the run can stay
-                  aligned to the experiment goal.
+                  Set the core experiment framing the merchandiser cares about.
                 </p>
               </div>
 
               <div className="stack builder-fields-grid">
                 <FormField
-                  label="Name"
+                  label="Experiment name"
                   htmlFor="name"
                   required
                   error={fieldErrors.name}
                 >
                   <Input
                     id="name"
-                    name="name"
                     value={values.name}
                     onChange={(event) => setFieldValue("name", event.target.value)}
-                    placeholder="Holiday hero refresh"
+                    placeholder="Spring hero banner test"
                   />
                 </FormField>
 
+                <div className="builder-three-column-grid">
+                  <FormField
+                    label="Component type"
+                    htmlFor="componentType"
+                    required
+                    error={fieldErrors.componentType}
+                  >
+                    <select
+                      id="componentType"
+                      className="field-base"
+                      value={values.componentType}
+                      onChange={(event) =>
+                        setFieldValue("componentType", event.target.value)
+                      }
+                    >
+                      {componentTypes.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+
+                  <FormField
+                    label="Primary goal"
+                    htmlFor="primaryGoal"
+                    required
+                    error={fieldErrors.primaryGoal}
+                  >
+                    <select
+                      id="primaryGoal"
+                      className="field-base"
+                      value={values.primaryGoal}
+                      onChange={(event) =>
+                        setFieldValue("primaryGoal", event.target.value)
+                      }
+                    >
+                      {primaryGoals.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+
+                  <FormField
+                    label="Traffic split"
+                    htmlFor="trafficSplit"
+                    required
+                    error={fieldErrors.trafficSplit}
+                  >
+                    <select
+                      id="trafficSplit"
+                      className="field-base"
+                      value={values.trafficSplit}
+                      onChange={(event) =>
+                        setFieldValue(
+                          "trafficSplit",
+                          event.target.value as ExperimentBuilderValues["trafficSplit"],
+                        )
+                      }
+                    >
+                      {trafficSplitOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+                </div>
+              </div>
+            </section>
+
+            <section className="builder-section-card stack">
+              <div className="builder-section-header stack">
+                <p className="builder-section-kicker">Step 2</p>
+                <p className="muted builder-section-copy">
+                  Add audience context, tone, and non-negotiable brand guardrails.
+                </p>
+              </div>
+
+              <div className="stack builder-fields-grid">
                 <FormField
-                  label="Goal"
-                  htmlFor="goal"
+                  label="Target audience"
+                  htmlFor="targetAudience"
                   required
-                  error={fieldErrors.goal}
+                  error={fieldErrors.targetAudience}
                 >
                   <TextArea
-                    id="goal"
-                    name="goal"
-                    value={values.goal}
-                    onChange={(event) => setFieldValue("goal", event.target.value)}
-                    placeholder="Increase homepage clickthrough to a seasonal gift collection."
+                    id="targetAudience"
+                    value={values.targetAudience}
+                    onChange={(event) =>
+                      setFieldValue("targetAudience", event.target.value)
+                    }
+                    placeholder="Returning shoppers looking for premium seasonal pieces"
                   />
                 </FormField>
 
                 <div className="builder-two-column-grid">
                   <FormField
-                    label="Target page type"
-                    htmlFor="pageType"
+                    label="Brand tone"
+                    htmlFor="brandTone"
                     required
-                    error={fieldErrors.pageType}
+                    error={fieldErrors.brandTone}
                   >
-                    <Input
-                      id="pageType"
-                      name="pageType"
-                      value={values.pageType}
-                      onChange={(event) => setFieldValue("pageType", event.target.value)}
-                      placeholder="Homepage hero"
-                    />
+                    <select
+                      id="brandTone"
+                      className="field-base"
+                      value={values.brandTone}
+                      onChange={(event) => setFieldValue("brandTone", event.target.value)}
+                    >
+                      {brandTones.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </FormField>
 
                   <FormField
-                    label="Target audience"
-                    htmlFor="targetAudience"
+                    label="Locked elements"
+                    htmlFor="lockedElements"
                     required
-                    error={fieldErrors.targetAudience}
+                    error={fieldErrors.lockedElements}
                   >
-                    <Input
-                      id="targetAudience"
-                      name="targetAudience"
-                      value={values.targetAudience}
-                      onChange={(event) =>
-                        setFieldValue("targetAudience", event.target.value)
-                      }
-                      placeholder="Gift buyers shopping for premium home goods"
-                    />
+                    <div id="lockedElements" className="builder-checkbox-grid">
+                      {lockedElementOptions.map((option) => {
+                        const checked = values.lockedElements.includes(option);
+                        return (
+                          <label key={option} className="builder-checkbox-card">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => {
+                                setFieldValue(
+                                  "lockedElements",
+                                  checked
+                                    ? values.lockedElements.filter((item) => item !== option)
+                                    : [...values.lockedElements, option],
+                                );
+                              }}
+                            />
+                            <span>{option.replace("Lock ", "")}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </FormField>
                 </div>
 
                 <FormField
-                  label="Tone"
-                  htmlFor="tone"
+                  label="Brand constraints"
+                  htmlFor="brandConstraints"
                   required
-                  error={fieldErrors.tone}
+                  error={fieldErrors.brandConstraints}
                 >
-                  <Input
-                    id="tone"
-                    name="tone"
-                    value={values.tone}
-                    onChange={(event) => setFieldValue("tone", event.target.value)}
-                    placeholder="Confident, editorial, premium"
+                  <TextArea
+                    id="brandConstraints"
+                    value={values.brandConstraints}
+                    onChange={(event) =>
+                      setFieldValue("brandConstraints", event.target.value)
+                    }
+                    placeholder="Avoid discount framing, keep copy product-led, never mention competitors"
                   />
                 </FormField>
               </div>
@@ -233,53 +356,114 @@ export function ExperimentBuilderForm({
 
             <section className="builder-section-card stack">
               <div className="builder-section-header stack">
-                <p className="builder-section-kicker">Context</p>
+                <p className="builder-section-kicker">Step 3</p>
                 <p className="muted builder-section-copy">
-                  Add guardrails and seed material to improve the quality of the
-                  generated copy without changing the MVP workflow.
+                  Define the seed context and the creative angle the agent should test.
                 </p>
               </div>
 
               <div className="stack builder-fields-grid">
                 <FormField
-                  label="Brand constraints"
-                  htmlFor="brandConstraints"
-                  error={fieldErrors.brandConstraints}
-                >
-                  <TextArea
-                    id="brandConstraints"
-                    name="brandConstraints"
-                    value={values.brandConstraints}
-                    onChange={(event) =>
-                      setFieldValue("brandConstraints", event.target.value)
-                    }
-                    placeholder="Avoid discount language. Keep claims grounded in product quality and craft."
-                  />
-                </FormField>
-
-                <FormField
                   label="Seed context"
                   htmlFor="seedContext"
+                  required
                   error={fieldErrors.seedContext}
                 >
                   <TextArea
                     id="seedContext"
-                    name="seedContext"
                     value={values.seedContext}
                     onChange={(event) => setFieldValue("seedContext", event.target.value)}
-                    placeholder="Optional campaign notes, existing copy, or merchandising context."
+                    placeholder="Feature lightweight outerwear and transitional layering for spring"
                   />
+                </FormField>
+
+                <FormField
+                  label="What to test"
+                  htmlFor="whatToTest"
+                  required
+                  error={fieldErrors.whatToTest}
+                >
+                  <TextArea
+                    id="whatToTest"
+                    value={values.whatToTest}
+                    onChange={(event) => setFieldValue("whatToTest", event.target.value)}
+                    placeholder="Generate 3 headline variants that emphasize product quality, not the season. Keep CTA under 4 words."
+                  />
+                </FormField>
+
+                <FormField
+                  label="Number of variants"
+                  htmlFor="variantCount"
+                  required
+                  error={fieldErrors.variantCount}
+                >
+                  <div className="builder-stepper-row" id="variantCount">
+                    {variantCounts.map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        className={`builder-stepper-chip ${
+                          values.variantCount === count ? "is-active" : ""
+                        }`}
+                        onClick={() =>
+                          setFieldValue(
+                            "variantCount",
+                            count as ExperimentBuilderValues["variantCount"],
+                          )
+                        }
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
                 </FormField>
               </div>
             </section>
+
+            {values.approvedBrief ? (
+              <section className="builder-section-card stack">
+                <div className="builder-section-header stack">
+                  <p className="builder-section-kicker">Brief confirmation</p>
+                  <p className="muted builder-section-copy">
+                    This confirmation step is required before the mocked pipeline
+                    continues to copy generation.
+                  </p>
+                </div>
+
+                <div className="builder-brief-confirmation">
+                  <div className="builder-brief-card">
+                    <span className="builder-brief-label">Hypothesis</span>
+                    <p>{values.approvedBrief.hypothesis}</p>
+                  </div>
+                  <div className="builder-brief-grid">
+                    <BriefListCard
+                      title="What is changing"
+                      items={values.approvedBrief.whatIsChanging}
+                    />
+                    <BriefListCard
+                      title="What is locked"
+                      items={values.approvedBrief.whatIsLocked}
+                    />
+                    <BriefListCard
+                      title="Success metric"
+                      items={[values.approvedBrief.successMetric]}
+                    />
+                    <BriefListCard
+                      title="Audience signal"
+                      items={[values.approvedBrief.audienceSignal]}
+                    />
+                  </div>
+                </div>
+              </section>
+            ) : null}
           </div>
 
           <div className="builder-action-rail">
             <div className="stack builder-action-copy">
-              <p className="builder-section-kicker">Launch rail</p>
+              <p className="builder-section-kicker">Pipeline controls</p>
               <p className="muted builder-action-note">
-                Required for generation: name, goal, page type, target audience,
-                and tone.
+                Save the brief, analyze inputs into a confirmation card, then
+                generate the previewable storefront variants.
               </p>
             </div>
             <div className="cluster builder-action-buttons">
@@ -294,11 +478,20 @@ export function ExperimentBuilderForm({
               </Button>
               <Button
                 type="button"
-                onClick={handleGenerate}
-                loading={isGenerating}
+                variant="secondary"
+                onClick={handleAnalyzeBrief}
+                loading={isAnalyzing}
                 disabled={isBusy}
               >
-                Generate Variants
+                Analyze Inputs
+              </Button>
+              <Button
+                type="button"
+                onClick={handleGenerate}
+                loading={isGenerating}
+                disabled={isBusy || !values.approvedBrief}
+              >
+                Approve Brief & Generate
               </Button>
             </div>
           </div>
@@ -308,24 +501,26 @@ export function ExperimentBuilderForm({
       <div className="stack builder-side-column">
         <Card className="builder-side-panel">
           <div className="stack builder-side-stack">
-            <div className="builder-section-header stack">
-              <div className="cluster builder-kicker-row">
-                <h2 className="builder-side-title">Generation guide</h2>
-                <span className="builder-side-pill">2-3 variants</span>
-              </div>
-              <p className="muted builder-section-copy">
-                Codex runs on the server after the brief is persisted. Generated
-                variants are saved with prompt snapshots and kept in run history.
-              </p>
+            <div className="cluster builder-kicker-row">
+              <h2 className="builder-side-title">Workflow stages</h2>
+              <span className="builder-side-pill">Friendly status only</span>
             </div>
-
             <div className="builder-guidance-card">
-              <p className="builder-guidance-title">What the run will emphasize</p>
-              <ul className="builder-guidance-list">
-                <li>Audience and tone alignment</li>
-                <li>Brand-safe CTA and messaging</li>
-                <li>Structured preview content, not arbitrary code</li>
-              </ul>
+              <p className="builder-guidance-title">What the merchandiser sees</p>
+              <div className="builder-pipeline-list">
+                <PipelineRow
+                  label="Analyzing your inputs..."
+                  state={isAnalyzing ? "Running" : values.approvedBrief ? "Ready" : "Pending"}
+                />
+                <PipelineRow
+                  label="Writing variant copy..."
+                  state={isGenerating ? "Running" : workflowStage === "brief_ready" ? "Queued" : "Pending"}
+                />
+                <PipelineRow
+                  label="Building previews..."
+                  state={isGenerating ? "Queued" : values.approvedBrief ? "Ready after generation" : "Pending"}
+                />
+              </div>
             </div>
           </div>
         </Card>
@@ -333,65 +528,46 @@ export function ExperimentBuilderForm({
         <Card className="builder-side-panel">
           <div className="stack builder-side-stack">
             <div className="cluster builder-kicker-row">
-              <h2 className="builder-side-title">Preview placeholder</h2>
-              <span className="builder-status-chip">Awaiting generation</span>
+              <h2 className="builder-side-title">Brief preview</h2>
+              <span className="builder-status-chip">
+                {values.approvedBrief ? "Awaiting approval" : "Drafting"}
+              </span>
             </div>
 
             <div className="builder-preview-frame">
-              <div className="builder-preview-stage">
-                <p className="builder-preview-kicker">Draft summary</p>
+              <div className="builder-preview-stage is-merch">
+                <p className="builder-preview-kicker">{values.componentType}</p>
                 <h3 className="builder-preview-title">
                   {values.name || "Your experiment name will appear here"}
                 </h3>
                 <p className="muted builder-preview-copy">
-                  {values.goal ||
-                    "Add a business goal so the generated variants have a clear conversion target."}
+                  {values.whatToTest ||
+                    "Describe the copy behavior the agent should test for this storefront surface."}
                 </p>
               </div>
 
               <dl className="builder-preview-metadata">
                 <div className="builder-preview-meta-item">
-                  <dt className="builder-preview-meta-label">Page type</dt>
-                  <dd className="builder-preview-meta-value">
-                    {values.pageType || "Select the storefront surface."}
-                  </dd>
-                </div>
-                <div className="builder-preview-meta-item">
                   <dt className="builder-preview-meta-label">Audience</dt>
                   <dd className="builder-preview-meta-value">
-                    {values.targetAudience ||
-                      "Clarify who this variant should persuade."}
+                    {values.targetAudience || "Add the target audience signal."}
                   </dd>
                 </div>
                 <div className="builder-preview-meta-item">
                   <dt className="builder-preview-meta-label">Tone</dt>
+                  <dd className="builder-preview-meta-value">{values.brandTone}</dd>
+                </div>
+                <div className="builder-preview-meta-item">
+                  <dt className="builder-preview-meta-label">Traffic split</dt>
+                  <dd className="builder-preview-meta-value">{values.trafficSplit}</dd>
+                </div>
+                <div className="builder-preview-meta-item">
+                  <dt className="builder-preview-meta-label">Locked elements</dt>
                   <dd className="builder-preview-meta-value">
-                    {values.tone || "Set the voice for the generated copy."}
+                    {values.lockedElements.map((item) => item.replace("Lock ", "")).join(", ")}
                   </dd>
                 </div>
               </dl>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="builder-side-panel builder-checklist-panel">
-          <div className="stack builder-side-stack">
-            <h2 className="builder-side-title">Run readiness</h2>
-            <div className="builder-readiness-list">
-              <ReadinessRow
-                label="Experiment name"
-                ready={values.name.trim().length > 0}
-              />
-              <ReadinessRow label="Business goal" ready={values.goal.trim().length > 0} />
-              <ReadinessRow
-                label="Page type"
-                ready={values.pageType.trim().length > 0}
-              />
-              <ReadinessRow
-                label="Target audience"
-                ready={values.targetAudience.trim().length > 0}
-              />
-              <ReadinessRow label="Tone" ready={values.tone.trim().length > 0} />
             </div>
           </div>
         </Card>
@@ -400,23 +576,27 @@ export function ExperimentBuilderForm({
   );
 }
 
-function ReadinessRow({
-  label,
-  ready,
-}: {
-  label: string;
-  ready: boolean;
-}) {
+function BriefListCard({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="builder-brief-card">
+      <span className="builder-brief-label">{title}</span>
+      <ul className="builder-brief-list">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PipelineRow({ label, state }: { label: string; state: string }) {
   return (
     <div className="builder-readiness-row">
       <div className="cluster" style={{ gap: 10 }}>
-        <span
-          aria-hidden="true"
-          className={`builder-readiness-dot ${ready ? "is-ready" : ""}`}
-        />
+        <span aria-hidden="true" className="builder-readiness-dot is-ready" />
         <span>{label}</span>
       </div>
-      <span className="builder-readiness-state">{ready ? "Ready" : "Needed"}</span>
+      <span className="builder-readiness-state">{state}</span>
     </div>
   );
 }

@@ -33,8 +33,8 @@ export function RerunControls({ experimentId }: { experimentId: string }) {
         <div className="stack rerun-copy">
           <p className="builder-section-kicker">Generation run</p>
           <p className="muted rerun-note">
-            Reruns use the saved brief, append a new generation run, and preserve
-            prior history.
+            Reruns use the approved brief, refresh the mocked creative directions,
+            and preserve prior history.
           </p>
         </div>
         <Button type="button" onClick={handleRerun} loading={isPending}>

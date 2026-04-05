@@ -6,6 +6,7 @@ const statusStyles: Record<string, React.CSSProperties> = {
   generating: {},
   generated: {},
   generation_failed: {},
+  live: {},
 };
 
 export function StatusBadge({ status }: { status: string }) {
@@ -16,6 +17,8 @@ export function StatusBadge({ status }: { status: string }) {
         ? "status-generating"
         : status === "generated"
           ? "status-generated"
+          : status === "live"
+            ? "status-live"
           : "status-failed";
 
   return (

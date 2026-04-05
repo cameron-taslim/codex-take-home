@@ -25,3 +25,26 @@ export async function createVariants(
     })),
   });
 }
+
+export async function updateVariantCopy(
+  db: DbClient,
+  input: {
+    variantId: string;
+    experimentId: string;
+    headline: string;
+    subheadline: string | null;
+    ctaText: string;
+    rationale: string;
+  },
+) {
+  return db.experimentVariant.update({
+    where: { id: input.variantId },
+    data: {
+      experimentId: input.experimentId,
+      headline: input.headline,
+      subheadline: input.subheadline,
+      ctaText: input.ctaText,
+      bodyCopy: input.rationale,
+    },
+  });
+}

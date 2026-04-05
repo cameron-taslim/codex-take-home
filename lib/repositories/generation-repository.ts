@@ -89,3 +89,16 @@ export async function failGenerationRun(
     },
   });
 }
+
+export async function persistGenerationRunResult(
+  db: DbClient,
+  runId: string,
+  resultSnapshot: object,
+) {
+  await db.codexGenerationRun.update({
+    where: { id: runId },
+    data: {
+      resultSnapshot,
+    },
+  });
+}
