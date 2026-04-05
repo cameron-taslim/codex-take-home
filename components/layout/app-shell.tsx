@@ -55,7 +55,9 @@ export async function AppShell({
                     data-active={activeSidebarItem === "detail" && experiment.id === activeExperimentId}
                   >
                     <span className="shell-experiment-name">{experiment.name}</span>
-                    <StatusBadge status={experiment.status} />
+                    <span className="shell-experiment-status">
+                      <StatusBadge status={experiment.status} />
+                    </span>
                   </Link>
                 ))
               ) : (
