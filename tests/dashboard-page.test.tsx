@@ -105,15 +105,16 @@ describe("dashboard page", () => {
     render(await DashboardPage());
 
     expect(listExperimentsForUserMock).toHaveBeenCalledWith("user_1");
-    expect(screen.getAllByRole("heading", { level: 2 }).map((node) => node.textContent)).toEqual([
-      "Holiday hero refresh",
-      "PDP urgency experiment",
-    ]);
-    expect(
-      screen.getByRole("link", { name: /holiday hero refresh/i }),
-    ).toHaveAttribute("href", "/experiments/exp_newer");
-    expect(screen.getByText("Generated")).toBeInTheDocument();
-    expect(screen.getByText("Draft")).toBeInTheDocument();
+    const experimentRows = screen.getAllByRole("listitem");
+    const newerExperimentLink = experimentRows[0];
+    const olderExperimentLink = experimentRows[1];
+
+    expect(newerExperimentLink).toHaveAttribute("href", "/experiments/exp_newer");
+    expect(olderExperimentLink).toHaveAttribute("href", "/experiments/exp_older");
+    expect(newerExperimentLink).toHaveTextContent("Holiday hero refresh");
+    expect(newerExperimentLink).toHaveTextContent("Generated");
+    expect(olderExperimentLink).toHaveTextContent("PDP urgency experiment");
+    expect(olderExperimentLink).toHaveTextContent("Draft");
   });
 
   it("renders the empty state when no experiments exist", async () => {
