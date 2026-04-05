@@ -9,13 +9,14 @@ export function PageHeader({
 }) {
   return (
     <div
-      className="cluster"
+      className="cluster page-header page-header-card"
       style={{ justifyContent: "space-between", alignItems: "flex-end" }}
     >
-      <div className="stack" style={{ gap: 6 }}>
-        <h1 style={{ margin: 0, fontSize: "2rem", lineHeight: 1.05 }}>{title}</h1>
+      <div className="stack" style={{ gap: 8 }}>
+        <p className="eyebrow">Workspace</p>
+        <h1 className="page-header-title">{title}</h1>
         {description ? (
-          <p className="muted" style={{ margin: 0, maxWidth: 720 }}>
+          <p className="page-header-description">
             {description}
           </p>
         ) : null}

@@ -14,13 +14,18 @@ export function FormField({
   error?: string;
 }) {
   return (
-    <div className="stack" style={{ gap: 8 }}>
-      <label htmlFor={htmlFor} style={{ fontWeight: 600 }}>
-        {label} {required ? <span aria-hidden="true">*</span> : null}
+    <div className="stack form-field">
+      <label htmlFor={htmlFor} className="form-label">
+        <span>
+          {label}
+          {required ? (
+            <span className="form-required"> *</span>
+          ) : null}
+        </span>
       </label>
       {children}
       {error ? (
-        <p role="alert" style={{ margin: 0, color: "var(--danger)", fontSize: 14 }}>
+        <p role="alert" className="form-error">
           {error}
         </p>
       ) : null}

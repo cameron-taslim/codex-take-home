@@ -16,15 +16,18 @@ export default function ExperimentNotFound() {
           <Link
             href="/dashboard"
             style={{
+              background:
+                "linear-gradient(180deg, var(--accent-primary-strong), var(--accent-primary))",
+              color: "#08101f",
+              border: "1px solid transparent",
+              borderRadius: 12,
+              boxShadow: "0 12px 24px rgba(124, 140, 255, 0.28)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               minHeight: 44,
               padding: "0 18px",
-              borderRadius: 999,
               fontWeight: 700,
-              background: "var(--accent)",
-              color: "#fff",
             }}
           >
             Return to Dashboard

@@ -4,14 +4,15 @@ type ButtonVariant = "primary" | "secondary";
 
 const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
   primary: {
-    background: "var(--accent)",
-    color: "white",
+    background:
+      "linear-gradient(180deg, var(--accent-primary-strong), var(--accent-primary))",
+    color: "#08101f",
     border: "1px solid transparent",
   },
   secondary: {
-    background: "var(--surface-strong)",
-    color: "var(--text)",
-    border: "1px solid var(--border)",
+    background: "rgba(255, 255, 255, 0.03)",
+    color: "var(--text-primary)",
+    border: "1px solid var(--border-subtle)",
   },
 };
 
@@ -25,21 +26,17 @@ export function Button({
   variant?: ButtonVariant;
   loading?: boolean;
 }) {
+  const className = `button-base ${
+    variant === "secondary" ? "button-secondary" : "button-primary"
+  }`;
+
   return (
     <button
       {...props}
       disabled={loading || props.disabled}
+      className={className}
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        minHeight: 44,
-        padding: "0 16px",
-        borderRadius: 999,
-        fontWeight: 600,
         cursor: loading ? "progress" : "pointer",
-        transition: "transform 120ms ease, opacity 120ms ease",
         ...variantStyles[variant],
         ...style,
       }}

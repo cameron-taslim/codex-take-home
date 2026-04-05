@@ -11,15 +11,18 @@ export type DashboardExperimentSummary = Awaited<
 >[number];
 
 const createExperimentLinkStyles: React.CSSProperties = {
+  background:
+    "linear-gradient(180deg, var(--accent-primary-strong), var(--accent-primary))",
+  color: "#08101f",
+  border: "1px solid transparent",
+  borderRadius: 12,
+  boxShadow: "0 12px 24px rgba(124, 140, 255, 0.28)",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   minHeight: 44,
   padding: "0 18px",
-  borderRadius: 999,
   fontWeight: 700,
-  background: "var(--accent)",
-  color: "#fff",
 };
 
 function formatUpdatedAt(updatedAt: Date) {
@@ -92,7 +95,7 @@ export function DashboardContent({
               </div>
               <span
                 aria-hidden="true"
-                style={{ fontSize: 22, color: "var(--text-muted)" }}
+                style={{ fontSize: 22, color: "var(--text-tertiary)" }}
               >
                 →
               </span>

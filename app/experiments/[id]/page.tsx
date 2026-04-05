@@ -57,7 +57,7 @@ export default async function ExperimentDetailPage({
                       margin: 0,
                       fontSize: 14,
                       fontWeight: 700,
-                      color: "var(--accent-strong)",
+                      color: "var(--accent-primary-strong)",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
                     }}

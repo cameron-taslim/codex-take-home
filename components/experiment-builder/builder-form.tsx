@@ -300,13 +300,13 @@ export function ExperimentBuilderForm({
               style={{
                 padding: 14,
                 borderRadius: "var(--radius-sm)",
-                background: "var(--accent-soft)",
+                background: "var(--accent-primary-soft)",
               }}
             >
               <p style={{ margin: "0 0 8px", fontWeight: 700 }}>
                 What the run will emphasize
               </p>
-              <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-muted)" }}>
+              <ul style={{ margin: 0, paddingLeft: 18, color: "var(--text-secondary)" }}>
                 <li>Audience and tone alignment</li>
                 <li>Brand-safe CTA and messaging</li>
                 <li>Structured preview content, not arbitrary code</li>
@@ -323,8 +323,8 @@ export function ExperimentBuilderForm({
                 style={{
                   padding: "6px 10px",
                   borderRadius: 999,
-                  background: "var(--surface-muted)",
-                  color: "var(--text-muted)",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  color: "var(--text-secondary)",
                   fontSize: 13,
                   fontWeight: 700,
                 }}
@@ -337,8 +337,8 @@ export function ExperimentBuilderForm({
                 padding: 18,
                 borderRadius: "var(--radius-md)",
                 background:
-                  "linear-gradient(135deg, rgba(15, 118, 110, 0.16), rgba(255, 255, 255, 0.72))",
-                border: "1px solid var(--border)",
+                  "linear-gradient(135deg, rgba(124, 140, 255, 0.18), rgba(21, 31, 51, 0.96))",
+                border: "1px solid var(--border-subtle)",
               }}
             >
               <p
@@ -347,7 +347,7 @@ export function ExperimentBuilderForm({
                   fontSize: 12,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "var(--text-muted)",
+                  color: "var(--text-tertiary)",
                   fontWeight: 700,
                 }}
               >

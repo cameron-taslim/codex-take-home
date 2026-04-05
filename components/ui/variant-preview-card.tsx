@@ -13,13 +13,13 @@ export function VariantPreviewCard({ variant }: { variant: VariantRecord }) {
   return (
     <Card
       style={{
-        padding: 20,
+        padding: 0,
         background: themeStyles.background,
         color: themeStyles.text,
       }}
     >
       <div
-        className="stack"
+        className="stack preview-card"
         style={{
           gap: 12,
           textAlign: previewConfig.align === "center" ? "center" : "left",
@@ -27,7 +27,9 @@ export function VariantPreviewCard({ variant }: { variant: VariantRecord }) {
       >
         <div className="cluster" style={{ justifyContent: "space-between" }}>
           <strong>{variant.label}</strong>
-          <span className="muted">Variant {variant.position + 1}</span>
+          <span className="preview-meta" style={{ color: themeStyles.muted }}>
+            Variant {variant.position + 1}
+          </span>
         </div>
         <div className="stack" style={{ gap: 6 }}>
           <h2
@@ -95,8 +97,8 @@ function getThemeStyles(theme: string) {
   }
 
   return {
-    background: "var(--surface)",
-    text: "var(--text)",
-    muted: "var(--text-muted)",
+    background: "var(--bg-panel)",
+    text: "var(--text-primary)",
+    muted: "var(--text-secondary)",
   };
 }

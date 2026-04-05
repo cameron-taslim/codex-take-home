@@ -11,9 +11,9 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <Card style={{ padding: 28 }}>
-      <div className="stack" style={{ gap: 8 }}>
-        <h2 style={{ margin: 0, fontSize: "1.2rem" }}>{title}</h2>
+    <Card style={{ padding: 0 }}>
+      <div className="stack empty-state" style={{ gap: 8 }}>
+        <h2 className="empty-state-title">{title}</h2>
         <p className="muted" style={{ margin: 0 }}>
           {description}
         </p>
