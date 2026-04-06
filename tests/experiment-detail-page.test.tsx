@@ -7,11 +7,13 @@ const {
   notFoundMock,
   requireUserSessionMock,
   getExperimentDetailForUserMock,
+  generateExperimentSuggestionsMock,
 } = vi.hoisted(() => ({
   redirectMock: vi.fn(),
   notFoundMock: vi.fn(),
   requireUserSessionMock: vi.fn(),
   getExperimentDetailForUserMock: vi.fn(),
+  generateExperimentSuggestionsMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -28,6 +30,10 @@ vi.mock("@/lib/auth/session", () => ({
 
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentDetailForUser: getExperimentDetailForUserMock,
+}));
+
+vi.mock("@/lib/codex/service", () => ({
+  generateExperimentSuggestions: generateExperimentSuggestionsMock,
 }));
 
 vi.mock("@/components/layout/app-shell", () => ({
@@ -104,6 +110,13 @@ describe("experiment detail page", () => {
     requireUserSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
+    generateExperimentSuggestionsMock.mockResolvedValue([
+      { title: "Sharper headline", prompt: "Make the headline sharper for returning shoppers." },
+      { title: "CTA shift", prompt: "Use a higher-intent CTA for repeat visitors." },
+      { title: "Proof cue", prompt: "Add one proof cue without discount language." },
+      { title: "Benefit frame", prompt: "Push a more benefit-led editorial angle." },
+      { title: "Fresh concept", prompt: "Try a new concept while keeping brand constraints." },
+    ]);
   });
 
   it("redirects unauthenticated users to login", async () => {
@@ -175,7 +188,6 @@ describe("experiment detail page", () => {
     );
     expect(screen.getByText("Wear what lasts")).toBeInTheDocument();
     expect(screen.getByText("AI suggestions")).toBeInTheDocument();
-    expect(screen.getByText("Push a sharper headline")).toBeInTheDocument();
     expect(screen.getByText("Custom prompt")).toBeInTheDocument();
   });
 

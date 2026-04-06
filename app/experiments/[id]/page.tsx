@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { requireUserSession } from "@/lib/auth/session";
+import { generateExperimentSuggestions } from "@/lib/codex/service";
 import { getExperimentDetailForUser } from "@/lib/repositories/experiment-repository";
 
 export default async function ExperimentDetailPage({
@@ -76,11 +77,22 @@ export default async function ExperimentDetailPage({
             </div>
 
             <aside className="stack detail-side-column">
-              <RerunControls
-                experimentId={experiment.id}
-                suggestions={buildPromptSuggestions(experiment, activeVariants)}
-                defaultPrompt={experiment.whatToTest}
-              />
+              <React.Suspense
+                fallback={
+                  <RerunControls
+                    experimentId={experiment.id}
+                    suggestions={[]}
+                    defaultPrompt={experiment.whatToTest}
+                    isLoading
+                  />
+                }
+              >
+                <DetailRerunControls
+                  experiment={experiment}
+                  experimentId={experiment.id}
+                  latestVariant={activeVariants[0] ?? null}
+                />
+              </React.Suspense>
             </aside>
           </div>
         </div>
@@ -98,38 +110,39 @@ function MetadataItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function buildPromptSuggestions(
+async function DetailRerunControls({
+  experiment,
+  experimentId,
+  latestVariant,
+}: {
   experiment: {
+    name: string;
+    pageType: string;
     targetAudience: string;
     tone: string;
     brandConstraints: string;
-  },
-  variants: Array<{
+    seedContext: string | null;
+    whatToTest: string;
+  };
+  experimentId: string;
+  latestVariant: {
     headline: string;
-    ctaText: string;
     subheadline: string | null;
-  }>,
-) {
-  const leadVariant = variants[0];
+    bodyCopy: string;
+    ctaText: string;
+    layoutNotes: string;
+  } | null;
+}) {
+  const suggestions = await generateExperimentSuggestions({
+    experiment,
+    latestVariant,
+  });
 
-  return [
-    {
-      title: "Push a sharper headline",
-      prompt: leadVariant
-        ? `Sharpen the headline beyond "${leadVariant.headline}" for ${experiment.targetAudience.toLowerCase()}. Keep: ${experiment.brandConstraints}.`
-        : `Sharpen the headline for ${experiment.targetAudience.toLowerCase()}. Keep: ${experiment.brandConstraints}.`,
-    },
-    {
-      title: "Test a new CTA angle",
-      prompt: leadVariant
-        ? `Replace "${leadVariant.ctaText}" with a stronger CTA for ${experiment.targetAudience.toLowerCase()}.`
-        : `Use a stronger CTA for ${experiment.targetAudience.toLowerCase()}.`,
-    },
-    {
-      title: "Explore a fresh subheadline",
-      prompt: leadVariant?.subheadline
-        ? `Keep the ${experiment.tone.toLowerCase()} tone. Improve the subheadline beyond "${leadVariant.subheadline}".`
-        : `Keep the ${experiment.tone.toLowerCase()} tone. Add a more benefit-led subheadline.`,
-    },
-  ];
+  return (
+    <RerunControls
+      experimentId={experimentId}
+      suggestions={suggestions}
+      defaultPrompt={experiment.whatToTest}
+    />
+  );
 }

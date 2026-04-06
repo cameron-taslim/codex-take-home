@@ -149,4 +149,52 @@ describe("OpenAICodexProvider", () => {
     expect(systemInstruction).toContain("never to the internal experiment team");
     expect(systemInstruction).toContain("Do not render rationale, critique, design review language");
   });
+
+  it("requests five short detail-page suggestions from Codex", async () => {
+    parseMock.mockResolvedValue({
+      output_parsed: {
+        suggestions: [
+          { title: "Punchier title", prompt: "Make the title punchier for returning shoppers." },
+          { title: "Button position", prompt: "Move the CTA closer to the main message." },
+          { title: "Theme color", prompt: "Shift the theme to a warmer color direction." },
+          { title: "Section layout", prompt: "Rework the section layout for a clearer scan path." },
+          { title: "Humorous tone", prompt: "Make the copy slightly more playful and humorous." },
+        ],
+      },
+    });
+
+    const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
+    const provider = new OpenAICodexProvider("test-key");
+
+    await provider.generateSuggestions({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      currentTestPrompt: "Generate three quality-led headlines.",
+      currentVariant: {
+        headline: "Wear what lasts",
+        subheadline: "Crafted for the season ahead",
+        bodyCopy: "Leads with product materiality.",
+        ctaText: "Explore now",
+        layoutNotes: "Quality-led direction",
+      },
+    });
+
+    const request = parseMock.mock.calls[0]?.[0];
+    const systemInstruction = request?.input?.[0]?.content?.[0]?.text;
+
+    expect(systemInstruction).toContain("Return exactly five suggestions");
+    expect(systemInstruction).toContain("must each target a different type of change");
+    expect(systemInstruction).toContain("headline or title");
+    expect(systemInstruction).toContain("CTA or button treatment");
+    expect(systemInstruction).toContain("layout or section arrangement");
+    expect(systemInstruction).toContain("visual theme or color direction");
+    expect(systemInstruction).toContain("Do not make more than one suggestion primarily about the headline");
+    expect(systemInstruction).toContain("Each title must be short and scannable");
+    expect(systemInstruction).toContain("Each prompt must be concise");
+    expect(systemInstruction).toContain("no more than 120 characters");
+  });
 });

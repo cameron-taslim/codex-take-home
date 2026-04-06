@@ -4,7 +4,10 @@ import { OpenAICodexProvider } from "@/lib/codex/openai-provider";
 import {
   codexGenerationInputSchema,
   codexGenerationResultSchema,
+  codexSuggestionInputSchema,
   type CodexGenerationInput,
+  type CodexSuggestionInput,
+  type CodexSuggestionProvider,
 } from "@/lib/codex/provider";
 import {
   completeGenerationRun,
@@ -19,7 +22,15 @@ import { createVariants } from "@/lib/repositories/variant-repository";
 import { sanitizeGeneratedHtml } from "@/lib/sanitization/generated-html";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
-function createMockCodexProvider(): CodexProvider {
+type SuggestionSourceVariant = {
+  headline: string;
+  subheadline: string | null;
+  bodyCopy: string;
+  ctaText: string;
+  layoutNotes: string;
+};
+
+function createMockCodexProvider(): CodexProvider & CodexSuggestionProvider {
   return {
     async generateVariants(input: CodexGenerationInput) {
       const angles = [
@@ -89,6 +100,41 @@ function createMockCodexProvider(): CodexProvider {
           layoutNotes: `${variant.label} direction for ${input.componentType.toLowerCase()} previews.`,
         },
       });
+    },
+    async generateSuggestions(input: CodexSuggestionInput) {
+      const audience = input.targetAudience.toLowerCase();
+      const tone = input.brandTone.toLowerCase();
+      const headline = input.currentVariant?.headline;
+      const ctaText = input.currentVariant?.ctaText;
+
+      return {
+        suggestions: [
+          {
+            title: "Punchier title",
+            prompt: headline
+              ? `Make "${headline}" punchier for ${audience}.`
+              : `Write a punchier title for ${audience}.`,
+          },
+          {
+            title: "Button position",
+            prompt: ctaText
+              ? `Move "${ctaText}" into a more prominent position near the main message.`
+              : "Move the main CTA into a more prominent position.",
+          },
+          {
+            title: "Theme color",
+            prompt: "Shift the theme to a new color direction that still fits the brand constraints.",
+          },
+          {
+            title: "Section layout",
+            prompt: "Rework the supporting section layout to create a clearer scan path.",
+          },
+          {
+            title: "Humorous tone",
+            prompt: `Keep the ${tone} tone, but add a slightly more playful or humorous voice.`,
+          },
+        ],
+      };
     },
   };
 }
@@ -175,7 +221,49 @@ export async function generateExperimentVariants(params: {
   }
 }
 
-function createDefaultCodexProvider(): CodexProvider {
+export async function generateExperimentSuggestions(params: {
+  experiment: Pick<
+    ExperimentRecord,
+    "name" | "pageType" | "targetAudience" | "tone" | "brandConstraints" | "seedContext" | "whatToTest"
+  >;
+  latestVariant?: SuggestionSourceVariant | null;
+  provider?: CodexSuggestionProvider;
+}) {
+  const input = buildSuggestionSnapshot(params.experiment, params.latestVariant ?? null);
+  const provider = params.provider ?? createDefaultCodexProvider();
+  const result = await provider.generateSuggestions(input);
+
+  return result.suggestions;
+}
+
+function buildSuggestionSnapshot(
+  experiment: Pick<
+    ExperimentRecord,
+    "name" | "pageType" | "targetAudience" | "tone" | "brandConstraints" | "seedContext" | "whatToTest"
+  >,
+  latestVariant: SuggestionSourceVariant | null,
+) {
+  return codexSuggestionInputSchema.parse({
+    experimentName: experiment.name,
+    componentType: experiment.pageType,
+    targetAudience: experiment.targetAudience,
+    brandTone: experiment.tone,
+    brandConstraints: experiment.brandConstraints,
+    seedContext: experiment.seedContext ?? "",
+    currentTestPrompt: experiment.whatToTest ?? "",
+    currentVariant: latestVariant
+      ? {
+          headline: latestVariant.headline,
+          subheadline: latestVariant.subheadline ?? "",
+          bodyCopy: latestVariant.bodyCopy,
+          ctaText: latestVariant.ctaText,
+          layoutNotes: latestVariant.layoutNotes,
+        }
+      : null,
+  });
+}
+
+function createDefaultCodexProvider(): CodexProvider & CodexSuggestionProvider {
   if (process.env.NODE_ENV === "test") {
     return createMockCodexProvider();
   }

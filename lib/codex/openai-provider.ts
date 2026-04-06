@@ -2,12 +2,16 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
   codexGenerationResultSchema,
+  codexSuggestionResultSchema,
   type CodexGenerationInput,
   type CodexGenerationResult,
   type CodexProvider,
+  type CodexSuggestionInput,
+  type CodexSuggestionProvider,
+  type CodexSuggestionResult,
 } from "@/lib/codex/provider";
 
-export class OpenAICodexProvider implements CodexProvider {
+export class OpenAICodexProvider implements CodexProvider, CodexSuggestionProvider {
   private readonly client: OpenAI;
   private readonly model: string;
 
@@ -55,6 +59,39 @@ export class OpenAICodexProvider implements CodexProvider {
 
     if (!response.output_parsed) {
       throw new Error("Codex returned an empty structured response.");
+    }
+
+    return response.output_parsed;
+  }
+
+  async generateSuggestions(
+    input: CodexSuggestionInput,
+  ): Promise<CodexSuggestionResult> {
+    const response = await this.client.responses.parse({
+      model: this.model,
+      input: buildMessages(
+        [
+          "Generate five rerun prompt suggestions for an eCommerce experiment detail page.",
+          "Base each suggestion on the saved experiment brief and current saved output when present.",
+          "Return exactly five suggestions.",
+          "The five suggestions must each target a different type of change.",
+          "Cover these categories across the set: headline or title, tone or voice, CTA or button treatment, layout or section arrangement, and visual theme or color direction.",
+          "Do not make more than one suggestion primarily about the headline.",
+          "Each title must be short and scannable.",
+          "Each prompt must be concise, specific, and ready to use as the next rerun instruction.",
+          "Keep every prompt to one sentence and no more than 120 characters.",
+          "Do not repeat the same angle across suggestions.",
+          "Do not add commentary, numbering, or explanation outside the structured response.",
+        ].join(" "),
+        input,
+      ),
+      text: {
+        format: zodTextFormat(codexSuggestionResultSchema, "experiment_suggestions"),
+      },
+    });
+
+    if (!response.output_parsed) {
+      throw new Error("Codex returned empty prompt suggestions.");
     }
 
     return response.output_parsed;

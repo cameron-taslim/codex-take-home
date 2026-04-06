@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { rerunExperimentAction } from "@/app/experiments/[id]/actions";
@@ -15,10 +16,12 @@ export function RerunControls({
   experimentId,
   suggestions,
   defaultPrompt,
+  isLoading = false,
 }: {
   experimentId: string;
   suggestions: Suggestion[];
   defaultPrompt: string;
+  isLoading?: boolean;
 }) {
   const router = useRouter();
   const [formError, setFormError] = useState<string>();
@@ -52,22 +55,38 @@ export function RerunControls({
       <div className="detail-suggestion-panel">
         <h2 className="detail-section-title">AI suggestions</h2>
 
-        <div className="stack detail-suggestion-list">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.title}
-              type="button"
-              className="detail-suggestion-card"
-              data-active={customPrompt === suggestion.prompt}
-              onClick={() => {
-                setActiveSuggestion(suggestion.title);
-                setCustomPrompt(suggestion.prompt);
-              }}
-            >
-              <span className="detail-suggestion-copy">{suggestion.prompt}</span>
-            </button>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="stack detail-suggestion-loading" role="status" aria-live="polite">
+            <p className="muted detail-suggestion-loading-copy">
+              Generating AI suggestions from this experiment...
+            </p>
+            <div className="stack detail-suggestion-list" aria-hidden="true">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="detail-suggestion-card detail-suggestion-card-loading">
+                  <span className="detail-suggestion-skeleton detail-suggestion-skeleton-title" />
+                  <span className="detail-suggestion-skeleton detail-suggestion-skeleton-copy" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="stack detail-suggestion-list">
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.title}
+                type="button"
+                className="detail-suggestion-card"
+                data-active={customPrompt === suggestion.prompt}
+                onClick={() => {
+                  setActiveSuggestion(suggestion.title);
+                  setCustomPrompt(suggestion.prompt);
+                }}
+              >
+                <span className="detail-suggestion-copy">{suggestion.prompt}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="detail-custom-prompt-panel">

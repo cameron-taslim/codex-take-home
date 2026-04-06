@@ -2102,6 +2102,17 @@ select.field-base {
   gap: 14px;
 }
 
+.detail-suggestion-loading {
+  min-height: 0;
+  gap: 14px;
+}
+
+.detail-suggestion-loading-copy {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .detail-suggestion-card {
   display: grid;
   gap: 4px;
@@ -2121,6 +2132,14 @@ select.field-base {
     box-shadow 120ms ease;
 }
 
+.detail-suggestion-card-loading {
+  pointer-events: none;
+  border-color: rgba(124, 140, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(124, 140, 255, 0.08), transparent 72%),
+    rgba(9, 14, 25, 0.68);
+}
+
 .detail-suggestion-card:hover,
 .detail-suggestion-card:focus-visible,
 .detail-suggestion-card[data-active="true"] {
@@ -2133,6 +2152,35 @@ select.field-base {
   color: var(--text-secondary);
   font-size: 0.76rem;
   line-height: 1.3;
+}
+
+.detail-suggestion-skeleton {
+  display: block;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(124, 140, 255, 0.22), rgba(255, 255, 255, 0.08));
+  background-size: 200% 100%;
+  animation: detailSuggestionPulse 1.3s ease-in-out infinite;
+}
+
+.detail-suggestion-skeleton-title {
+  width: 42%;
+  height: 10px;
+}
+
+.detail-suggestion-skeleton-copy {
+  width: 88%;
+  height: 9px;
+}
+
+@keyframes detailSuggestionPulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .detail-custom-prompt-input {
