@@ -149,6 +149,21 @@ export async function getExperimentDetailForUser(
         orderBy: {
           position: "asc",
         },
+        select: {
+          id: true,
+          generationRunId: true,
+          experimentId: true,
+          label: true,
+          headline: true,
+          subheadline: true,
+          bodyCopy: true,
+          ctaText: true,
+          htmlContent: true,
+          layoutNotes: true,
+          position: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       },
     },
   });

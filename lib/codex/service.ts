@@ -22,8 +22,6 @@ import type { ExperimentRecord } from "@/lib/domain/types";
 function createMockCodexProvider(): CodexProvider {
   return {
     async generateVariants(input: CodexGenerationInput) {
-      const themes = ["atelier-spring", "midnight-ledger"] as const;
-      const layouts = ["spotlight", "split", "stacked"] as const;
       const angles = [
         {
           label: "Quality-led",
@@ -69,25 +67,26 @@ function createMockCodexProvider(): CodexProvider {
           bodyCopy: variant.rationale,
           ctaText: variant.ctaText,
           htmlContent: [
-            '<section style="display: flex; flex-direction: column; gap: 18px; padding: 24px; max-width: 100%; background: linear-gradient(180deg, #f6efe7, #fffaf5); color: #162033; border-radius: 24px;">',
-            '<span style="display: inline-block; width: fit-content; padding: 6px 10px; border-radius: 999px; background: #162033; color: #ffffff; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Featured drop</span>',
-            `<h1 style="margin: 0; font-size: 46px; line-height: 0.95; letter-spacing: -0.05em; max-width: 100%;">${variant.headline}</h1>`,
+            '<section style="display: flex; flex-direction: column; gap: 18px; padding: 28px; max-width: 100%; border-radius: 28px; background: linear-gradient(135deg, #f4e4d4 0%, #f7efe8 48%, #ead2b8 100%); color: #1f2230; box-shadow: 0 18px 40px rgba(73, 44, 23, 0.18);">',
+            '<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">',
+            '<span style="display: inline-block; width: fit-content; padding: 6px 10px; border-radius: 999px; background: rgba(31, 34, 48, 0.92); color: #fff8f1; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Featured drop</span>',
+            '<span style="display: inline-block; width: fit-content; padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.62); color: #7a4e2a; font-size: 12px; font-weight: 700;">New palette</span>',
+            "</div>",
+            `<h1 style="margin: 0; font-size: 46px; line-height: 0.95; letter-spacing: -0.05em; max-width: 100%; color: #1d2333;">${variant.headline}</h1>`,
             variant.subheadline
-              ? `<p style="margin: 0; font-size: 18px; line-height: 1.55; max-width: 32ch;">${variant.subheadline}</p>`
+              ? `<p style="margin: 0; font-size: 18px; line-height: 1.55; max-width: 32ch; color: rgba(29, 35, 51, 0.82);">${variant.subheadline}</p>`
               : "",
             '<div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">',
-            `<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-width: 0; padding: 14px 18px; border-radius: 14px; background: #162033; color: #ffffff; text-decoration: none; font-weight: 700;">${variant.ctaText}</a>`,
-            `<p style="margin: 0; max-width: 34ch; font-size: 15px; line-height: 1.65;">${variant.rationale}</p>`,
+            `<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-width: 0; padding: 14px 18px; border-radius: 14px; background: linear-gradient(180deg, #2f3446, #171b28); color: #fffaf2; text-decoration: none; font-weight: 700; box-shadow: 0 10px 24px rgba(23, 27, 40, 0.22);">${variant.ctaText}</a>`,
+            `<p style="margin: 0; max-width: 34ch; font-size: 15px; line-height: 1.65; color: rgba(29, 35, 51, 0.78);">${variant.rationale}</p>`,
+            "</div>",
+            '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">',
+            '<div style="padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.58); border: 1px solid rgba(31, 34, 48, 0.08);"><p style="margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(31, 34, 48, 0.55);">Why it works</p><p style="margin: 0; font-size: 14px; line-height: 1.55; color: rgba(29, 35, 51, 0.82);">Warm editorial tones make the promo feel premium without becoming loud.</p></div>',
+            `<div style="padding: 14px 16px; border-radius: 18px; background: rgba(126, 78, 32, 0.08); border: 1px solid rgba(126, 78, 32, 0.12);"><p style="margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(122, 78, 42, 0.72);">Testing focus</p><p style="margin: 0; font-size: 14px; line-height: 1.55; color: rgba(29, 35, 51, 0.82);">${input.whatToTest}</p></div>`,
             "</div>",
             "</section>",
           ].join(""),
           layoutNotes: `${variant.label} direction for ${input.componentType.toLowerCase()} previews.`,
-          previewConfig: {
-            layout: layouts[0],
-            emphasis: "headline",
-            theme: themes[0],
-            assetSetKey: "atelier-spring",
-          },
         },
       });
     },

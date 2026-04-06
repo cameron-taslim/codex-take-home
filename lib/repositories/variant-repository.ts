@@ -14,7 +14,6 @@ export async function createVariants(
     ctaText: string;
     htmlContent: string;
     layoutNotes: string;
-    previewConfig: object;
     position: number;
   }>,
 ) {

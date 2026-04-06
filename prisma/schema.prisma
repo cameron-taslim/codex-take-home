@@ -81,7 +81,6 @@ model ExperimentVariant {
   ctaText         String
   htmlContent     String             @default("")
   layoutNotes     String
-  previewConfig   Json
   position        Int
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt

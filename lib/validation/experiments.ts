@@ -18,13 +18,6 @@ export const brandToneSchema = z.enum([
   "Warm",
 ]);
 
-export const previewConfigSchema = z.object({
-  layout: z.enum(["spotlight", "split", "stacked"]).default("spotlight"),
-  emphasis: z.enum(["headline", "cta", "proof"]).default("headline"),
-  theme: z.enum(["atelier-spring", "midnight-ledger"]).default("atelier-spring"),
-  assetSetKey: z.string().min(1),
-});
-
 export const generatedVariantSchema = z.object({
   label: z.string().min(1).max(40),
   headline: z.string().trim().min(1).max(80),
@@ -33,7 +26,6 @@ export const generatedVariantSchema = z.object({
   ctaText: z.string().trim().min(1).max(20),
   htmlContent: z.string().trim().min(1),
   layoutNotes: z.string().min(1),
-  previewConfig: previewConfigSchema,
 });
 
 export const experimentDraftSchema = z.object({

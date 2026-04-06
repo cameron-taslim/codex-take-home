@@ -2480,7 +2480,8 @@ select.field-base {
 }
 
 .variant-html-preview-card {
-  padding: 18px;
+  display: grid;
+  padding: 0;
 }
 
 .variant-html-preview-frame {
@@ -2490,19 +2491,15 @@ select.field-base {
   overflow: hidden;
   border-radius: 28px;
   border: 1px solid rgba(17, 23, 37, 0.12);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05)),
-    rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 18px 40px rgba(5, 10, 18, 0.22);
+  background: transparent;
+  box-shadow: none;
 }
 
 .variant-html-preview-surface {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  padding: 20px;
+  padding: 0;
 }
 
 .variant-html-preview-content {

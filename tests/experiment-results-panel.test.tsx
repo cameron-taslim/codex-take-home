@@ -22,12 +22,6 @@ describe("experiment results panel", () => {
                 htmlContent:
                   '<section><h1>Wear what lasts</h1><p>Crafted for the season ahead.</p></section>',
                 layoutNotes: "Quality-led direction",
-                previewConfig: {
-                  layout: "spotlight",
-                  emphasis: "headline",
-                  theme: "atelier-spring",
-                  assetSetKey: "atelier-spring",
-                },
                 position: 0,
                 createdAt: new Date("2026-04-05T12:00:00.000Z"),
                 updatedAt: new Date("2026-04-05T12:00:00.000Z"),
@@ -60,12 +54,6 @@ describe("experiment results panel", () => {
                 ctaText: "Explore now",
                 htmlContent: "",
                 layoutNotes: "Quality-led direction",
-                previewConfig: {
-                  layout: "spotlight",
-                  emphasis: "headline",
-                  theme: "atelier-spring",
-                  assetSetKey: "atelier-spring",
-                },
                 position: 0,
                 createdAt: new Date("2026-04-05T12:00:00.000Z"),
                 updatedAt: new Date("2026-04-05T12:00:00.000Z"),

@@ -28,12 +28,6 @@ describe("experiment generation validation", () => {
       ctaText: "Explore now",
       htmlContent: "<section><h1>Wear what lasts</h1></section>",
       layoutNotes: "Quality-led direction",
-      previewConfig: {
-        layout: "spotlight",
-        emphasis: "headline",
-        theme: "atelier-spring",
-        assetSetKey: "atelier-spring",
-      },
     });
 
     expect(result.success).toBe(true);
@@ -48,12 +42,6 @@ describe("experiment generation validation", () => {
       ctaText: "Explore now",
       htmlContent: "   ",
       layoutNotes: "Quality-led direction",
-      previewConfig: {
-        layout: "spotlight",
-        emphasis: "headline",
-        theme: "atelier-spring",
-        assetSetKey: "atelier-spring",
-      },
     });
 
     expect(result.success).toBe(false);

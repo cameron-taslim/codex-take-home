@@ -47,7 +47,6 @@ export type VariantRecord = {
   ctaText: string;
   htmlContent: string;
   layoutNotes: string;
-  previewConfig: unknown;
   position: number;
   createdAt: Date;
   updatedAt: Date;

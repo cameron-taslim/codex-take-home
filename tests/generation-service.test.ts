@@ -120,12 +120,6 @@ describe("generation service", () => {
           htmlContent:
             '<section><script>alert(1)</script><h1 style="width: 180%">Wear what lasts</h1></section>',
           layoutNotes: "Quality-led direction",
-          previewConfig: {
-            layout: "spotlight",
-            emphasis: "headline",
-            theme: "atelier-spring",
-            assetSetKey: "atelier-spring",
-          },
         },
       }),
     };
@@ -178,12 +172,6 @@ describe("generation service", () => {
           ctaText: "Explore now",
           htmlContent: "<html><body><h1>Unsafe</h1></body></html>",
           layoutNotes: "Quality-led direction",
-          previewConfig: {
-            layout: "spotlight",
-            emphasis: "headline",
-            theme: "atelier-spring",
-            assetSetKey: "atelier-spring",
-          },
         },
       }),
     };
@@ -226,12 +214,6 @@ describe("generation service", () => {
         ctaText: "Explore now",
         htmlContent: "<section><h1>Wear what lasts</h1></section>",
         layoutNotes: "Quality-led direction",
-        previewConfig: {
-          layout: "spotlight",
-          emphasis: "headline",
-          theme: "atelier-spring",
-          assetSetKey: "atelier-spring",
-        },
       },
     });
 

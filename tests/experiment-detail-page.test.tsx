@@ -155,12 +155,6 @@ describe("experiment detail page", () => {
             ctaText: "Explore now",
             htmlContent: "<section><h1>Wear what lasts</h1></section>",
             layoutNotes: "Quality-led direction",
-            previewConfig: {
-              layout: "spotlight",
-              emphasis: "headline",
-              theme: "atelier-spring",
-              assetSetKey: "atelier-spring",
-            },
             position: 0,
             createdAt: new Date(),
             updatedAt: new Date(),
