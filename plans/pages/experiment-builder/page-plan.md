@@ -16,12 +16,12 @@ Collect the experiment brief and trigger Codex generation from inside the app.
 The form should collect:
 
 - `name`
-- `goal`
-- `pageType`
+- `componentType`
 - `targetAudience`
-- `tone`
+- `brandTone`
 - `brandConstraints`
 - `seedContext` optional
+- `whatToTest`
 
 These are business inputs and must map directly to the shared Codex input contract.
 
@@ -46,10 +46,10 @@ Use a compact single-column layout with a minimal page title and the experiment 
 Required for generation:
 
 - `name`
-- `goal`
-- `pageType`
+- `componentType`
 - `targetAudience`
-- `tone`
+- `brandTone`
+- `whatToTest`
 
 `brandConstraints` is strongly encouraged and should be presented as high-value, but may remain optional for MVP.
 

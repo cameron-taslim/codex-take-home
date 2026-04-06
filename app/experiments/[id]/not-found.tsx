@@ -14,7 +14,7 @@ export default function ExperimentNotFound() {
         description="Return to the experiment workspace to open one of your saved experiments or start a new brief."
         action={
           <Link
-            href="/experiments/new"
+            href="/dashboard"
             style={{
               background:
                 "linear-gradient(180deg, var(--accent-primary-strong), var(--accent-primary))",
@@ -30,7 +30,7 @@ export default function ExperimentNotFound() {
               fontWeight: 700,
             }}
           >
-            Create Experiment
+            Return to Dashboard
           </Link>
         }
       />

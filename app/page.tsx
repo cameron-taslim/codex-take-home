@@ -23,7 +23,7 @@ export default async function HomePage() {
     {
       title: "Shape the brief",
       description:
-        "Capture goal, page type, audience, tone, and brand constraints in one operator-grade form.",
+        "Capture the experiment name, page type, audience, tone, and brand constraints in one operator-grade form.",
     },
     {
       title: "Generate on the server",

@@ -6,7 +6,7 @@ Experiment Lab is a web app for eCommerce teams to create storefront experiments
 - Codex can be used to quickly build a polished product workflow.
 - Codex can be embedded inside the product as a real generation engine, not just used during development.
 
-The app lets an authenticated user log in, create an experiment brief, generate UI and copy output with Codex, persist the result, and review the latest saved output in a preview-oriented detail view.
+The app lets an authenticated user log in, create an experiment brief, generate UI and copy output with Codex, persist the result, and review the latest saved output in an HTML preview-oriented detail view.
 
 ## Audience
 The primary audience is an OpenAI customer operating a major eCommerce platform. The product should feel relevant to merchandisers, growth teams, and product marketers who want to launch experiments faster without hand-authoring every landing-page variation.
@@ -64,12 +64,13 @@ The dashboard lists the user’s saved experiments and their statuses. From here
 ### 3. Experiment Builder
 The builder collects structured inputs:
 
-- experiment goal
+- experiment name
 - target page type
 - target audience
 - tone or merchandising style
 - brand constraints
 - optional seed copy or context
+- a focused test prompt describing what the generation should explore
 
 The user submits the brief to Codex to generate the next saved output.
 

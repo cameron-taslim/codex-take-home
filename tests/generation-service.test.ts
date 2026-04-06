@@ -92,21 +92,19 @@ describe("generation service", () => {
     getExperimentForUser.mockResolvedValue(experiment);
     getLatestSavedVariantForExperimentForUser.mockResolvedValue(latestSavedVariant);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
-    process.env.NODE_ENV = "test";
-    delete process.env.OPENAI_API_KEY;
+    vi.stubEnv("NODE_ENV", "test");
+    vi.unstubAllEnvs();
+    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("OPENAI_API_KEY", "");
   });
 
   afterEach(() => {
-    if (originalNodeEnv === undefined) {
-      delete process.env.NODE_ENV;
-    } else {
-      process.env.NODE_ENV = originalNodeEnv;
+    vi.unstubAllEnvs();
+    if (originalNodeEnv !== undefined) {
+      vi.stubEnv("NODE_ENV", originalNodeEnv);
     }
-
-    if (originalApiKey === undefined) {
-      delete process.env.OPENAI_API_KEY;
-    } else {
-      process.env.OPENAI_API_KEY = originalApiKey;
+    if (originalApiKey !== undefined) {
+      vi.stubEnv("OPENAI_API_KEY", originalApiKey);
     }
   });
 
@@ -252,8 +250,8 @@ describe("generation service", () => {
   });
 
   it("uses the OpenAI provider when not running unit tests and an API key exists", async () => {
-    process.env.NODE_ENV = "development";
-    process.env.OPENAI_API_KEY = "test-key";
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("OPENAI_API_KEY", "test-key");
 
     const generateVariantsMock = vi.fn().mockResolvedValue({
       variant: {

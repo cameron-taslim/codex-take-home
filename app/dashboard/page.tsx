@@ -1,10 +1,31 @@
 import React from "react";
-import { redirect } from "next/navigation";
+import {
+  DashboardContent,
+  CreateExperimentLink,
+  type DashboardExperimentSummary,
+} from "@/components/dashboard/dashboard-content";
+import { AppShell } from "@/components/layout/app-shell";
 import { requireUserSession } from "@/lib/auth/session";
-import { getAuthenticatedHomePath } from "@/lib/navigation";
+import { listExperimentsForUser } from "@/lib/repositories/experiment-repository";
 
 export default async function DashboardPage() {
   const session = await requireUserSession();
+  let experiments: DashboardExperimentSummary[] = [];
+  let hasError = false;
 
-  redirect(await getAuthenticatedHomePath(session.user.id));
+  try {
+    experiments = await listExperimentsForUser(session.user.id);
+  } catch {
+    hasError = true;
+  }
+
+  return (
+    <AppShell
+      title="Dashboard"
+      description="Scan recent experiments, check generation status, and jump back into the latest saved outputs."
+      headerAction={<CreateExperimentLink />}
+    >
+      <DashboardContent experiments={experiments} hasError={hasError} />
+    </AppShell>
+  );
 }

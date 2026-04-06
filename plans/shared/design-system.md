@@ -67,7 +67,7 @@ The preview surface should not attempt full arbitrary page rendering in MVP. Ins
 - body copy
 - CTA
 - layout notes
-- optional visual arrangement hints from `previewConfig`
+- bounded sanitized `htmlContent`
 
 This keeps the UI safe, consistent, and demoable.
 

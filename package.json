@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "typecheck": "rm -f tsconfig.tsbuildinfo && next typegen && tsc --noEmit",
     "local": "bash ./scripts/run-local.sh manual",
     "local:playwright": "bash ./scripts/run-local.sh playwright",
     "prisma:generate": "prisma generate",

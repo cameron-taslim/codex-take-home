@@ -1,55 +1,110 @@
+import React from "react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  redirectMock,
   requireUserSessionMock,
-  getAuthenticatedHomePathMock,
+  listExperimentsForUserMock,
 } = vi.hoisted(() => ({
-  redirectMock: vi.fn(),
   requireUserSessionMock: vi.fn(),
-  getAuthenticatedHomePathMock: vi.fn(),
+  listExperimentsForUserMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  redirect: redirectMock,
+  redirect: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/session", () => ({
   requireUserSession: requireUserSessionMock,
 }));
 
-vi.mock("@/lib/navigation", () => ({
-  getAuthenticatedHomePath: getAuthenticatedHomePathMock,
+vi.mock("@/lib/repositories/experiment-repository", () => ({
+  listExperimentsForUser: listExperimentsForUserMock,
+}));
+
+vi.mock("@/components/layout/app-shell", () => ({
+  AppShell: ({
+    title,
+    description,
+    headerAction,
+    children,
+  }: {
+    title: string;
+    description: string;
+    headerAction?: React.ReactNode;
+    children?: React.ReactNode;
+  }) => (
+    <main>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {headerAction}
+      {children}
+    </main>
+  ),
 }));
 
 import DashboardPage from "@/app/dashboard/page";
 
 describe("dashboard page", () => {
   beforeEach(() => {
-    redirectMock.mockReset();
     requireUserSessionMock.mockReset();
-    getAuthenticatedHomePathMock.mockReset();
+    listExperimentsForUserMock.mockReset();
   });
 
   it("redirects unauthenticated access to login", async () => {
     requireUserSessionMock.mockImplementation(async () => {
-      redirectMock("/login");
       throw new Error("NEXT_REDIRECT");
     });
 
     await expect(DashboardPage()).rejects.toThrow("NEXT_REDIRECT");
-    expect(redirectMock).toHaveBeenCalledWith("/login");
   });
 
-  it("redirects authenticated users to their experiment workspace", async () => {
+  it("renders saved experiments in descending updated order with a create action", async () => {
     requireUserSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
-    getAuthenticatedHomePathMock.mockResolvedValue("/experiments/exp_newer");
+    listExperimentsForUserMock.mockResolvedValue([
+      {
+        id: "exp_newer",
+        name: "Newest experiment",
+        status: "generated",
+        pageType: "Hero banner",
+        updatedAt: new Date("2026-04-05T10:00:00.000Z"),
+        latestGenerationRun: { status: "succeeded" },
+      },
+      {
+        id: "exp_older",
+        name: "Older experiment",
+        status: "draft",
+        pageType: "Landing page",
+        updatedAt: new Date("2026-04-04T10:00:00.000Z"),
+        latestGenerationRun: null,
+      },
+    ]);
 
-    await DashboardPage();
+    render(await DashboardPage());
 
-    expect(getAuthenticatedHomePathMock).toHaveBeenCalledWith("user_1");
-    expect(redirectMock).toHaveBeenCalledWith("/experiments/exp_newer");
+    expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create New Experiment" })).toHaveAttribute(
+      "href",
+      "/experiments/new",
+    );
+    const experimentRows = screen.getAllByRole("listitem");
+    expect(experimentRows[0]).toHaveAttribute("href", "/experiments/exp_newer");
+    expect(experimentRows[1]).toHaveAttribute("href", "/experiments/exp_older");
+    expect(experimentRows[0]).toHaveTextContent("Newest experiment");
+    expect(experimentRows[1]).toHaveTextContent("Older experiment");
+  });
+
+  it("renders the empty state when no experiments exist", async () => {
+    requireUserSessionMock.mockResolvedValue({
+      user: { id: "user_1", email: "demo@example.com" },
+    });
+    listExperimentsForUserMock.mockResolvedValue([]);
+
+    render(await DashboardPage());
+
+    expect(screen.getByText("Create your first experiment")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Create New Experiment" })).toHaveLength(2);
   });
 });

@@ -1,6 +1,7 @@
+import type { Route } from "next";
 import { listExperimentsForUser } from "@/lib/repositories/experiment-repository";
 
-export async function getAuthenticatedHomePath(userId: string) {
+export async function getAuthenticatedHomePath(userId: string): Promise<Route> {
   const experiments = await listExperimentsForUser(userId);
   const latestExperiment = experiments[0];
 
@@ -8,5 +9,5 @@ export async function getAuthenticatedHomePath(userId: string) {
     return "/experiments/new";
   }
 
-  return `/experiments/${latestExperiment.id}`;
+  return `/experiments/${latestExperiment.id}` as Route;
 }

@@ -20,7 +20,7 @@ describe("experiment detail header", () => {
       <ExperimentDetailHeader
         experimentId="exp_123"
         title="Spring hero banner test"
-        metadata={<div>Primary goal</div>}
+        metadata={<div>Primary brief</div>}
       />,
     );
 
@@ -28,7 +28,7 @@ describe("experiment detail header", () => {
       "aria-expanded",
       "false",
     );
-    expect(screen.queryByText("Primary goal")).not.toBeInTheDocument();
+    expect(screen.queryByText("Primary brief")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Expand overview" }));
 
@@ -36,6 +36,6 @@ describe("experiment detail header", () => {
       "aria-expanded",
       "true",
     );
-    expect(screen.getByText("Primary goal")).toBeInTheDocument();
+    expect(screen.getByText("Primary brief")).toBeInTheDocument();
   });
 });

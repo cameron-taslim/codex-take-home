@@ -18,12 +18,12 @@ The Codex call must happen on the server.
 The generation service accepts a structured payload derived from the saved experiment:
 
 - `experimentName`
-- `goal`
 - `pageType`
 - `targetAudience`
 - `tone`
 - `brandConstraints`
 - `seedContext`
+- `whatToTest`
 
 The service may add internal instructions, but page code should only provide these business inputs.
 
@@ -38,7 +38,7 @@ Codex must return one structured output, not free-form prose. The target output 
   - `bodyCopy`
   - `ctaText`
   - `layoutNotes`
-  - `previewConfig`
+  - `htmlContent`
 
 The implementation may use JSON schema or equivalent response validation to ensure storage-safe output.
 
@@ -51,7 +51,7 @@ The Codex prompt should:
 - return structured machine-usable output
 - avoid unsupported HTML or arbitrary executable code
 
-The service must not allow the model to return raw JSX or arbitrary file trees in MVP. The preview should be driven by safe structured content and config rather than arbitrary code execution.
+The service must not allow the model to return raw JSX or arbitrary file trees in MVP. The preview should be driven by safe generated HTML inside a bounded sanitized container rather than arbitrary code execution.
 
 ## Storage Rules
 For every generation attempt:

@@ -1,13 +1,16 @@
 # Experiment Lab
 
-Experiment Lab is a Next.js App Router application for creating and reviewing eCommerce landing-page experiments. The current repository includes the shared foundation:
+Experiment Lab is a Next.js App Router application for creating and reviewing eCommerce landing-page experiments. The current repository includes the full demo flow:
 
-- app scaffold and route structure
+- landing and login flow
+- authenticated dashboard
+- experiment builder and detail pages
 - credentials-based auth with NextAuth
 - Prisma schema and repositories
 - a server-side Codex generation boundary
+- persisted generation history and HTML previews
 - shared UI primitives
-- unit and integration-oriented test setup
+- unit, integration, and browser-oriented test setup
 
 This README covers how to go from a fresh checkout to a running local app.
 
@@ -53,7 +56,7 @@ AUTH_DEMO_EMAIL="demo@example.com"
 AUTH_DEMO_PASSWORD="password123"
 CODEX_PROVIDER_MODE="mock"
 OPENAI_API_KEY=""
-OPENAI_MODEL="gpt-4.1"
+OPENAI_MODEL="gpt-5-codex"
 ```
 
 Notes:
@@ -170,7 +173,7 @@ npm run test:e2e
 Run the typecheck:
 
 ```bash
-npx tsc --noEmit
+npm run typecheck
 ```
 
 Create a production build:
@@ -202,19 +205,25 @@ High-level layout:
 - `lib/codex/`: server-side Codex provider and orchestration layer
 - `lib/validation/`: shared Zod schemas
 - `prisma/`: schema and seed script
-- `tests/`: Vitest coverage for shared foundations
+- `tests/`: Vitest and Playwright coverage for the primary flow
 - `plans/`: approved product and architecture plans
 
 ## Current status
 
-The repository currently provides the shared foundation only. These routes exist:
+The application is implemented and demoable. These routes exist:
 
 - `/login`
 - `/dashboard`
 - `/experiments/new`
 - `/experiments/[id]`
 
-The non-login routes are intentionally scaffolds right now so later page work can build on stable auth, persistence, service, and UI contracts.
+Key product behavior:
+
+- seeded credentials-based login
+- persisted experiment briefs and generation runs
+- server-side Codex orchestration with mock and OpenAI modes
+- saved sanitized `htmlContent` previews on the detail page
+- reruns that preserve generation history
 
 ## Troubleshooting
 

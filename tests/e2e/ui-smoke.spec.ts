@@ -11,7 +11,7 @@ async function login(page: Page) {
   await page.waitForURL(/\/experiments\/(new|[^/]+)$/);
 }
 
-test("login route renders scaffold", async ({ page }) => {
+test("login route renders the demo-ready sign-in surface", async ({ page }) => {
   await page.goto("/login");
 
   await expect(

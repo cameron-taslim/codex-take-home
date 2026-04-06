@@ -35,9 +35,10 @@ Show one generated output for the active run in a clearly separated preview card
 - subheadline if present
 - body copy
 - CTA text
+- sanitized HTML preview
 - layout notes
 
-Use `previewConfig` only for safe presentational enhancements, not arbitrary rendering.
+Use sanitized `htmlContent` only for bounded preview rendering, not arbitrary code execution.
 
 ## Rerun Behavior
 - rerun uses the saved experiment brief as input

@@ -27,12 +27,12 @@ Required fields:
 - `id`
 - `userId`
 - `name`
-- `goal`
 - `pageType`
 - `targetAudience`
 - `tone`
 - `brandConstraints`
 - `seedContext` optional
+- `whatToTest`
 - `status`
 - `latestGenerationRunId` optional
 - timestamps
@@ -88,8 +88,8 @@ Required fields:
 - `subheadline` optional
 - `bodyCopy`
 - `ctaText`
+- `htmlContent`
 - `layoutNotes`
-- `previewConfig`
 - `position`
 - timestamps
 
@@ -153,10 +153,11 @@ Needs:
 - latest generation error state when present
 
 ## Validation Rules
-- `name`, `goal`, `pageType`, `targetAudience`, and `tone` are required for generation.
+- `name`, `pageType`, `targetAudience`, and `tone` are required for generation.
 - `brandConstraints` can be required for generation if the product team wants tighter output control. For MVP, allow it but strongly encourage it.
 - `seedContext` is optional.
-- `previewConfig` must be validated before persistence to prevent malformed detail-page rendering.
+- `whatToTest` is required for generation so the operator can direct the next run.
+- `htmlContent` must be sanitized before persistence to prevent malformed or unsafe detail-page rendering.
 
 ## Acceptance Criteria
 - The schema supports one user owning many experiments.

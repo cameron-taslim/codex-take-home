@@ -21,7 +21,7 @@ export const brandToneSchema = z.enum([
 export const generatedVariantSchema = z.object({
   label: z.string().min(1).max(40),
   headline: z.string().trim().min(1).max(80),
-  subheadline: z.string().optional(),
+  subheadline: z.string().trim().nullable(),
   bodyCopy: z.string().min(1),
   ctaText: z.string().trim().min(1).max(20),
   htmlContent: z.string().trim().min(1),
