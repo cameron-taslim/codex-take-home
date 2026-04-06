@@ -128,6 +128,8 @@ describe("experiment builder page", () => {
     expect(
       screen.getByRole("heading", { name: "Create experiment" }),
     ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Primary goal *")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Extra prompt *")).toBeInTheDocument();
     expect(screen.queryByText("Workflow stages")).not.toBeInTheDocument();
     expect(screen.queryByText("Brief preview")).not.toBeInTheDocument();
     expect(screen.queryByText("Pipeline controls")).not.toBeInTheDocument();
@@ -153,7 +155,7 @@ describe("experiment builder page", () => {
     fireEvent.change(screen.getByLabelText("Seed context *"), {
       target: { value: "Feature lightweight outerwear" },
     });
-    fireEvent.change(screen.getByLabelText("What to test *"), {
+    fireEvent.change(screen.getByLabelText("Extra prompt *"), {
       target: { value: "Generate three headlines that lead with quality." },
     });
 

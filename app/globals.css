@@ -1351,7 +1351,7 @@ samp {
 .detail-meta-value {
   margin: 0;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .builder-checklist-panel {
@@ -1421,13 +1421,13 @@ samp {
 
 .detail-header-card {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 12px 14px;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
 }
 
 .detail-header-card .page-header-title {
-  font-size: clamp(1.15rem, 1.35vw, 1.45rem);
+  font-size: clamp(1.05rem, 1.2vw, 1.3rem);
   line-height: 1.12;
   font-weight: 600;
 }
@@ -1439,25 +1439,29 @@ samp {
   gap: 12px;
 }
 
-.detail-header-actions,
-.detail-summary-body {
-  gap: 12px;
-}
-
 .detail-header-actions {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
   align-items: center;
+  gap: 8px;
+}
+
+.detail-summary-body {
+  gap: 8px;
 }
 
 .detail-summary-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .detail-meta-item {
   display: grid;
-  gap: 8px;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .detail-recovery-note {

@@ -28,13 +28,6 @@ const componentTypes = [
   "Category page header",
 ] as const;
 
-const primaryGoals = [
-  "Increase clickthrough rate",
-  "Increase add-to-cart rate",
-  "Increase revenue per visitor",
-  "Reduce bounce rate",
-] as const;
-
 const brandTones = [
   "Editorial",
   "Urgent",
@@ -165,20 +158,18 @@ export function ExperimentBuilderForm({
                   </FormField>
 
                   <FormField
-                    label="Primary goal"
-                    htmlFor="primaryGoal"
+                    label="Brand tone"
+                    htmlFor="brandTone"
                     required
-                    error={fieldErrors.primaryGoal}
+                    error={fieldErrors.brandTone}
                   >
                     <select
-                      id="primaryGoal"
+                      id="brandTone"
                       className="field-base"
-                      value={values.primaryGoal}
-                      onChange={(event) =>
-                        setFieldValue("primaryGoal", event.target.value)
-                      }
+                      value={values.brandTone}
+                      onChange={(event) => setFieldValue("brandTone", event.target.value)}
                     >
-                      {primaryGoals.map((option) => (
+                      {brandTones.map((option) => (
                         <option key={option} value={option}>
                           {option}
                         </option>
@@ -207,28 +198,6 @@ export function ExperimentBuilderForm({
                     style={{ minHeight: 84 }}
                   />
                 </FormField>
-
-                <div className="builder-two-column-grid">
-                  <FormField
-                    label="Brand tone"
-                    htmlFor="brandTone"
-                    required
-                    error={fieldErrors.brandTone}
-                  >
-                    <select
-                      id="brandTone"
-                      className="field-base"
-                      value={values.brandTone}
-                      onChange={(event) => setFieldValue("brandTone", event.target.value)}
-                    >
-                      {brandTones.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-                </div>
 
                 <FormField
                   label="Brand constraints"
@@ -267,7 +236,7 @@ export function ExperimentBuilderForm({
                 </FormField>
 
                 <FormField
-                  label="What to test"
+                  label="Extra prompt"
                   htmlFor="whatToTest"
                   required
                   error={fieldErrors.whatToTest}

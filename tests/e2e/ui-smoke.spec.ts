@@ -37,7 +37,6 @@ test("seeded login can create an experiment and review the saved output", async 
 
   await expect(page.getByRole("heading", { name: "Create experiment" })).toBeVisible();
   await page.getByLabel("Experiment name *").fill(experimentName);
-  await page.getByLabel("Primary goal *").selectOption("Increase clickthrough rate");
   await page.getByLabel("Component type *").selectOption("Hero banner");
   await page
     .getByLabel("Target audience *")
@@ -50,7 +49,7 @@ test("seeded login can create an experiment and review the saved output", async 
     .getByLabel("Seed context *")
     .fill("Feature lightweight outerwear and transitional layering.");
   await page
-    .getByLabel("What to test *")
+    .getByLabel("Extra prompt *")
     .fill("Generate one premium, product-led headline direction with concise CTA copy.");
 
   await expect(page.getByText("Brief preview")).toHaveCount(0);

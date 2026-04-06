@@ -53,12 +53,11 @@ export default async function ExperimentDetailPage({
           metadata={
             <dl className="detail-summary-grid">
               <MetadataItem label="Component type" value={experiment.pageType} />
-              <MetadataItem label="Primary goal" value={experiment.goal} />
               <MetadataItem label="Audience" value={experiment.targetAudience} />
               <MetadataItem label="Brand tone" value={experiment.tone} />
               <MetadataItem label="Brand constraints" value={experiment.brandConstraints} />
               <MetadataItem
-                label="What to test"
+                label="Extra prompt"
                 value={experiment.whatToTest || "No test prompt saved"}
               />
             </dl>

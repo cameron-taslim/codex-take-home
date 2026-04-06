@@ -21,7 +21,6 @@ describe("experiment detail header", () => {
         experimentId="exp_123"
         title="Spring hero banner test"
         metadata={<div>Primary goal</div>}
-        approvedBrief={<div>Approved brief</div>}
       />,
     );
 
@@ -30,7 +29,6 @@ describe("experiment detail header", () => {
       "false",
     );
     expect(screen.queryByText("Primary goal")).not.toBeInTheDocument();
-    expect(screen.queryByText("Approved brief")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Expand overview" }));
 
@@ -39,6 +37,5 @@ describe("experiment detail header", () => {
       "true",
     );
     expect(screen.getByText("Primary goal")).toBeInTheDocument();
-    expect(screen.getByText("Approved brief")).toBeInTheDocument();
   });
 });
