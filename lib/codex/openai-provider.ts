@@ -28,6 +28,13 @@ export class OpenAICodexProvider implements CodexProvider, CodexSuggestionProvid
       input: buildMessages(
         [
           "Generate one storefront experiment output from the merchandiser inputs.",
+          "If currentVariant is present, treat it as the current approved output the user is reviewing.",
+          "When currentVariant is present, make a targeted revision against that baseline instead of a full rewrite.",
+          "Preserve the existing concept, structure, copy, CTA intent, layout pattern, and visual system unless the whatToTest instruction explicitly asks you to change them.",
+          "Only change the specific parts needed to satisfy whatToTest, and keep all untouched fields as close to the baseline as possible.",
+          "Use currentVariant.htmlContent as the visual baseline for the returned HTML fragment when present, editing only the parts required by the request.",
+          "If whatToTest is broad enough to require larger changes, keep them narrowly scoped to the request and avoid unrelated rewrites.",
+          "If currentVariant is absent, generate a fresh output from the experiment brief.",
           "The output must include a creative angle label, headline, optional subheadline, CTA, rationale, layout notes, and one self-contained HTML fragment preview.",
           "The HTML fragment is customer-facing creative only.",
           "Any text shown in the HTML should read like storefront marketing copy spoken to a shopper, never to the internal experiment team.",

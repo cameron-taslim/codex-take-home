@@ -5,6 +5,7 @@ const {
   mockTransaction,
   transactionContexts,
   getExperimentForUser,
+  getLatestSavedVariantForExperimentForUser,
   createGenerationRun,
   markGenerationRunRunning,
   createVariants,
@@ -18,6 +19,7 @@ const {
     return callback(tx);
   }),
   getExperimentForUser: vi.fn(),
+  getLatestSavedVariantForExperimentForUser: vi.fn(),
   createGenerationRun: vi.fn(),
   markGenerationRunRunning: vi.fn(),
   createVariants: vi.fn(),
@@ -54,8 +56,19 @@ const experiment = {
   whatToTest: "Generate three quality-led headlines.",
 };
 
+const latestSavedVariant = {
+  label: "Quality-led",
+  headline: "Wear what lasts",
+  subheadline: "Crafted for the season ahead.",
+  bodyCopy: "Leads with product materiality.",
+  ctaText: "Explore now",
+  htmlContent: "<section><h1>Wear what lasts</h1></section>",
+  layoutNotes: "Quality-led direction",
+};
+
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentForUser,
+  getLatestSavedVariantForExperimentForUser,
 }));
 
 vi.mock("@/lib/repositories/generation-repository", () => ({
@@ -77,6 +90,7 @@ describe("generation service", () => {
     vi.clearAllMocks();
     transactionContexts.length = 0;
     getExperimentForUser.mockResolvedValue(experiment);
+    getLatestSavedVariantForExperimentForUser.mockResolvedValue(latestSavedVariant);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
     process.env.NODE_ENV = "test";
     delete process.env.OPENAI_API_KEY;
@@ -105,6 +119,42 @@ describe("generation service", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
+      currentVariant: null,
+    });
+  });
+
+  it("includes the current saved output as the rerun baseline", async () => {
+    const provider = {
+      generateVariants: vi.fn().mockResolvedValue({
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts, longer",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          htmlContent: "<section><h1>Wear what lasts, longer</h1></section>",
+          layoutNotes: "Quality-led direction",
+        },
+      }),
+    };
+
+    await generateExperimentVariants({
+      experimentId: "exp_123",
+      userId: "user_123",
+      promptOverride: "Tighten the headline only.",
+      provider,
+    });
+
+    expect(getLatestSavedVariantForExperimentForUser).toHaveBeenCalledWith("exp_123", "user_123");
+    expect(provider.generateVariants).toHaveBeenCalledWith({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Tighten the headline only.",
+      currentVariant: latestSavedVariant,
     });
   });
 

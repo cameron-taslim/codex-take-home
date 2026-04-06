@@ -17,16 +17,19 @@ import {
 } from "@/lib/repositories/generation-repository";
 import {
   getExperimentForUser,
+  getLatestSavedVariantForExperimentForUser,
 } from "@/lib/repositories/experiment-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
 import { sanitizeGeneratedHtml } from "@/lib/sanitization/generated-html";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
 type SuggestionSourceVariant = {
+  label?: string;
   headline: string;
   subheadline: string | null;
   bodyCopy: string;
   ctaText: string;
+  htmlContent?: string;
   layoutNotes: string;
 };
 
@@ -141,9 +144,10 @@ function createMockCodexProvider(): CodexProvider & CodexSuggestionProvider {
 
 export function buildPromptSnapshot(
   experiment: ExperimentRecord,
-  overrides?: { whatToTest?: string },
+  overrides?: { whatToTest?: string; currentVariant?: SuggestionSourceVariant | null },
 ) {
   const whatToTest = overrides?.whatToTest?.trim() || experiment.whatToTest;
+  const currentVariant = overrides?.currentVariant ?? null;
 
   return codexGenerationInputSchema.parse({
     experimentName: experiment.name,
@@ -153,6 +157,17 @@ export function buildPromptSnapshot(
     brandConstraints: experiment.brandConstraints,
     seedContext: experiment.seedContext ?? "",
     whatToTest,
+    currentVariant: currentVariant
+      ? {
+          label: currentVariant.label ?? "Current saved output",
+          headline: currentVariant.headline,
+          subheadline: currentVariant.subheadline ?? "",
+          bodyCopy: currentVariant.bodyCopy,
+          ctaText: currentVariant.ctaText,
+          htmlContent: currentVariant.htmlContent ?? "<section></section>",
+          layoutNotes: currentVariant.layoutNotes,
+        }
+      : null,
   });
 }
 
@@ -167,8 +182,15 @@ export async function generateExperimentVariants(params: {
   if (!experiment) {
     throw new Error("Experiment not found.");
   }
+
+  const latestSavedVariant = await getLatestSavedVariantForExperimentForUser(
+    experiment.id,
+    params.userId,
+  );
+
   const promptSnapshot = buildPromptSnapshot(experiment, {
     whatToTest: params.promptOverride,
+    currentVariant: latestSavedVariant,
   });
   const provider = params.provider ?? createDefaultCodexProvider();
 

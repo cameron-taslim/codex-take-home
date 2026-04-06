@@ -64,6 +64,7 @@ describe("OpenAICodexProvider", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
+      currentVariant: null,
     });
 
     expect(openAIConstructorMock).toHaveBeenCalledWith({ apiKey: "test-key" });
@@ -101,6 +102,7 @@ describe("OpenAICodexProvider", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
+      currentVariant: null,
     });
 
     expect(parseMock).toHaveBeenCalledWith(
@@ -136,6 +138,7 @@ describe("OpenAICodexProvider", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
+      currentVariant: null,
     });
 
     const request = parseMock.mock.calls[0]?.[0];
@@ -148,6 +151,53 @@ describe("OpenAICodexProvider", () => {
     expect(systemInstruction).toContain("The HTML fragment is customer-facing creative only");
     expect(systemInstruction).toContain("never to the internal experiment team");
     expect(systemInstruction).toContain("Do not render rationale, critique, design review language");
+  });
+
+  it("tells Codex to treat reruns with a current variant as scoped edits", async () => {
+    parseMock.mockResolvedValue({
+      output_parsed: {
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts, longer",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          htmlContent: "<section><h1>Wear what lasts, longer</h1></section>",
+          layoutNotes: "Quality-led direction",
+        },
+      },
+    });
+
+    const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
+    const provider = new OpenAICodexProvider("test-key");
+
+    await provider.generateVariants({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Tighten the headline only.",
+      currentVariant: {
+        label: "Quality-led",
+        headline: "Wear what lasts",
+        subheadline: "Crafted for the season ahead.",
+        bodyCopy: "Leads with product materiality.",
+        ctaText: "Explore now",
+        htmlContent: "<section><h1>Wear what lasts</h1></section>",
+        layoutNotes: "Quality-led direction",
+      },
+    });
+
+    const request = parseMock.mock.calls[0]?.[0];
+    const systemInstruction = request?.input?.[0]?.content?.[0]?.text;
+
+    expect(systemInstruction).toContain("treat it as the current approved output");
+    expect(systemInstruction).toContain("targeted revision against that baseline");
+    expect(systemInstruction).toContain("Preserve the existing concept, structure, copy");
+    expect(systemInstruction).toContain("Only change the specific parts needed");
+    expect(systemInstruction).toContain("Use currentVariant.htmlContent as the visual baseline");
   });
 
   it("requests five short detail-page suggestions from Codex", async () => {

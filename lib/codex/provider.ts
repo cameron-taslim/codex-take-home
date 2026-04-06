@@ -1,10 +1,13 @@
 import { z } from "zod";
-import {
-  experimentInputSchema,
-  generatedVariantSchema,
-} from "@/lib/validation/experiments";
+import { experimentInputSchema, generatedVariantSchema } from "@/lib/validation/experiments";
 
-export const codexGenerationInputSchema = experimentInputSchema;
+const editableVariantSchema = generatedVariantSchema.extend({
+  subheadline: z.string().trim().default(""),
+});
+
+export const codexGenerationInputSchema = experimentInputSchema.extend({
+  currentVariant: editableVariantSchema.nullable().default(null),
+});
 
 export const codexGenerationResultSchema = z.object({
   variant: generatedVariantSchema,

@@ -174,6 +174,41 @@ export async function getExperimentDetailForUser(
   };
 }
 
+export async function getLatestSavedVariantForExperimentForUser(
+  experimentId: string,
+  userId: string,
+) {
+  const latestSavedRun = await prisma.codexGenerationRun.findFirst({
+    where: {
+      experimentId,
+      status: "succeeded",
+      experiment: {
+        userId,
+      },
+    },
+    orderBy: [{ completedAt: "desc" }, { createdAt: "desc" }],
+    select: {
+      variants: {
+        orderBy: {
+          position: "asc",
+        },
+        take: 1,
+        select: {
+          label: true,
+          headline: true,
+          subheadline: true,
+          bodyCopy: true,
+          ctaText: true,
+          htmlContent: true,
+          layoutNotes: true,
+        },
+      },
+    },
+  });
+
+  return latestSavedRun?.variants[0] ?? null;
+}
+
 export async function validateExperimentForGeneration(input: unknown) {
   return experimentInputSchema.safeParse(input);
 }
