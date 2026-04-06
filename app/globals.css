@@ -2486,9 +2486,9 @@ select.field-base {
 
 .variant-html-preview-frame {
   width: 100%;
-  height: clamp(24rem, 42vw, 34rem);
   min-height: 24rem;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   border-radius: 28px;
   border: 1px solid rgba(17, 23, 37, 0.12);
   background: transparent;
@@ -2497,15 +2497,15 @@ select.field-base {
 
 .variant-html-preview-surface {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   padding: 0;
 }
 
 .variant-html-preview-content {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   color: inherit;
   font-family: var(--font-sans);
   line-height: 1.5;
@@ -2594,7 +2594,7 @@ select.field-base {
 
   .variant-html-preview-frame {
     min-height: 22rem;
-    height: clamp(22rem, 70vw, 28rem);
+    height: auto;
   }
 
   .variant-preview-surface {

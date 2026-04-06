@@ -109,4 +109,44 @@ describe("OpenAICodexProvider", () => {
       }),
     );
   });
+
+  it("sends stronger art direction so generated previews do not collapse into white minimal cards", async () => {
+    parseMock.mockResolvedValue({
+      output_parsed: {
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          htmlContent: "<section><h1>Wear what lasts</h1></section>",
+          layoutNotes: "Quality-led direction",
+        },
+      },
+    });
+
+    const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
+    const provider = new OpenAICodexProvider("test-key");
+
+    await provider.generateVariants({
+      experimentName: "Spring hero banner test",
+      componentType: "Hero banner",
+      targetAudience: "Returning shoppers",
+      brandTone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+    });
+
+    const request = parseMock.mock.calls[0]?.[0];
+    const systemInstruction = request?.input?.[0]?.content?.[0]?.text;
+
+    expect(systemInstruction).toContain("Be liberal with graphics created in HTML and CSS");
+    expect(systemInstruction).toContain("Avoid plain white backgrounds");
+    expect(systemInstruction).toContain("bare text-only stacks");
+    expect(systemInstruction).toContain("premium eCommerce art direction");
+    expect(systemInstruction).toContain("The HTML fragment is customer-facing creative only");
+    expect(systemInstruction).toContain("never to the internal experiment team");
+    expect(systemInstruction).toContain("Do not render rationale, critique, design review language");
+  });
 });
