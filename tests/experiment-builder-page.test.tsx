@@ -7,14 +7,12 @@ const {
   refreshMock,
   redirectMock,
   requireUserSessionMock,
-  prepareExperimentBriefActionMock,
   generateExperimentActionMock,
 } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   refreshMock: vi.fn(),
   redirectMock: vi.fn(),
   requireUserSessionMock: vi.fn(),
-  prepareExperimentBriefActionMock: vi.fn(),
   generateExperimentActionMock: vi.fn(),
 }));
 
@@ -34,7 +32,6 @@ vi.mock("@/lib/auth/session", () => ({
 }));
 
 vi.mock("@/app/experiments/new/actions", () => ({
-  prepareExperimentBriefAction: prepareExperimentBriefActionMock,
   generateExperimentAction: generateExperimentActionMock,
 }));
 
@@ -78,31 +75,10 @@ describe("experiment builder page", () => {
       user: { id: "user_1", email: "demo@example.com" },
     });
 
-    prepareExperimentBriefActionMock.mockResolvedValue({
-      values: {
-        ...baseValues,
-        experimentId: "exp_123",
-        approvedBrief: {
-          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-          whatIsChanging: ["headline copy", "CTA label"],
-          successMetric: "Increase clickthrough rate",
-          audienceSignal: "Returning shoppers",
-        },
-      },
-      experimentId: "exp_123",
-      stage: "brief_ready",
-    });
-
     generateExperimentActionMock.mockResolvedValue({
       values: {
         ...baseValues,
         experimentId: "exp_123",
-        approvedBrief: {
-          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-          whatIsChanging: ["headline copy", "CTA label"],
-          successMetric: "Increase clickthrough rate",
-          audienceSignal: "Returning shoppers",
-        },
       },
       experimentId: "exp_123",
       redirectTo: "/experiments/exp_123",
@@ -138,7 +114,7 @@ describe("experiment builder page", () => {
     expect(screen.getByRole("button", { name: "Generate Output" })).toBeInTheDocument();
   });
 
-  it("prepares the brief and routes to detail from a single generate action", async () => {
+  it("routes to detail from a single generate action", async () => {
     render(await NewExperimentPage());
 
     fireEvent.change(screen.getByLabelText("Experiment name *"), {
@@ -160,7 +136,6 @@ describe("experiment builder page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Generate Output" }));
 
     await waitFor(() => {
-      expect(prepareExperimentBriefActionMock).toHaveBeenCalled();
       expect(generateExperimentActionMock).toHaveBeenCalled();
       expect(pushMock).toHaveBeenCalledWith("/experiments/exp_123");
       expect(refreshMock).toHaveBeenCalled();

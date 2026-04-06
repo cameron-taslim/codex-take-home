@@ -3,10 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/auth/session";
-import {
-  generateExperimentVariants,
-  synthesizeExperimentBrief,
-} from "@/lib/codex/service";
+import { generateExperimentVariants } from "@/lib/codex/service";
 import {
   createDraftExperiment,
   updateExperimentBrief,
@@ -28,7 +25,6 @@ function normalizeValues(values: ExperimentBuilderValues): ExperimentBuilderValu
     brandConstraints: values.brandConstraints.trim(),
     seedContext: values.seedContext.trim(),
     whatToTest: values.whatToTest.trim(),
-    approvedBrief: values.approvedBrief,
   };
 }
 
@@ -100,14 +96,12 @@ async function persistExperiment(values: ExperimentBuilderValues, userId: string
       ...experimentInput,
       seedContext: values.seedContext || null,
       status: "draft",
-      approvedBrief: values.approvedBrief,
     });
   }
 
   return createDraftExperiment(prisma, {
     userId,
     ...experimentInput,
-    approvedBrief: values.approvedBrief,
   });
 }
 
@@ -161,54 +155,6 @@ export async function saveDraftExperimentAction(
   }
 }
 
-export async function prepareExperimentBriefAction(
-  values: ExperimentBuilderValues,
-): Promise<ExperimentBuilderActionResult> {
-  const normalizedValues = normalizeValues(values);
-  const userId = await getUserId();
-
-  if (!userId) {
-    return buildResult(normalizedValues, {
-      formError: "Your session expired. Sign in again to prepare this brief.",
-    });
-  }
-
-  const fieldErrors = mapGenerationErrors(normalizedValues);
-
-  if (Object.keys(fieldErrors).length > 0) {
-    return buildResult(normalizedValues, { fieldErrors });
-  }
-
-  try {
-    const experiment = await persistExperiment(normalizedValues, userId);
-    const approvedBrief = await synthesizeExperimentBrief({
-      experimentId: experiment.id,
-      userId,
-    });
-
-    revalidatePath("/");
-    revalidatePath("/dashboard");
-    revalidatePath(`/experiments/${experiment.id}`);
-
-    return buildResult(
-      {
-        ...normalizedValues,
-        experimentId: experiment.id,
-        approvedBrief,
-      },
-      {
-        experimentId: experiment.id,
-        stage: "brief_ready",
-      },
-    );
-  } catch (error) {
-    return buildResult(normalizedValues, {
-      formError:
-        error instanceof Error ? error.message : "Brief analysis failed. Try again.",
-    });
-  }
-}
-
 export async function generateExperimentAction(
   values: ExperimentBuilderValues,
 ): Promise<ExperimentBuilderActionResult> {
@@ -226,12 +172,6 @@ export async function generateExperimentAction(
 
   if (Object.keys(fieldErrors).length > 0) {
     return buildResult(normalizedValues, { fieldErrors });
-  }
-
-  if (!normalizedValues.approvedBrief) {
-    return buildResult(normalizedValues, {
-      formError: "Prepare the brief before generating output.",
-    });
   }
 
   try {

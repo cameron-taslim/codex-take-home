@@ -129,12 +129,6 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      approvedBrief: {
-        hypothesis: "We believe stronger quality-led copy will improve clickthrough rate.",
-        whatIsChanging: ["headline copy", "CTA label"],
-        successMetric: "Increase clickthrough rate",
-        audienceSignal: "Returning shoppers",
-      },
       status: "generated",
       latestGenerationRunId: "run_success",
       latestGenerationRun: {
@@ -213,7 +207,6 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      approvedBrief: null,
       status: "draft",
       latestGenerationRunId: null,
       latestGenerationRun: null,

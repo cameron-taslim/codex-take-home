@@ -70,7 +70,7 @@ export default async function ExperimentDetailPage({
               ) : (
                 <EmptyState
                   title="No saved output yet"
-                  description="Prepare the brief and generate output before reviewing this experiment."
+                  description="Generate output before reviewing this experiment."
                 />
               )}
             </div>

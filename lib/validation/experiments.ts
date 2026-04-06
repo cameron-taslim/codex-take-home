@@ -35,13 +35,6 @@ export const generatedVariantSchema = z.object({
   previewConfig: previewConfigSchema,
 });
 
-export const briefSynthesisSchema = z.object({
-  hypothesis: requiredText("Hypothesis is required."),
-  whatIsChanging: z.array(requiredText("Change summary is required.")).min(1).max(4),
-  successMetric: requiredText("Success metric is required."),
-  audienceSignal: requiredText("Audience signal is required."),
-});
-
 export const experimentDraftSchema = z.object({
   userId: z.string().min(1),
   name: requiredText("Experiment name is required."),
@@ -51,7 +44,6 @@ export const experimentDraftSchema = z.object({
   brandConstraints: z.string().optional(),
   seedContext: z.string().optional(),
   whatToTest: z.string().optional(),
-  approvedBrief: briefSynthesisSchema.optional(),
 });
 
 export const experimentInputSchema = z.object({

@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import type { CodexProvider } from "@/lib/codex/provider";
 import { OpenAICodexProvider } from "@/lib/codex/openai-provider";
 import {
-  codexBriefSynthesisSchema,
   codexGenerationInputSchema,
   codexGenerationResultSchema,
   type CodexGenerationInput,
@@ -15,28 +14,12 @@ import {
 } from "@/lib/repositories/generation-repository";
 import {
   getExperimentForUser,
-  storeApprovedBrief,
 } from "@/lib/repositories/experiment-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
 function createMockCodexProvider(): CodexProvider {
   return {
-    async synthesizeBrief(input: CodexGenerationInput) {
-      const componentCopy =
-        input.componentType === "Hero banner"
-          ? ["headline copy", "subheadline", "CTA label"]
-          : input.componentType === "Navigation CTA"
-            ? ["CTA label", "supporting helper text"]
-            : ["headline copy", "CTA label", "supporting merchandising copy"];
-
-      return codexBriefSynthesisSchema.parse({
-        hypothesis: `We believe that changing ${componentCopy.join(", ")} will better engage ${input.targetAudience.toLowerCase()} through ${input.brandTone.toLowerCase()} product storytelling.`,
-        whatIsChanging: componentCopy,
-        successMetric: input.whatToTest,
-        audienceSignal: input.targetAudience,
-      });
-    },
     async generateVariants(input: CodexGenerationInput) {
       const themes = ["atelier-spring", "midnight-ledger"] as const;
       const layouts = ["spotlight", "split", "stacked"] as const;
@@ -114,26 +97,6 @@ export function buildPromptSnapshot(
   });
 }
 
-export async function synthesizeExperimentBrief(params: {
-  experimentId: string;
-  userId: string;
-  provider?: CodexProvider;
-}) {
-  const experiment = await getExperimentForUser(params.experimentId, params.userId);
-
-  if (!experiment) {
-    throw new Error("Experiment not found.");
-  }
-
-  const provider = params.provider ?? createDefaultCodexProvider();
-  const promptSnapshot = buildPromptSnapshot(experiment);
-  const approvedBrief = await provider.synthesizeBrief(promptSnapshot);
-
-  await storeApprovedBrief(prisma, experiment.id, params.userId, approvedBrief);
-
-  return approvedBrief;
-}
-
 export async function generateExperimentVariants(params: {
   experimentId: string;
   userId: string;
@@ -145,12 +108,6 @@ export async function generateExperimentVariants(params: {
   if (!experiment) {
     throw new Error("Experiment not found.");
   }
-
-  if (!experiment.approvedBrief) {
-    throw new Error("Experiment brief is not approved.");
-  }
-
-  codexBriefSynthesisSchema.parse(experiment.approvedBrief);
   const promptSnapshot = buildPromptSnapshot(experiment, {
     whatToTest: params.promptOverride,
   });
@@ -202,13 +159,13 @@ export async function generateExperimentVariants(params: {
 }
 
 function createDefaultCodexProvider(): CodexProvider {
-  if (process.env.CODEX_PROVIDER_MODE !== "openai") {
+  if (process.env.NODE_ENV === "test") {
     return createMockCodexProvider();
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is not configured.");
+  if (process.env.OPENAI_API_KEY) {
+    return new OpenAICodexProvider(process.env.OPENAI_API_KEY);
   }
 
-  return new OpenAICodexProvider(process.env.OPENAI_API_KEY);
+  return createMockCodexProvider();
 }

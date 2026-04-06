@@ -5,14 +5,12 @@ const {
   getServerSessionMock,
   createDraftExperimentMock,
   updateExperimentBriefMock,
-  synthesizeExperimentBriefMock,
   generateExperimentVariantsMock,
 } = vi.hoisted(() => ({
   revalidatePathMock: vi.fn(),
   getServerSessionMock: vi.fn(),
   createDraftExperimentMock: vi.fn(),
   updateExperimentBriefMock: vi.fn(),
-  synthesizeExperimentBriefMock: vi.fn(),
   generateExperimentVariantsMock: vi.fn(),
 }));
 
@@ -34,13 +32,11 @@ vi.mock("@/lib/repositories/experiment-repository", () => ({
 }));
 
 vi.mock("@/lib/codex/service", () => ({
-  synthesizeExperimentBrief: synthesizeExperimentBriefMock,
   generateExperimentVariants: generateExperimentVariantsMock,
 }));
 
 import {
   generateExperimentAction,
-  prepareExperimentBriefAction,
   saveDraftExperimentAction,
 } from "@/app/experiments/new/actions";
 
@@ -95,13 +91,13 @@ describe("experiment builder actions", () => {
     );
   });
 
-  it("rejects incomplete analysis requests before invoking synthesis", async () => {
+  it("rejects incomplete generation requests before invoking Codex", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
 
     await expect(
-      prepareExperimentBriefAction({
+      generateExperimentAction({
         ...baseValues,
         brandConstraints: "",
       }),
@@ -115,45 +111,10 @@ describe("experiment builder actions", () => {
       },
     });
 
-    expect(synthesizeExperimentBriefMock).not.toHaveBeenCalled();
-  });
-
-  it("persists the brief and returns the synthesized confirmation stage", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: { id: "user_1", email: "demo@example.com" },
-    });
-    createDraftExperimentMock.mockResolvedValue({ id: "exp_123" });
-    synthesizeExperimentBriefMock.mockResolvedValue({
-      hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-      whatIsChanging: ["headline copy", "CTA label"],
-      successMetric: "Increase clickthrough rate",
-      audienceSignal: "Returning shoppers",
-    });
-
-    const result = await prepareExperimentBriefAction(baseValues);
-
-    expect(result.experimentId).toBe("exp_123");
-    expect(result.stage).toBe("brief_ready");
-    expect(synthesizeExperimentBriefMock).toHaveBeenCalledWith({
-      experimentId: "exp_123",
-      userId: "user_1",
-    });
-  });
-
-  it("requires the prepared brief before generation", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: { id: "user_1", email: "demo@example.com" },
-    });
-
-    await expect(generateExperimentAction(baseValues)).resolves.toEqual({
-      values: baseValues,
-      formError: "Prepare the brief before generating output.",
-    });
-
     expect(generateExperimentVariantsMock).not.toHaveBeenCalled();
   });
 
-  it("generates output after brief approval and redirects to detail", async () => {
+  it("generates output directly and redirects to detail", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
@@ -164,25 +125,11 @@ describe("experiment builder actions", () => {
     });
 
     await expect(
-      generateExperimentAction({
-        ...baseValues,
-        approvedBrief: {
-          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-          whatIsChanging: ["headline copy", "CTA label"],
-          successMetric: "Increase clickthrough rate",
-          audienceSignal: "Returning shoppers",
-        },
-      }),
+      generateExperimentAction(baseValues),
     ).resolves.toEqual({
       values: {
         ...baseValues,
         experimentId: "exp_123",
-        approvedBrief: {
-          hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-          whatIsChanging: ["headline copy", "CTA label"],
-          successMetric: "Increase clickthrough rate",
-          audienceSignal: "Returning shoppers",
-        },
       },
       experimentId: "exp_123",
       redirectTo: "/experiments/exp_123",

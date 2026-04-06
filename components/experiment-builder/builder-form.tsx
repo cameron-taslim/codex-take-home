@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import {
   generateExperimentAction,
-  prepareExperimentBriefAction,
 } from "@/app/experiments/new/actions";
 import {
   emptyExperimentBuilderValues,
@@ -63,12 +62,6 @@ export function ExperimentBuilderForm({
       ...current,
       [field]: undefined,
     }));
-    if (field !== "approvedBrief" && values.approvedBrief) {
-      setValues((current) => ({
-        ...current,
-        approvedBrief: undefined,
-      }));
-    }
     setFormError(undefined);
   }
 
@@ -88,16 +81,7 @@ export function ExperimentBuilderForm({
     setSavedMessage(undefined);
 
     startGenerating(async () => {
-      const preparedResult = values.approvedBrief
-        ? ({ values } as ExperimentBuilderActionResult)
-        : await prepareExperimentBriefAction(values);
-
-      if (!preparedResult.values.approvedBrief || preparedResult.fieldErrors || preparedResult.formError) {
-        applyActionResult(preparedResult);
-        return;
-      }
-
-      const result = await generateExperimentAction(preparedResult.values);
+      const result = await generateExperimentAction(values);
       applyActionResult(result);
     });
   }
@@ -252,38 +236,6 @@ export function ExperimentBuilderForm({
               </div>
             </section>
 
-            {values.approvedBrief ? (
-              <section className="builder-section-card stack">
-                <div className="builder-section-header stack">
-                  <p className="builder-section-kicker">Brief confirmation</p>
-                  <p className="muted builder-section-copy">
-                    Review the generated brief summary before continuing to output
-                    generation.
-                  </p>
-                </div>
-
-                <div className="builder-brief-confirmation">
-                  <div className="builder-brief-card">
-                    <span className="builder-brief-label">Hypothesis</span>
-                    <p>{values.approvedBrief.hypothesis}</p>
-                  </div>
-                  <div className="builder-brief-grid">
-                    <BriefListCard
-                      title="What is changing"
-                      items={values.approvedBrief.whatIsChanging}
-                    />
-                    <BriefListCard
-                      title="Success metric"
-                      items={[values.approvedBrief.successMetric]}
-                    />
-                    <BriefListCard
-                      title="Audience signal"
-                      items={[values.approvedBrief.audienceSignal]}
-                    />
-                  </div>
-                </div>
-              </section>
-            ) : null}
           </div>
 
           <div className="builder-action-rail">
@@ -301,19 +253,6 @@ export function ExperimentBuilderForm({
           </div>
         </div>
       </Card>
-    </div>
-  );
-}
-
-function BriefListCard({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="builder-brief-card">
-      <span className="builder-brief-label">{title}</span>
-      <ul className="builder-brief-list">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
     </div>
   );
 }

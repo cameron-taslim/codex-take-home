@@ -41,17 +41,27 @@ describe("OpenAICodexProvider", () => {
   it("uses the Codex model by default when no environment override is present", async () => {
     parseMock.mockResolvedValue({
       output_parsed: {
-        hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
-        whatIsChanging: ["headline copy"],
-        successMetric: "Increase clickthrough rate",
-        audienceSignal: "Returning shoppers",
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          layoutNotes: "Quality-led direction",
+          previewConfig: {
+            layout: "spotlight",
+            emphasis: "headline",
+            theme: "atelier-spring",
+            assetSetKey: "atelier-spring",
+          },
+        },
       },
     });
 
     const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
     const provider = new OpenAICodexProvider("test-key");
 
-    await provider.synthesizeBrief({
+    await provider.generateVariants({
       experimentName: "Spring hero banner test",
       componentType: "Hero banner",
       targetAudience: "Returning shoppers",

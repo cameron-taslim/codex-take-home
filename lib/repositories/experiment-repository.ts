@@ -1,6 +1,5 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import {
-  briefSynthesisSchema,
   experimentDraftSchema,
   experimentInputSchema,
 } from "@/lib/validation/experiments";
@@ -27,7 +26,6 @@ export async function createDraftExperiment(
       brandConstraints: parsed.brandConstraints ?? "",
       seedContext: parsed.seedContext ?? null,
       whatToTest: parsed.whatToTest ?? "",
-      approvedBrief: parsed.approvedBrief,
       status: "draft",
     },
   });
@@ -114,7 +112,6 @@ export async function getExperimentDetailForUser(
       brandConstraints: true,
       seedContext: true,
       whatToTest: true,
-      approvedBrief: true,
       status: true,
       updatedAt: true,
       latestGenerationRunId: true,
@@ -177,18 +174,5 @@ export async function updateExperimentGenerationState(
   return db.experiment.update({
     where: { id: experimentId },
     data: input,
-  });
-}
-
-export async function storeApprovedBrief(
-  db: DbClient,
-  experimentId: string,
-  userId: string,
-  approvedBrief: unknown,
-) {
-  const parsed = briefSynthesisSchema.parse(approvedBrief);
-
-  return updateExperimentBrief(db, experimentId, userId, {
-    approvedBrief: parsed,
   });
 }

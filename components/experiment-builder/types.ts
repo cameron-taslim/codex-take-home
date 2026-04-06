@@ -1,5 +1,3 @@
-import type { CodexBriefSynthesis } from "@/lib/codex/provider";
-
 export type ExperimentBuilderValues = {
   experimentId?: string;
   name: string;
@@ -9,7 +7,6 @@ export type ExperimentBuilderValues = {
   brandConstraints: string;
   seedContext: string;
   whatToTest: string;
-  approvedBrief?: CodexBriefSynthesis;
 };
 
 export type ExperimentBuilderField =
@@ -32,7 +29,7 @@ export type ExperimentBuilderActionResult = {
   experimentId?: string;
   savedMessage?: string;
   redirectTo?: string;
-  stage?: "draft" | "brief_ready" | "generated";
+  stage?: "draft" | "generated";
 };
 
 export const emptyExperimentBuilderValues: ExperimentBuilderValues = {

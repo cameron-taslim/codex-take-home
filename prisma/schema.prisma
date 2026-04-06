@@ -41,7 +41,6 @@ model Experiment {
   brandConstraints      String
   seedContext           String?
   whatToTest            String               @default("")
-  approvedBrief         Json?
   status                ExperimentStatus     @default(draft)
   latestGenerationRunId String?              @unique
   createdAt             DateTime             @default(now())

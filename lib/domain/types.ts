@@ -17,7 +17,6 @@ export type ExperimentRecord = {
   brandConstraints: string;
   seedContext: string | null;
   whatToTest: string;
-  approvedBrief: unknown;
   status: string;
   latestGenerationRunId?: string | null;
   createdAt?: Date;

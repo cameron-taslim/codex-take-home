@@ -1,11 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildPromptSnapshot, generateExperimentVariants, synthesizeExperimentBrief } from "@/lib/codex/service";
+import { buildPromptSnapshot, generateExperimentVariants } from "@/lib/codex/service";
 
 const {
   mockTransaction,
   transactionContexts,
   getExperimentForUser,
-  storeApprovedBrief,
   createGenerationRun,
   markGenerationRunRunning,
   createVariants,
@@ -19,7 +18,6 @@ const {
     return callback(tx);
   }),
   getExperimentForUser: vi.fn(),
-  storeApprovedBrief: vi.fn(),
   createGenerationRun: vi.fn(),
   markGenerationRunRunning: vi.fn(),
   createVariants: vi.fn(),
@@ -39,7 +37,6 @@ vi.mock("@/lib/codex/openai-provider", () => ({
   OpenAICodexProvider: vi.fn().mockImplementation((apiKey: string) => {
     openAIProviderConstructorMock(apiKey);
     return {
-      synthesizeBrief: vi.fn(),
       generateVariants: vi.fn(),
     };
   }),
@@ -55,17 +52,10 @@ const experiment = {
   brandConstraints: "Avoid discount framing",
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three quality-led headlines.",
-  approvedBrief: {
-    hypothesis: "We believe quality-led copy improves clickthrough rate.",
-    whatIsChanging: ["headline copy", "CTA label"],
-    successMetric: "Increase clickthrough rate",
-    audienceSignal: "Returning shoppers",
-  },
 };
 
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentForUser,
-  storeApprovedBrief,
 }));
 
 vi.mock("@/lib/repositories/generation-repository", () => ({
@@ -80,21 +70,29 @@ vi.mock("@/lib/repositories/variant-repository", () => ({
 }));
 
 describe("generation service", () => {
-  const originalCodexProviderMode = process.env.CODEX_PROVIDER_MODE;
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalApiKey = process.env.OPENAI_API_KEY;
 
   beforeEach(() => {
     vi.clearAllMocks();
     transactionContexts.length = 0;
     getExperimentForUser.mockResolvedValue(experiment);
     createGenerationRun.mockResolvedValue({ id: "run_123" });
-    delete process.env.CODEX_PROVIDER_MODE;
+    process.env.NODE_ENV = "test";
+    delete process.env.OPENAI_API_KEY;
   });
 
   afterEach(() => {
-    if (originalCodexProviderMode === undefined) {
-      delete process.env.CODEX_PROVIDER_MODE;
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
     } else {
-      process.env.CODEX_PROVIDER_MODE = originalCodexProviderMode;
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+
+    if (originalApiKey === undefined) {
+      delete process.env.OPENAI_API_KEY;
+    } else {
+      process.env.OPENAI_API_KEY = originalApiKey;
     }
   });
 
@@ -110,35 +108,8 @@ describe("generation service", () => {
     });
   });
 
-  it("stores the prepared brief before generation", async () => {
-    const provider = {
-      synthesizeBrief: vi.fn().mockResolvedValue({
-        hypothesis: "We believe quality-led copy improves clickthrough rate.",
-        whatIsChanging: ["headline copy", "CTA label"],
-        successMetric: "Generate three quality-led headlines.",
-        audienceSignal: "Returning shoppers",
-      }),
-      generateVariants: vi.fn(),
-    };
-
-    const result = await synthesizeExperimentBrief({
-      experimentId: "exp_123",
-      userId: "user_123",
-      provider,
-    });
-
-    expect(provider.synthesizeBrief).toHaveBeenCalled();
-    expect(storeApprovedBrief).toHaveBeenCalledWith(
-      { $transaction: mockTransaction },
-      "exp_123",
-      "user_123",
-      result,
-    );
-  });
-
   it("persists one saved output for a successful generation", async () => {
     const provider = {
-      synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockResolvedValue({
         variant: {
           label: "Quality-led",
@@ -170,7 +141,6 @@ describe("generation service", () => {
 
   it("records a failed run without persisting malformed partial output", async () => {
     const provider = {
-      synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockRejectedValue(new Error("invalid structured response")),
     };
 
@@ -186,7 +156,7 @@ describe("generation service", () => {
     expect(createVariants).not.toHaveBeenCalled();
   });
 
-  it("uses mocked generation by default when no provider mode is configured", async () => {
+  it("uses mocked generation by default in unit tests", async () => {
     const result = await generateExperimentVariants({
       experimentId: "exp_123",
       userId: "user_123",
@@ -197,5 +167,43 @@ describe("generation service", () => {
       variantCount: 1,
     });
     expect(openAIProviderConstructorMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the OpenAI provider when not running unit tests and an API key exists", async () => {
+    process.env.NODE_ENV = "development";
+    process.env.OPENAI_API_KEY = "test-key";
+
+    const generateVariantsMock = vi.fn().mockResolvedValue({
+      variant: {
+        label: "Quality-led",
+        headline: "Wear what lasts",
+        subheadline: "Crafted for the season ahead.",
+        bodyCopy: "Leads with product materiality.",
+        ctaText: "Explore now",
+        layoutNotes: "Quality-led direction",
+        previewConfig: {
+          layout: "spotlight",
+          emphasis: "headline",
+          theme: "atelier-spring",
+          assetSetKey: "atelier-spring",
+        },
+      },
+    });
+
+    const { OpenAICodexProvider } = await import("@/lib/codex/openai-provider");
+    vi.mocked(OpenAICodexProvider).mockImplementationOnce((apiKey: string) => {
+      openAIProviderConstructorMock(apiKey);
+      return {
+        generateVariants: generateVariantsMock,
+      } as never;
+    });
+
+    await generateExperimentVariants({
+      experimentId: "exp_123",
+      userId: "user_123",
+    });
+
+    expect(openAIProviderConstructorMock).toHaveBeenCalledWith("test-key");
+    expect(generateVariantsMock).toHaveBeenCalled();
   });
 });

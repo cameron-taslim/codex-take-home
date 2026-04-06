@@ -1,9 +1,7 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
-  codexBriefSynthesisSchema,
   codexGenerationResultSchema,
-  type CodexBriefSynthesis,
   type CodexGenerationInput,
   type CodexGenerationResult,
   type CodexProvider,
@@ -18,25 +16,6 @@ export class OpenAICodexProvider implements CodexProvider {
     this.model = model;
   }
 
-  async synthesizeBrief(input: CodexGenerationInput): Promise<CodexBriefSynthesis> {
-    const response = await this.client.responses.parse({
-      model: this.model,
-      input: buildMessages(
-        "Create a structured storefront experiment brief from the merchandiser inputs. Keep it readable, product-safe, and non-technical.",
-        input,
-      ),
-      text: {
-        format: zodTextFormat(codexBriefSynthesisSchema, "storefront_brief"),
-      },
-    });
-
-    if (!response.output_parsed) {
-      throw new Error("Codex returned an empty structured brief.");
-    }
-
-    return response.output_parsed;
-  }
-
   async generateVariants(
     input: CodexGenerationInput,
   ): Promise<CodexGenerationResult> {
@@ -44,8 +23,9 @@ export class OpenAICodexProvider implements CodexProvider {
       model: this.model,
       input: buildMessages(
         [
-          "Generate one storefront experiment output from the approved merchandiser brief.",
+          "Generate one storefront experiment output from the merchandiser inputs.",
           "The output must include a creative angle label, headline, optional subheadline, CTA, rationale, and preview metadata.",
+          "Use the test directive and business inputs directly; do not require an intermediate approval artifact.",
           "Do not emit HTML, JSX, arbitrary code, file paths, or technical identifiers.",
         ].join(" "),
         input,
