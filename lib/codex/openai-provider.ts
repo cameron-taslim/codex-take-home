@@ -25,6 +25,8 @@ export class OpenAICodexProvider implements CodexProvider {
         [
           "Generate one storefront experiment output from the merchandiser inputs.",
           "The output must include a creative angle label, headline, optional subheadline, CTA, rationale, preview metadata, and one self-contained HTML fragment preview.",
+          "The HTML fragment should be customer-facing and visually resolved, not a placeholder shell.",
+          "Let the design be determined by the model through composition, hierarchy, spacing, and inline styling inside the fragment.",
           "Use the test directive and business inputs directly; do not require an intermediate approval artifact.",
           "Return fragment-only HTML, not a full document.",
           "Only use allowed semantic and layout tags with inline CSS and no script, iframe, form submission, remote stylesheets, external fonts, or external images.",

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { VariantHtmlPreview } from "@/components/ui/variant-html-preview";
-import { VariantPreviewCard } from "@/components/ui/variant-preview-card";
 import type { VariantRecord } from "@/lib/domain/types";
 
 type DetailExperiment = {
@@ -26,13 +25,9 @@ export function ExperimentResultsPanel({ experiment }: { experiment: DetailExper
         {savedHtml ? (
           <VariantHtmlPreview key={activeOutput.id} variant={activeOutput} />
         ) : (
-          <div className="stack">
-            <p className="detail-recovery-note">
-              Saved HTML preview unavailable for this record. Showing the structured
-              fallback.
-            </p>
-            <VariantPreviewCard key={activeOutput.id} variant={activeOutput} />
-          </div>
+          <p className="detail-recovery-note">
+            Saved HTML preview unavailable for this record.
+          </p>
         )}
       </div>
     </section>

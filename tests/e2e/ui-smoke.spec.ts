@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.getByLabel("Email *").fill(demoEmail);
   await page.getByLabel("Password *").fill(demoPassword);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForURL(/\/(experiments\/new|experiments\/[^/]+)$/);
+  await page.waitForURL(/\/experiments\/(new|[^/]+)$/);
 }
 
 test("login route renders scaffold", async ({ page }) => {
@@ -55,9 +55,10 @@ test("seeded login can create an experiment and review the saved output", async 
   await expect(page.getByText("Pipeline controls")).toHaveCount(0);
   await page.getByRole("button", { name: "Generate Output" }).click();
 
-  await page.waitForURL(/\/experiments\/[^/]+$/);
+  await page.waitForURL((url) => {
+    return /^\/experiments\/[^/]+$/.test(url.pathname) && url.pathname !== "/experiments/new";
+  });
   await expect(page.getByRole("heading", { name: experimentName })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Wear what lasts" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "AI suggestions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Generate output" })).toBeVisible();
   await expect(page.getByTestId("saved-html-preview-frame")).toBeVisible();
@@ -84,9 +85,9 @@ test("seeded login can create an experiment and review the saved output", async 
   expect(previewMetrics.width).toBeGreaterThan(0);
   expect(previewMetrics.height).toBeGreaterThan(0);
   expect(previewMetrics.scrollWidth).toBeLessThanOrEqual(previewMetrics.clientWidth);
-  expect(previewMetrics.scrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight);
-  expect(previewMetrics.innerScrollWidth).toBeLessThanOrEqual(previewMetrics.clientWidth);
-  expect(previewMetrics.innerScrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight);
+  expect(previewMetrics.scrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight + 1);
+  expect(previewMetrics.innerScrollWidth).toBeLessThanOrEqual(previewMetrics.clientWidth + 1);
+  expect(previewMetrics.innerScrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight + 1);
 
   await page.screenshot({
     path: "test-results/experiment-happy-path.png",

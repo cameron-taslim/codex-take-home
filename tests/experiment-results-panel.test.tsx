@@ -43,7 +43,7 @@ describe("experiment results panel", () => {
     );
   });
 
-  it("falls back to the structured preview for legacy records without html", () => {
+  it("shows a no-preview message when html is missing", () => {
     render(
       <ExperimentResultsPanel
         experiment={{
@@ -77,12 +77,8 @@ describe("experiment results panel", () => {
     );
 
     expect(
-      screen.getByText(
-        "Saved HTML preview unavailable for this record. Showing the structured fallback.",
-      ),
+      screen.getByText("Saved HTML preview unavailable for this record."),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Wear what lasts" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId("saved-html-preview")).not.toBeInTheDocument();
   });
 });
