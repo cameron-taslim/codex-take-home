@@ -1055,8 +1055,7 @@ samp {
 
 .builder-form-panel,
 .builder-side-panel,
-.detail-summary-panel,
-.detail-history-panel {
+.detail-summary-panel {
   overflow: hidden;
 }
 
@@ -1068,7 +1067,6 @@ samp {
 .builder-panel-stack,
 .builder-side-stack,
 .detail-main-column,
-.detail-history-stack,
 .rerun-controls {
   gap: 18px;
 }
@@ -1107,7 +1105,6 @@ samp {
 .builder-guidance-card,
 .builder-preview-frame,
 .builder-readiness-row,
-.detail-history-item,
 .detail-meta-item {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -1129,7 +1126,6 @@ samp {
 .builder-kicker-row,
 .detail-section-header,
 .detail-summary-topbar,
-.detail-history-item-topbar,
 .rerun-action-rail {
   display: flex;
   justify-content: space-between;
@@ -1306,8 +1302,6 @@ samp {
 .builder-preview-kicker,
 .builder-preview-meta-label,
 .detail-meta-label,
-.detail-history-id,
-.detail-history-date,
 .variant-preview-label,
 .variant-preview-index {
   margin: 0;
@@ -1320,8 +1314,6 @@ samp {
 .builder-preview-kicker,
 .builder-preview-meta-label,
 .detail-meta-label,
-.detail-history-id,
-.detail-history-date,
 .variant-preview-index {
   color: var(--text-tertiary);
 }
@@ -1410,8 +1402,7 @@ samp {
   gap: 20px;
 }
 
-.detail-summary-panel,
-.detail-history-panel {
+.detail-summary-panel {
   padding: 24px;
 }
 
@@ -1478,63 +1469,6 @@ samp {
   gap: 16px;
 }
 
-.detail-history-list {
-  gap: 12px;
-}
-
-.detail-history-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-}
-
-.detail-history-item {
-  padding: 10px 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 42%),
-    rgba(255, 255, 255, 0.02);
-}
-
-.detail-history-item.is-clickable {
-  cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    transform 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.detail-history-link:hover .detail-history-item.is-clickable,
-.detail-history-link:focus-visible .detail-history-item.is-clickable {
-  border-color: rgba(124, 140, 255, 0.28);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 34px rgba(12, 16, 28, 0.16);
-}
-
-.detail-history-item.is-latest {
-  border-color: rgba(124, 140, 255, 0.28);
-  background:
-    linear-gradient(180deg, rgba(124, 140, 255, 0.12), transparent 42%),
-    rgba(255, 255, 255, 0.02);
-}
-
-.detail-history-item.is-active {
-  border-color: rgba(255, 211, 106, 0.42);
-  box-shadow: inset 0 0 0 1px rgba(255, 211, 106, 0.26);
-}
-
-.detail-history-copy,
-.detail-history-error {
-  margin: 4px 0 0;
-}
-
-.detail-history-copy {
-  color: var(--text-secondary);
-}
-
-.detail-history-error {
-  color: var(--danger);
-}
-
 .variant-preview-card {
   display: grid;
   gap: 18px;
@@ -1569,8 +1503,7 @@ samp {
   justify-content: center;
 }
 
-.variant-preview-label,
-.detail-history-id {
+.variant-preview-label {
   color: inherit;
 }
 
@@ -1926,8 +1859,7 @@ samp {
   .detail-summary-topbar,
   .detail-header-topbar,
   .builder-kicker-row,
-  .rerun-action-rail,
-  .detail-history-item-topbar {
+  .rerun-action-rail {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -1996,7 +1928,6 @@ samp {
   .builder-form-panel,
   .builder-side-panel,
   .detail-summary-panel,
-  .detail-history-panel,
   .builder-action-rail,
   .rerun-action-rail {
     padding: 18px;
@@ -2077,7 +2008,6 @@ select.field-base {
 .builder-checkbox-card,
 .builder-stepper-chip,
 .builder-brief-card,
-.detail-launch-card,
 .variant-editor-shell {
   border: 1px solid var(--border-subtle);
   border-radius: 18px;
@@ -2096,7 +2026,6 @@ select.field-base {
 }
 
 .builder-stepper-row,
-.builder-pipeline-list,
 .builder-brief-confirmation {
   display: grid;
   gap: 14px;
@@ -2117,7 +2046,6 @@ select.field-base {
 }
 
 .builder-brief-card,
-.detail-launch-card,
 .variant-editor-shell {
   padding: 16px;
 }
@@ -2150,8 +2078,7 @@ select.field-base {
 }
 
 .detail-suggestion-panel,
-.detail-custom-prompt-panel,
-.detail-history-panel-inline {
+.detail-custom-prompt-panel {
   display: grid;
   gap: 16px;
   padding: 22px;
@@ -2234,11 +2161,6 @@ select.field-base {
   margin: 0;
   color: var(--text-secondary);
   line-height: 1.7;
-}
-
-.status-live {
-  background: var(--success-soft);
-  color: var(--success);
 }
 
 .variant-preview-card {

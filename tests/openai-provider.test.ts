@@ -54,8 +54,6 @@ describe("OpenAICodexProvider", () => {
     await provider.synthesizeBrief({
       experimentName: "Spring hero banner test",
       componentType: "Hero banner",
-      primaryGoal: "Increase clickthrough rate",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",
@@ -98,8 +96,6 @@ describe("OpenAICodexProvider", () => {
     await provider.generateVariants({
       experimentName: "Spring hero banner test",
       componentType: "Hero banner",
-      primaryGoal: "Increase clickthrough rate",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",

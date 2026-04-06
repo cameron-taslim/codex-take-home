@@ -3,7 +3,6 @@ const experimentStatusLabels: Record<string, string> = {
   generating: "Generating",
   generated: "Generated",
   generation_failed: "Failed",
-  live: "Live",
 };
 
 export function formatExperimentStatus(status: string) {

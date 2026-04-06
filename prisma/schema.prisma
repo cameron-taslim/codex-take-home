@@ -12,7 +12,6 @@ enum ExperimentStatus {
   generating
   generated
   generation_failed
-  live
 }
 
 enum GenerationRunStatus {
@@ -36,21 +35,13 @@ model Experiment {
   id                    String               @id @default(cuid())
   userId                String
   name                  String
-  goal                  String
   pageType              String
   targetAudience        String
   tone                  String
   brandConstraints      String
   seedContext           String?
   whatToTest            String               @default("")
-  trafficSplit          String               @default("50/50")
-  variantCount          Int                  @default(1)
-  lockedElements        Json?
   approvedBrief         Json?
-  launchMetric          String?
-  launchAt              DateTime?
-  launchConfig          Json?
-  brandAssetSetKey      String               @default("atelier-spring")
   status                ExperimentStatus     @default(draft)
   latestGenerationRunId String?              @unique
   createdAt             DateTime             @default(now())
@@ -71,7 +62,6 @@ model CodexGenerationRun {
   startedAt      DateTime
   completedAt    DateTime?
   errorMessage   String?
-  resultSnapshot Json?
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   experiment     Experiment          @relation(fields: [experimentId], references: [id], onDelete: Cascade)

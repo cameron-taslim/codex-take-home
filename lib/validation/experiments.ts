@@ -2,19 +2,12 @@ import { z } from "zod";
 
 const requiredText = (message: string) => z.string().trim().min(1, message);
 
-export const trafficSplitSchema = z.enum(["50/50", "70/30", "80/20"]);
 export const componentTypeSchema = z.enum([
   "Hero banner",
   "Landing page",
   "Product detail page (PDP) buy box",
   "Navigation CTA",
   "Category page header",
-]);
-export const primaryGoalSchema = z.enum([
-  "Increase clickthrough rate",
-  "Increase add-to-cart rate",
-  "Increase revenue per visitor",
-  "Reduce bounce rate",
 ]);
 export const brandToneSchema = z.enum([
   "Editorial",
@@ -49,39 +42,24 @@ export const briefSynthesisSchema = z.object({
   audienceSignal: requiredText("Audience signal is required."),
 });
 
-export const experimentLaunchConfigSchema = z.object({
-  variantIds: z.array(z.string().min(1)).length(1),
-  trafficSplit: trafficSplitSchema,
-  primaryMetric: primaryGoalSchema,
-  featureFlagKey: z.string().min(1),
-  rolloutNotes: z.string().min(1),
-});
-
 export const experimentDraftSchema = z.object({
   userId: z.string().min(1),
   name: requiredText("Experiment name is required."),
-  goal: z.string().optional(),
   pageType: z.string().optional(),
   targetAudience: z.string().optional(),
   tone: z.string().optional(),
   brandConstraints: z.string().optional(),
   seedContext: z.string().optional(),
   whatToTest: z.string().optional(),
-  trafficSplit: trafficSplitSchema.optional(),
   approvedBrief: briefSynthesisSchema.optional(),
-  launchMetric: primaryGoalSchema.optional(),
-  launchConfig: experimentLaunchConfigSchema.optional(),
-  brandAssetSetKey: z.string().optional(),
 });
 
 export const experimentInputSchema = z.object({
   experimentName: requiredText("Experiment name is required."),
   componentType: componentTypeSchema,
-  primaryGoal: primaryGoalSchema,
-  trafficSplit: trafficSplitSchema,
   targetAudience: requiredText("Target audience is required."),
   brandTone: brandToneSchema.or(requiredText("Brand tone is required.")),
-  brandConstraints: z.string().trim().min(1, "Brand constraints are required."),
+  brandConstraints: requiredText("Brand constraints are required."),
   seedContext: requiredText("Seed context is required."),
   whatToTest: requiredText("What to test is required."),
 });

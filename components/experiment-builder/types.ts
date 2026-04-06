@@ -4,8 +4,6 @@ export type ExperimentBuilderValues = {
   experimentId?: string;
   name: string;
   componentType: string;
-  primaryGoal: string;
-  trafficSplit: "50/50" | "70/30" | "80/20";
   targetAudience: string;
   brandTone: string;
   brandConstraints: string;
@@ -17,8 +15,6 @@ export type ExperimentBuilderValues = {
 export type ExperimentBuilderField =
   | "name"
   | "componentType"
-  | "primaryGoal"
-  | "trafficSplit"
   | "targetAudience"
   | "brandTone"
   | "brandConstraints"
@@ -42,8 +38,6 @@ export type ExperimentBuilderActionResult = {
 export const emptyExperimentBuilderValues: ExperimentBuilderValues = {
   name: "",
   componentType: "Hero banner",
-  primaryGoal: "Increase clickthrough rate",
-  trafficSplit: "50/50",
   targetAudience: "",
   brandTone: "Editorial",
   brandConstraints: "",

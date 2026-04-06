@@ -63,8 +63,6 @@ import NewExperimentPage from "@/app/experiments/new/page";
 const baseValues = {
   name: "Spring hero banner test",
   componentType: "Hero banner",
-  primaryGoal: "Increase clickthrough rate",
-  trafficSplit: "50/50" as const,
   targetAudience: "Returning shoppers",
   brandTone: "Editorial",
   brandConstraints: "Avoid discount framing",

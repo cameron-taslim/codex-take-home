@@ -38,8 +38,6 @@ function getStatusSummary(experiments: DashboardExperimentSummary[]) {
     (summary, experiment) => {
       if (experiment.status === "generated") {
         summary.generated += 1;
-      } else if (experiment.status === "live") {
-        summary.live += 1;
       } else if (experiment.status === "generating") {
         summary.generating += 1;
       } else if (experiment.status === "generation_failed") {
@@ -50,7 +48,7 @@ function getStatusSummary(experiments: DashboardExperimentSummary[]) {
 
       return summary;
     },
-    { generated: 0, live: 0, generating: 0, failed: 0, draft: 0 },
+    { generated: 0, generating: 0, failed: 0, draft: 0 },
   );
 }
 
@@ -85,7 +83,7 @@ export function DashboardContent({
     return (
       <EmptyState
         title="Create your first experiment"
-        description="Start with a merchandiser brief, approve the synthesized hypothesis, and return here to review saved experiments."
+        description="Start with a merchandiser brief, generate output, and return here to review saved experiments."
         action={<CreateExperimentLink />}
       />
     );
@@ -99,8 +97,8 @@ export function DashboardContent({
             <p className="eyebrow">Overview</p>
             <h2 className="dashboard-summary-title">Recent experiment activity</h2>
             <p className="dashboard-summary-description">
-              Scan saved briefs, live launches, and the latest creative directions
-              before opening a detail view.
+              Scan saved briefs and the latest creative directions before opening
+              a detail view.
             </p>
           </div>
 
@@ -112,10 +110,6 @@ export function DashboardContent({
             <div className="dashboard-metric">
               <span className="dashboard-metric-label">Generated</span>
               <strong>{statusSummary.generated}</strong>
-            </div>
-            <div className="dashboard-metric">
-              <span className="dashboard-metric-label">Live</span>
-              <strong>{statusSummary.live}</strong>
             </div>
             <div className="dashboard-metric">
               <span className="dashboard-metric-label">Generating</span>

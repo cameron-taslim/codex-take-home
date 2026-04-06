@@ -3,11 +3,9 @@ import { zodTextFormat } from "openai/helpers/zod";
 import {
   codexBriefSynthesisSchema,
   codexGenerationResultSchema,
-  codexLaunchConfigSchema,
   type CodexBriefSynthesis,
   type CodexGenerationInput,
   type CodexGenerationResult,
-  type CodexLaunchConfig,
   type CodexProvider,
 } from "@/lib/codex/provider";
 
@@ -59,29 +57,6 @@ export class OpenAICodexProvider implements CodexProvider {
 
     if (!response.output_parsed) {
       throw new Error("Codex returned an empty structured response.");
-    }
-
-    return response.output_parsed;
-  }
-
-  async generateLaunchConfig(input: {
-    input: CodexGenerationInput;
-    approvedBrief: CodexBriefSynthesis;
-    variant: CodexGenerationResult["variant"];
-  }): Promise<CodexLaunchConfig> {
-    const response = await this.client.responses.parse({
-      model: this.model,
-      input: buildMessages(
-        "Generate hidden experiment launch wiring for the engineering layer. Return only structured config fields.",
-        input,
-      ),
-      text: {
-        format: zodTextFormat(codexLaunchConfigSchema, "experiment_launch_config"),
-      },
-    });
-
-    if (!response.output_parsed) {
-      throw new Error("Codex returned an empty launch config.");
     }
 
     return response.output_parsed;

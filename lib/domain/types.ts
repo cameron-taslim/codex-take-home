@@ -11,19 +11,13 @@ export type ExperimentRecord = {
   id: string;
   userId: string;
   name: string;
-  goal: string;
   pageType: string;
   targetAudience: string;
   tone: string;
   brandConstraints: string;
   seedContext: string | null;
   whatToTest: string;
-  trafficSplit: string;
   approvedBrief: unknown;
-  launchMetric?: string | null;
-  launchAt?: Date | null;
-  launchConfig?: unknown;
-  brandAssetSetKey?: string;
   status: string;
   latestGenerationRunId?: string | null;
   createdAt?: Date;
@@ -36,7 +30,6 @@ export type GenerationRunRecord = {
   experimentId: string;
   status: string;
   promptSnapshot: unknown;
-  resultSnapshot?: unknown;
   startedAt: Date;
   completedAt: Date | null;
   errorMessage: string | null;

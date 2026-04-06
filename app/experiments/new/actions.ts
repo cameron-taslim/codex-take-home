@@ -23,8 +23,6 @@ function normalizeValues(values: ExperimentBuilderValues): ExperimentBuilderValu
     experimentId: values.experimentId,
     name: values.name.trim(),
     componentType: values.componentType.trim(),
-    primaryGoal: values.primaryGoal.trim(),
-    trafficSplit: values.trafficSplit,
     targetAudience: values.targetAudience.trim(),
     brandTone: values.brandTone.trim(),
     brandConstraints: values.brandConstraints.trim(),
@@ -58,8 +56,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
   const validation = validateGenerationInput({
     experimentName: values.name,
     componentType: values.componentType,
-    primaryGoal: values.primaryGoal,
-    trafficSplit: values.trafficSplit,
     targetAudience: values.targetAudience,
     brandTone: values.brandTone,
     brandConstraints: values.brandConstraints,
@@ -78,7 +74,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
 
     if (path === "experimentName") fieldErrors.name = issue.message;
     if (path === "componentType") fieldErrors.componentType = issue.message;
-    if (path === "primaryGoal") fieldErrors.primaryGoal = issue.message;
     if (path === "targetAudience") fieldErrors.targetAudience = issue.message;
     if (path === "brandTone") fieldErrors.brandTone = issue.message;
     if (path === "brandConstraints") fieldErrors.brandConstraints = issue.message;
@@ -92,14 +87,12 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
 async function persistExperiment(values: ExperimentBuilderValues, userId: string) {
   const experimentInput = {
     name: values.name,
-    goal: values.primaryGoal,
     pageType: values.componentType,
     targetAudience: values.targetAudience,
     tone: values.brandTone,
     brandConstraints: values.brandConstraints,
     seedContext: values.seedContext || undefined,
     whatToTest: values.whatToTest,
-    trafficSplit: values.trafficSplit,
   };
 
   if (values.experimentId) {
@@ -156,7 +149,7 @@ export async function saveDraftExperimentAction(
       },
       {
         experimentId: experiment.id,
-        savedMessage: "Draft saved. Keep refining the brief or analyze it when ready.",
+        savedMessage: "Draft saved. Keep refining the brief or generate output when ready.",
         stage: "draft",
       },
     );
@@ -176,7 +169,7 @@ export async function prepareExperimentBriefAction(
 
   if (!userId) {
     return buildResult(normalizedValues, {
-      formError: "Your session expired. Sign in again to analyze this brief.",
+      formError: "Your session expired. Sign in again to prepare this brief.",
     });
   }
 
@@ -237,7 +230,7 @@ export async function generateExperimentAction(
 
   if (!normalizedValues.approvedBrief) {
     return buildResult(normalizedValues, {
-      formError: "Approve the synthesized brief before generating output.",
+      formError: "Prepare the brief before generating output.",
     });
   }
 

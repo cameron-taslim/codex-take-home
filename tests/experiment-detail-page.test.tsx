@@ -92,7 +92,6 @@ vi.mock("@/components/experiment-detail/results-panel", () => ({
       {experiment.activeSavedRun.variants.map((variant) => (
         <p key={variant.headline}>{variant.headline}</p>
       ))}
-      <button type="button">Launch Experiment</button>
     </section>
   ),
 }));
@@ -116,18 +115,15 @@ describe("experiment detail page", () => {
     await expect(
       ExperimentDetailPage({
         params: Promise.resolve({ id: "exp_123" }),
-        searchParams: Promise.resolve({}),
       }),
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders the collapsed overview control, live previews, and rerun controls", async () => {
+  it("renders the collapsed overview control, saved preview, and rerun controls", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
       name: "Spring hero banner test",
-      goal: "Increase clickthrough rate",
       pageType: "Hero banner",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       tone: "Editorial",
       brandConstraints: "Avoid discount framing",
@@ -139,10 +135,6 @@ describe("experiment detail page", () => {
         successMetric: "Increase clickthrough rate",
         audienceSignal: "Returning shoppers",
       },
-      launchMetric: null,
-      launchAt: null,
-      launchConfig: null,
-      brandAssetSetKey: "atelier-spring",
       status: "generated",
       latestGenerationRunId: "run_success",
       latestGenerationRun: {
@@ -151,14 +143,12 @@ describe("experiment detail page", () => {
         startedAt: new Date("2026-04-03T17:30:00.000Z"),
         completedAt: new Date("2026-04-03T17:32:00.000Z"),
         errorMessage: null,
-        resultSnapshot: null,
       },
       latestSavedRun: {
         id: "run_success",
         status: "succeeded",
         startedAt: new Date("2026-04-03T17:30:00.000Z"),
         completedAt: new Date("2026-04-03T17:32:00.000Z"),
-        resultSnapshot: null,
         variants: [
           {
             id: "variant_a",
@@ -182,23 +172,11 @@ describe("experiment detail page", () => {
           },
         ],
       },
-      selectedSavedRun: null,
-      generationHistory: [
-        {
-          id: "run_success",
-          status: "succeeded",
-          startedAt: new Date("2026-04-03T17:30:00.000Z"),
-          completedAt: new Date("2026-04-03T17:32:00.000Z"),
-          errorMessage: null,
-          variantCount: 1,
-        },
-      ],
     });
 
     render(
       await ExperimentDetailPage({
         params: Promise.resolve({ id: "exp_123" }),
-        searchParams: Promise.resolve({}),
       }),
     );
 
@@ -210,128 +188,6 @@ describe("experiment detail page", () => {
     expect(screen.getByText("AI suggestions")).toBeInTheDocument();
     expect(screen.getByText("Push a sharper headline")).toBeInTheDocument();
     expect(screen.getByText("Custom prompt")).toBeInTheDocument();
-    expect(screen.queryByText("Generation history")).not.toBeInTheDocument();
-  });
-
-  it("renders the selected historical run when a saved run is chosen from history", async () => {
-    getExperimentDetailForUserMock.mockResolvedValue({
-      id: "exp_123",
-      name: "Spring hero banner test",
-      goal: "Increase clickthrough rate",
-      pageType: "Hero banner",
-      trafficSplit: "50/50",
-      targetAudience: "Returning shoppers",
-      tone: "Editorial",
-      brandConstraints: "Avoid discount framing",
-      seedContext: "Feature lightweight outerwear",
-      whatToTest: "Generate three quality-led headlines.",
-      approvedBrief: null,
-      launchMetric: null,
-      launchAt: null,
-      launchConfig: null,
-      brandAssetSetKey: "atelier-spring",
-      status: "generated",
-      latestGenerationRunId: "run_latest",
-      latestGenerationRun: {
-        id: "run_latest",
-        status: "succeeded",
-        startedAt: new Date("2026-04-03T17:30:00.000Z"),
-        completedAt: new Date("2026-04-03T17:32:00.000Z"),
-        errorMessage: null,
-        resultSnapshot: null,
-      },
-      latestSavedRun: {
-        id: "run_latest",
-        status: "succeeded",
-        startedAt: new Date("2026-04-03T17:30:00.000Z"),
-        completedAt: new Date("2026-04-03T17:32:00.000Z"),
-        resultSnapshot: null,
-        variants: [
-          {
-            id: "variant_latest",
-            experimentId: "exp_123",
-            generationRunId: "run_latest",
-            label: "Latest",
-            headline: "Latest direction",
-            subheadline: "Newer run",
-            bodyCopy: "Latest copy.",
-            ctaText: "Explore now",
-            layoutNotes: "Latest notes",
-            previewConfig: {
-              layout: "spotlight",
-              emphasis: "headline",
-              theme: "atelier-spring",
-              assetSetKey: "atelier-spring",
-            },
-            position: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-      },
-      selectedSavedRun: {
-        id: "run_previous",
-        status: "succeeded",
-        startedAt: new Date("2026-04-01T17:30:00.000Z"),
-        completedAt: new Date("2026-04-01T17:32:00.000Z"),
-        resultSnapshot: null,
-        variants: [
-          {
-            id: "variant_previous",
-            experimentId: "exp_123",
-            generationRunId: "run_previous",
-            label: "Previous",
-            headline: "Previous direction",
-            subheadline: "Earlier run",
-            bodyCopy: "Earlier copy.",
-            ctaText: "Shop now",
-            layoutNotes: "Earlier notes",
-            previewConfig: {
-              layout: "spotlight",
-              emphasis: "headline",
-              theme: "atelier-spring",
-              assetSetKey: "atelier-spring",
-            },
-            position: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-      },
-      generationHistory: [
-        {
-          id: "run_latest",
-          status: "succeeded",
-          startedAt: new Date("2026-04-03T17:30:00.000Z"),
-          completedAt: new Date("2026-04-03T17:32:00.000Z"),
-          errorMessage: null,
-          variantCount: 1,
-        },
-        {
-          id: "run_previous",
-          status: "succeeded",
-          startedAt: new Date("2026-04-01T17:30:00.000Z"),
-          completedAt: new Date("2026-04-01T17:32:00.000Z"),
-          errorMessage: null,
-          variantCount: 1,
-        },
-      ],
-    });
-
-    render(
-      await ExperimentDetailPage({
-        params: Promise.resolve({ id: "exp_123" }),
-        searchParams: Promise.resolve({ run: "run_previous" }),
-      }),
-    );
-
-    expect(getExperimentDetailForUserMock).toHaveBeenCalledWith(
-      "exp_123",
-      "user_1",
-      "run_previous",
-    );
-    expect(screen.getByText("Previous direction")).toBeInTheDocument();
-    expect(screen.queryByText("Latest direction")).not.toBeInTheDocument();
   });
 
   it("blocks unauthorized or missing experiment access with a safe not-found response", async () => {
@@ -343,7 +199,6 @@ describe("experiment detail page", () => {
     await expect(
       ExperimentDetailPage({
         params: Promise.resolve({ id: "exp_missing" }),
-        searchParams: Promise.resolve({}),
       }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
@@ -352,30 +207,22 @@ describe("experiment detail page", () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
       name: "Spring hero banner test",
-      goal: "Increase clickthrough rate",
       pageType: "Hero banner",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       tone: "Editorial",
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
       approvedBrief: null,
-      launchMetric: null,
-      launchAt: null,
-      launchConfig: null,
-      brandAssetSetKey: "atelier-spring",
       status: "draft",
       latestGenerationRunId: null,
       latestGenerationRun: null,
       latestSavedRun: null,
-      generationHistory: [],
     });
 
     render(
       await ExperimentDetailPage({
         params: Promise.resolve({ id: "exp_123" }),
-        searchParams: Promise.resolve({}),
       }),
     );
 

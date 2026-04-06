@@ -6,8 +6,6 @@ describe("experiment generation validation", () => {
     const result = validateGenerationInput({
       experimentName: "Spring launch",
       componentType: "Hero banner",
-      primaryGoal: "Increase clickthrough rate",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       brandTone: "Confident",
       brandConstraints: "",

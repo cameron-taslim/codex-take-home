@@ -47,8 +47,6 @@ import {
 const baseValues = {
   name: "Spring hero banner test",
   componentType: "Hero banner",
-  primaryGoal: "Increase clickthrough rate",
-  trafficSplit: "50/50" as const,
   targetAudience: "Returning shoppers looking for premium seasonal pieces",
   brandTone: "Editorial",
   brandConstraints: "Avoid discount framing",
@@ -82,7 +80,7 @@ describe("experiment builder actions", () => {
         experimentId: "exp_123",
       },
       experimentId: "exp_123",
-      savedMessage: "Draft saved. Keep refining the brief or analyze it when ready.",
+      savedMessage: "Draft saved. Keep refining the brief or generate output when ready.",
       stage: "draft",
     });
 
@@ -90,7 +88,6 @@ describe("experiment builder actions", () => {
       {},
       expect.objectContaining({
         userId: "user_1",
-        goal: "Increase clickthrough rate",
         pageType: "Hero banner",
         tone: "Editorial",
         whatToTest: "Generate three headlines that lead with quality.",
@@ -143,14 +140,14 @@ describe("experiment builder actions", () => {
     });
   });
 
-  it("requires the approved brief before generation", async () => {
+  it("requires the prepared brief before generation", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user_1", email: "demo@example.com" },
     });
 
     await expect(generateExperimentAction(baseValues)).resolves.toEqual({
       values: baseValues,
-      formError: "Approve the synthesized brief before generating output.",
+      formError: "Prepare the brief before generating output.",
     });
 
     expect(generateExperimentVariantsMock).not.toHaveBeenCalled();

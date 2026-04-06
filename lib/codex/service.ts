@@ -1,5 +1,3 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { prisma } from "@/lib/prisma";
 import type { CodexProvider } from "@/lib/codex/provider";
 import { OpenAICodexProvider } from "@/lib/codex/openai-provider";
@@ -7,8 +5,6 @@ import {
   codexBriefSynthesisSchema,
   codexGenerationInputSchema,
   codexGenerationResultSchema,
-  codexLaunchConfigSchema,
-  type CodexBriefSynthesis,
   type CodexGenerationInput,
 } from "@/lib/codex/provider";
 import {
@@ -16,12 +12,9 @@ import {
   createGenerationRun,
   failGenerationRun,
   markGenerationRunRunning,
-  persistGenerationRunResult,
 } from "@/lib/repositories/generation-repository";
 import {
   getExperimentForUser,
-  getExperimentDetailForUser,
-  markExperimentLive,
   storeApprovedBrief,
 } from "@/lib/repositories/experiment-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
@@ -38,9 +31,9 @@ function createMockCodexProvider(): CodexProvider {
             : ["headline copy", "CTA label", "supporting merchandising copy"];
 
       return codexBriefSynthesisSchema.parse({
-        hypothesis: `We believe that changing ${componentCopy.join(", ")} will increase ${input.primaryGoal.toLowerCase()} because ${input.targetAudience.toLowerCase()} respond to ${input.brandTone.toLowerCase()} product storytelling.`,
+        hypothesis: `We believe that changing ${componentCopy.join(", ")} will better engage ${input.targetAudience.toLowerCase()} through ${input.brandTone.toLowerCase()} product storytelling.`,
         whatIsChanging: componentCopy,
-        successMetric: input.primaryGoal,
+        successMetric: input.whatToTest,
         audienceSignal: input.targetAudience,
       });
     },
@@ -101,15 +94,6 @@ function createMockCodexProvider(): CodexProvider {
         },
       });
     },
-    async generateLaunchConfig({ input, variant }) {
-      return codexLaunchConfigSchema.parse({
-        variantIds: [slugify(`${variant.label}-1`)],
-        trafficSplit: input.trafficSplit,
-        primaryMetric: input.primaryGoal,
-        featureFlagKey: `storefront-exp-${slugify(input.experimentName)}`,
-        rolloutNotes: `Mocked config for ${input.componentType.toLowerCase()} experiment with one saved output.`,
-      });
-    },
   };
 }
 
@@ -122,8 +106,6 @@ export function buildPromptSnapshot(
   return codexGenerationInputSchema.parse({
     experimentName: experiment.name,
     componentType: experiment.pageType,
-    primaryGoal: experiment.goal,
-    trafficSplit: experiment.trafficSplit,
     targetAudience: experiment.targetAudience,
     brandTone: experiment.tone,
     brandConstraints: experiment.brandConstraints,
@@ -164,7 +146,11 @@ export async function generateExperimentVariants(params: {
     throw new Error("Experiment not found.");
   }
 
-  const approvedBrief = codexBriefSynthesisSchema.parse(experiment.approvedBrief);
+  if (!experiment.approvedBrief) {
+    throw new Error("Experiment brief is not approved.");
+  }
+
+  codexBriefSynthesisSchema.parse(experiment.approvedBrief);
   const promptSnapshot = buildPromptSnapshot(experiment, {
     whatToTest: params.promptOverride,
   });
@@ -183,11 +169,6 @@ export async function generateExperimentVariants(params: {
 
   try {
     const result = await provider.generateVariants(promptSnapshot);
-    const launchConfig = await provider.generateLaunchConfig({
-      input: promptSnapshot,
-      approvedBrief,
-      variant: result.variant,
-    });
 
     await prisma.$transaction(async (tx) => {
       await createVariants(
@@ -201,12 +182,6 @@ export async function generateExperimentVariants(params: {
           },
         ],
       );
-
-      await persistGenerationRunResult(tx, run.id, {
-        approvedBrief,
-        variant: result.variant,
-        launchConfig,
-      });
 
       await completeGenerationRun(tx, run.id, experiment.id);
     });
@@ -226,51 +201,6 @@ export async function generateExperimentVariants(params: {
   }
 }
 
-export async function launchExperiment(params: {
-  experimentId: string;
-  userId: string;
-  launchAt: string;
-  launchMetric: CodexGenerationInput["primaryGoal"];
-}) {
-  const experiment = await getExperimentDetailForUser(params.experimentId, params.userId);
-
-  if (!experiment) {
-    throw new Error("Experiment not found.");
-  }
-
-  const latestRunConfig = codexLaunchConfigSchema.parse(
-    experiment.latestSavedRun?.resultSnapshot &&
-      typeof experiment.latestSavedRun.resultSnapshot === "object"
-      ? (experiment.latestSavedRun.resultSnapshot as { launchConfig?: unknown }).launchConfig
-      : null,
-  );
-
-  const config = {
-    ...latestRunConfig,
-    primaryMetric: params.launchMetric,
-    launchAt: params.launchAt,
-    experimentId: experiment.id,
-    experimentName: experiment.name,
-  };
-
-  const outputPath = path.join(
-    process.cwd(),
-    "generated-config",
-    `${experiment.id}.json`,
-  );
-
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, JSON.stringify(config, null, 2));
-
-  await markExperimentLive(prisma, experiment.id, params.userId, {
-    launchAt: new Date(params.launchAt),
-    launchMetric: params.launchMetric,
-    launchConfig: config,
-  });
-
-  return config;
-}
-
 function createDefaultCodexProvider(): CodexProvider {
   if (process.env.CODEX_PROVIDER_MODE !== "openai") {
     return createMockCodexProvider();
@@ -281,11 +211,4 @@ function createDefaultCodexProvider(): CodexProvider {
   }
 
   return new OpenAICodexProvider(process.env.OPENAI_API_KEY);
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }

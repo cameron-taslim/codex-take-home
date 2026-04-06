@@ -31,16 +31,16 @@ export default async function HomePage() {
         "Codex turns the saved brief into one structured landing-page output without exposing providers in the client.",
     },
     {
-      title: "Review saved output history",
+      title: "Review the latest saved output",
       description:
-        "Compare headline, body copy, CTA, and layout notes in a durable preview workflow with rerun history.",
+        "Review headline, body copy, CTA, and layout notes in a durable preview workflow.",
     },
   ];
 
   const surfaces = [
     "Dashboard scanability with visible status signals",
     "Preview-first output card for headline and CTA review",
-    "Append-only generation history for reruns and failures",
+    "Server-driven reruns from the saved experiment brief",
   ];
 
   const navLabel = "Sign in";
@@ -123,8 +123,8 @@ export default async function HomePage() {
             <p className="eyebrow">Product preview</p>
             <h2>Preview-first surfaces built for experiment review.</h2>
             <p className="muted">
-              The UI favors dense panels, crisp status treatment, and saved generation history
-              instead of arbitrary page rendering.
+              The UI favors dense panels, crisp status treatment, and safe saved previews instead
+              of arbitrary page rendering.
             </p>
             <div className="landing-surface-list">
               {surfaces.map((surface) => (

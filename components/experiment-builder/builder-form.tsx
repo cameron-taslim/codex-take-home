@@ -257,8 +257,8 @@ export function ExperimentBuilderForm({
                 <div className="builder-section-header stack">
                   <p className="builder-section-kicker">Brief confirmation</p>
                   <p className="muted builder-section-copy">
-                    This confirmation step is required before the mocked pipeline
-                    continues to copy generation.
+                    Review the generated brief summary before continuing to output
+                    generation.
                   </p>
                 </div>
 

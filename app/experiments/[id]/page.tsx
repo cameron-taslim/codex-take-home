@@ -11,16 +11,12 @@ import { getExperimentDetailForUser } from "@/lib/repositories/experiment-reposi
 
 export default async function ExperimentDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ run?: string | string[] | undefined }>;
 }) {
   const { id } = await params;
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const selectedRunId = getSingleSearchParam(resolvedSearchParams?.run);
   const session = await requireUserSession();
-  const experiment = await getExperimentDetailForUser(id, session.user.id, selectedRunId);
+  const experiment = await getExperimentDetailForUser(id, session.user.id);
 
   if (!experiment) {
     notFound();
@@ -28,8 +24,7 @@ export default async function ExperimentDetailPage({
 
   const latestRun = experiment.latestGenerationRun;
   const latestSavedRun = experiment.latestSavedRun;
-  const activeSavedRun = experiment.selectedSavedRun ?? latestSavedRun;
-  const activeVariants = activeSavedRun?.variants ?? [];
+  const activeVariants = latestSavedRun?.variants ?? [];
 
   return (
     <AppShell
@@ -71,11 +66,11 @@ export default async function ExperimentDetailPage({
           <div className="detail-workspace">
             <div className="stack detail-workspace-main">
               {activeVariants.length > 0 ? (
-                <ExperimentResultsPanel experiment={{ activeSavedRun }} />
+                <ExperimentResultsPanel experiment={{ activeSavedRun: latestSavedRun }} />
               ) : (
                 <EmptyState
                   title="No saved output yet"
-                  description="Approve the brief and generate output before editing copy or launching this experiment."
+                  description="Prepare the brief and generate output before reviewing this experiment."
                 />
               )}
             </div>
@@ -103,17 +98,8 @@ function MetadataItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function getSingleSearchParam(value: string | string[] | undefined) {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-
-  return value;
-}
-
 function buildPromptSuggestions(
   experiment: {
-    goal: string;
     targetAudience: string;
     tone: string;
     brandConstraints: string;
@@ -136,8 +122,8 @@ function buildPromptSuggestions(
     {
       title: "Test a new CTA angle",
       prompt: leadVariant
-        ? `Replace "${leadVariant.ctaText}" with a stronger CTA for ${experiment.goal.toLowerCase()}.`
-        : `Use a stronger CTA to support ${experiment.goal.toLowerCase()}.`,
+        ? `Replace "${leadVariant.ctaText}" with a stronger CTA for ${experiment.targetAudience.toLowerCase()}.`
+        : `Use a stronger CTA for ${experiment.targetAudience.toLowerCase()}.`,
     },
     {
       title: "Explore a fresh subheadline",

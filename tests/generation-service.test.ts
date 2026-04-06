@@ -9,7 +9,6 @@ const {
   createGenerationRun,
   markGenerationRunRunning,
   createVariants,
-  persistGenerationRunResult,
   completeGenerationRun,
   failGenerationRun,
 } = vi.hoisted(() => ({
@@ -24,7 +23,6 @@ const {
   createGenerationRun: vi.fn(),
   markGenerationRunRunning: vi.fn(),
   createVariants: vi.fn(),
-  persistGenerationRunResult: vi.fn(),
   completeGenerationRun: vi.fn(),
   failGenerationRun: vi.fn(),
 }));
@@ -43,7 +41,6 @@ vi.mock("@/lib/codex/openai-provider", () => ({
     return {
       synthesizeBrief: vi.fn(),
       generateVariants: vi.fn(),
-      generateLaunchConfig: vi.fn(),
     };
   }),
 }));
@@ -52,9 +49,7 @@ const experiment = {
   id: "exp_123",
   userId: "user_123",
   name: "Spring hero banner test",
-  goal: "Increase clickthrough rate",
   pageType: "Hero banner",
-  trafficSplit: "50/50",
   targetAudience: "Returning shoppers",
   tone: "Editorial",
   brandConstraints: "Avoid discount framing",
@@ -71,13 +66,11 @@ const experiment = {
 vi.mock("@/lib/repositories/experiment-repository", () => ({
   getExperimentForUser,
   storeApprovedBrief,
-  markExperimentLive: vi.fn(),
 }));
 
 vi.mock("@/lib/repositories/generation-repository", () => ({
   createGenerationRun,
   markGenerationRunRunning,
-  persistGenerationRunResult,
   completeGenerationRun,
   failGenerationRun,
 }));
@@ -109,8 +102,6 @@ describe("generation service", () => {
     expect(buildPromptSnapshot(experiment as never)).toEqual({
       experimentName: "Spring hero banner test",
       componentType: "Hero banner",
-      primaryGoal: "Increase clickthrough rate",
-      trafficSplit: "50/50",
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",
@@ -119,16 +110,15 @@ describe("generation service", () => {
     });
   });
 
-  it("stores the synthesized brief before generation", async () => {
+  it("stores the prepared brief before generation", async () => {
     const provider = {
       synthesizeBrief: vi.fn().mockResolvedValue({
         hypothesis: "We believe quality-led copy improves clickthrough rate.",
         whatIsChanging: ["headline copy", "CTA label"],
-        successMetric: "Increase clickthrough rate",
+        successMetric: "Generate three quality-led headlines.",
         audienceSignal: "Returning shoppers",
       }),
       generateVariants: vi.fn(),
-      generateLaunchConfig: vi.fn(),
     };
 
     const result = await synthesizeExperimentBrief({
@@ -146,7 +136,7 @@ describe("generation service", () => {
     );
   });
 
-  it("persists one saved output and hidden config for a successful generation", async () => {
+  it("persists one saved output for a successful generation", async () => {
     const provider = {
       synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockResolvedValue({
@@ -165,13 +155,6 @@ describe("generation service", () => {
           },
         },
       }),
-      generateLaunchConfig: vi.fn().mockResolvedValue({
-        variantIds: ["quality-led-1"],
-        trafficSplit: "50/50",
-        primaryMetric: "Increase clickthrough rate",
-        featureFlagKey: "storefront-exp-spring-hero-banner-test",
-        rolloutNotes: "Mocked config",
-      }),
     };
 
     await generateExperimentVariants({
@@ -181,15 +164,7 @@ describe("generation service", () => {
     });
 
     expect(provider.generateVariants).toHaveBeenCalled();
-    expect(provider.generateLaunchConfig).toHaveBeenCalled();
     expect(createVariants).toHaveBeenCalled();
-    expect(persistGenerationRunResult).toHaveBeenCalledWith(
-      transactionContexts[1],
-      "run_123",
-      expect.objectContaining({
-        approvedBrief: experiment.approvedBrief,
-      }),
-    );
     expect(completeGenerationRun).toHaveBeenCalled();
   });
 
@@ -197,7 +172,6 @@ describe("generation service", () => {
     const provider = {
       synthesizeBrief: vi.fn(),
       generateVariants: vi.fn().mockRejectedValue(new Error("invalid structured response")),
-      generateLaunchConfig: vi.fn(),
     };
 
     await expect(
