@@ -31,7 +31,6 @@ export async function createDraftExperiment(
       whatToTest: parsed.whatToTest ?? "",
       trafficSplit: parsed.trafficSplit ?? "50/50",
       variantCount: 1,
-      lockedElements: parsed.lockedElements ?? [],
       brandAssetSetKey: parsed.brandAssetSetKey ?? "atelier-spring",
       status: "draft",
     },
@@ -105,6 +104,7 @@ export async function deleteExperimentForUser(experimentId: string, userId: stri
 export async function getExperimentDetailForUser(
   experimentId: string,
   userId: string,
+  selectedRunId?: string,
 ) {
   const experiment = await prisma.experiment.findFirst({
     where: {
@@ -122,7 +122,6 @@ export async function getExperimentDetailForUser(
       seedContext: true,
       whatToTest: true,
       trafficSplit: true,
-      lockedElements: true,
       approvedBrief: true,
       launchMetric: true,
       launchAt: true,
@@ -148,7 +147,9 @@ export async function getExperimentDetailForUser(
     return null;
   }
 
-  const [latestSavedRun, generationHistory] = await Promise.all([
+  const normalizedSelectedRunId = selectedRunId?.trim();
+
+  const [latestSavedRun, selectedSavedRun, generationHistory] = await Promise.all([
     prisma.codexGenerationRun.findFirst({
       where: {
         experimentId,
@@ -171,6 +172,30 @@ export async function getExperimentDetailForUser(
         },
       },
     }),
+    normalizedSelectedRunId
+      ? prisma.codexGenerationRun.findFirst({
+          where: {
+            id: normalizedSelectedRunId,
+            experimentId,
+            status: "succeeded",
+            experiment: {
+              userId,
+            },
+          },
+          select: {
+            id: true,
+            status: true,
+            startedAt: true,
+            completedAt: true,
+            resultSnapshot: true,
+            variants: {
+              orderBy: {
+                position: "asc",
+              },
+            },
+          },
+        })
+      : Promise.resolve(null),
     prisma.codexGenerationRun.findMany({
       where: {
         experimentId,
@@ -197,6 +222,7 @@ export async function getExperimentDetailForUser(
   return {
     ...experiment,
     latestSavedRun,
+    selectedSavedRun,
     generationHistory: generationHistory.map((run) => ({
       id: run.id,
       status: run.status,

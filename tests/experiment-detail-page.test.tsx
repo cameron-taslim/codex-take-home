@@ -87,9 +87,9 @@ vi.mock("@/components/experiment-detail/detail-header", () => ({
 }));
 
 vi.mock("@/components/experiment-detail/results-panel", () => ({
-  ExperimentResultsPanel: ({ experiment }: { experiment: { latestSavedRun: { variants: Array<{ headline: string }> } } }) => (
+  ExperimentResultsPanel: ({ experiment }: { experiment: { activeSavedRun: { variants: Array<{ headline: string }> } } }) => (
     <section>
-      {experiment.latestSavedRun.variants.map((variant) => (
+      {experiment.activeSavedRun.variants.map((variant) => (
         <p key={variant.headline}>{variant.headline}</p>
       ))}
       <button type="button">Launch Experiment</button>
@@ -114,11 +114,14 @@ describe("experiment detail page", () => {
     });
 
     await expect(
-      ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }),
+      ExperimentDetailPage({
+        params: Promise.resolve({ id: "exp_123" }),
+        searchParams: Promise.resolve({}),
+      }),
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders the collapsed overview control, live previews, and generation history", async () => {
+  it("renders the collapsed overview control, live previews, and rerun controls", async () => {
     getExperimentDetailForUserMock.mockResolvedValue({
       id: "exp_123",
       name: "Spring hero banner test",
@@ -130,11 +133,9 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      lockedElements: ["Lock hero image", "Lock logo"],
       approvedBrief: {
         hypothesis: "We believe stronger quality-led copy will improve clickthrough rate.",
         whatIsChanging: ["headline copy", "CTA label"],
-        whatIsLocked: ["hero image", "logo"],
         successMetric: "Increase clickthrough rate",
         audienceSignal: "Returning shoppers",
       },
@@ -174,7 +175,6 @@ describe("experiment detail page", () => {
               emphasis: "headline",
               theme: "atelier-spring",
               assetSetKey: "atelier-spring",
-              lockedElements: ["Lock hero image", "Lock logo"],
             },
             position: 0,
             createdAt: new Date(),
@@ -182,6 +182,7 @@ describe("experiment detail page", () => {
           },
         ],
       },
+      selectedSavedRun: null,
       generationHistory: [
         {
           id: "run_success",
@@ -194,7 +195,12 @@ describe("experiment detail page", () => {
       ],
     });
 
-    render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
+    render(
+      await ExperimentDetailPage({
+        params: Promise.resolve({ id: "exp_123" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
 
     expect(screen.getByRole("button", { name: "Expand overview" })).toHaveAttribute(
       "aria-expanded",
@@ -204,7 +210,128 @@ describe("experiment detail page", () => {
     expect(screen.getByText("AI suggestions")).toBeInTheDocument();
     expect(screen.getByText("Push a sharper headline")).toBeInTheDocument();
     expect(screen.getByText("Custom prompt")).toBeInTheDocument();
-    expect(screen.getByText("Generation history")).toBeInTheDocument();
+    expect(screen.queryByText("Generation history")).not.toBeInTheDocument();
+  });
+
+  it("renders the selected historical run when a saved run is chosen from history", async () => {
+    getExperimentDetailForUserMock.mockResolvedValue({
+      id: "exp_123",
+      name: "Spring hero banner test",
+      goal: "Increase clickthrough rate",
+      pageType: "Hero banner",
+      trafficSplit: "50/50",
+      targetAudience: "Returning shoppers",
+      tone: "Editorial",
+      brandConstraints: "Avoid discount framing",
+      seedContext: "Feature lightweight outerwear",
+      whatToTest: "Generate three quality-led headlines.",
+      approvedBrief: null,
+      launchMetric: null,
+      launchAt: null,
+      launchConfig: null,
+      brandAssetSetKey: "atelier-spring",
+      status: "generated",
+      latestGenerationRunId: "run_latest",
+      latestGenerationRun: {
+        id: "run_latest",
+        status: "succeeded",
+        startedAt: new Date("2026-04-03T17:30:00.000Z"),
+        completedAt: new Date("2026-04-03T17:32:00.000Z"),
+        errorMessage: null,
+        resultSnapshot: null,
+      },
+      latestSavedRun: {
+        id: "run_latest",
+        status: "succeeded",
+        startedAt: new Date("2026-04-03T17:30:00.000Z"),
+        completedAt: new Date("2026-04-03T17:32:00.000Z"),
+        resultSnapshot: null,
+        variants: [
+          {
+            id: "variant_latest",
+            experimentId: "exp_123",
+            generationRunId: "run_latest",
+            label: "Latest",
+            headline: "Latest direction",
+            subheadline: "Newer run",
+            bodyCopy: "Latest copy.",
+            ctaText: "Explore now",
+            layoutNotes: "Latest notes",
+            previewConfig: {
+              layout: "spotlight",
+              emphasis: "headline",
+              theme: "atelier-spring",
+              assetSetKey: "atelier-spring",
+            },
+            position: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+      },
+      selectedSavedRun: {
+        id: "run_previous",
+        status: "succeeded",
+        startedAt: new Date("2026-04-01T17:30:00.000Z"),
+        completedAt: new Date("2026-04-01T17:32:00.000Z"),
+        resultSnapshot: null,
+        variants: [
+          {
+            id: "variant_previous",
+            experimentId: "exp_123",
+            generationRunId: "run_previous",
+            label: "Previous",
+            headline: "Previous direction",
+            subheadline: "Earlier run",
+            bodyCopy: "Earlier copy.",
+            ctaText: "Shop now",
+            layoutNotes: "Earlier notes",
+            previewConfig: {
+              layout: "spotlight",
+              emphasis: "headline",
+              theme: "atelier-spring",
+              assetSetKey: "atelier-spring",
+            },
+            position: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+      },
+      generationHistory: [
+        {
+          id: "run_latest",
+          status: "succeeded",
+          startedAt: new Date("2026-04-03T17:30:00.000Z"),
+          completedAt: new Date("2026-04-03T17:32:00.000Z"),
+          errorMessage: null,
+          variantCount: 1,
+        },
+        {
+          id: "run_previous",
+          status: "succeeded",
+          startedAt: new Date("2026-04-01T17:30:00.000Z"),
+          completedAt: new Date("2026-04-01T17:32:00.000Z"),
+          errorMessage: null,
+          variantCount: 1,
+        },
+      ],
+    });
+
+    render(
+      await ExperimentDetailPage({
+        params: Promise.resolve({ id: "exp_123" }),
+        searchParams: Promise.resolve({ run: "run_previous" }),
+      }),
+    );
+
+    expect(getExperimentDetailForUserMock).toHaveBeenCalledWith(
+      "exp_123",
+      "user_1",
+      "run_previous",
+    );
+    expect(screen.getByText("Previous direction")).toBeInTheDocument();
+    expect(screen.queryByText("Latest direction")).not.toBeInTheDocument();
   });
 
   it("blocks unauthorized or missing experiment access with a safe not-found response", async () => {
@@ -214,7 +341,10 @@ describe("experiment detail page", () => {
     getExperimentDetailForUserMock.mockResolvedValue(null);
 
     await expect(
-      ExperimentDetailPage({ params: Promise.resolve({ id: "exp_missing" }) }),
+      ExperimentDetailPage({
+        params: Promise.resolve({ id: "exp_missing" }),
+        searchParams: Promise.resolve({}),
+      }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 
@@ -230,7 +360,6 @@ describe("experiment detail page", () => {
       brandConstraints: "Avoid discount framing",
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
-      lockedElements: ["Lock hero image", "Lock logo"],
       approvedBrief: null,
       launchMetric: null,
       launchAt: null,
@@ -243,7 +372,12 @@ describe("experiment detail page", () => {
       generationHistory: [],
     });
 
-    render(await ExperimentDetailPage({ params: Promise.resolve({ id: "exp_123" }) }));
+    render(
+      await ExperimentDetailPage({
+        params: Promise.resolve({ id: "exp_123" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
 
     expect(
       screen.getByRole("heading", { level: 2, name: "No saved output yet" }),

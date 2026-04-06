@@ -23,7 +23,6 @@ describe("variant preview card", () => {
             emphasis: "headline",
             theme: "atelier-spring",
             assetSetKey: "atelier-spring",
-            lockedElements: ["Lock hero image"],
           },
           position: 0,
           createdAt: new Date("2026-04-05T12:00:00.000Z"),

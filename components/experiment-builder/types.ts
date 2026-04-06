@@ -1,11 +1,5 @@
 import type { CodexBriefSynthesis } from "@/lib/codex/provider";
 
-export type LockedElement =
-  | "Lock hero image"
-  | "Lock logo"
-  | "Lock legal copy"
-  | "Lock price display";
-
 export type ExperimentBuilderValues = {
   experimentId?: string;
   name: string;
@@ -15,7 +9,6 @@ export type ExperimentBuilderValues = {
   targetAudience: string;
   brandTone: string;
   brandConstraints: string;
-  lockedElements: LockedElement[];
   seedContext: string;
   whatToTest: string;
   approvedBrief?: CodexBriefSynthesis;
@@ -29,7 +22,6 @@ export type ExperimentBuilderField =
   | "targetAudience"
   | "brandTone"
   | "brandConstraints"
-  | "lockedElements"
   | "seedContext"
   | "whatToTest";
 
@@ -55,7 +47,6 @@ export const emptyExperimentBuilderValues: ExperimentBuilderValues = {
   targetAudience: "",
   brandTone: "Editorial",
   brandConstraints: "",
-  lockedElements: ["Lock hero image", "Lock logo"],
   seedContext: "",
   whatToTest: "",
 };

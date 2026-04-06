@@ -150,7 +150,6 @@ Needs:
 
 - experiment metadata
 - latest saved output
-- generation history list
 - latest generation error state when present
 
 ## Validation Rules

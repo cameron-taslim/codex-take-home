@@ -4,8 +4,7 @@ import React from "react";
 import { VariantPreviewCard } from "@/components/ui/variant-preview-card";
 
 type DetailExperiment = {
-  id: string;
-  latestSavedRun: {
+  activeSavedRun: {
     variants: Array<{
       id: string;
       label: string;
@@ -25,7 +24,7 @@ type DetailExperiment = {
 };
 
 export function ExperimentResultsPanel({ experiment }: { experiment: DetailExperiment }) {
-  const variants = experiment.latestSavedRun?.variants ?? [];
+  const variants = experiment.activeSavedRun?.variants ?? [];
   const activeOutput = variants[0];
 
   if (!activeOutput) {

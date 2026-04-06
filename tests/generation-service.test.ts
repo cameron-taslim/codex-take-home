@@ -60,11 +60,9 @@ const experiment = {
   brandConstraints: "Avoid discount framing",
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three quality-led headlines.",
-  lockedElements: ["Lock hero image", "Lock logo"],
   approvedBrief: {
     hypothesis: "We believe quality-led copy improves clickthrough rate.",
     whatIsChanging: ["headline copy", "CTA label"],
-    whatIsLocked: ["hero image", "logo"],
     successMetric: "Increase clickthrough rate",
     audienceSignal: "Returning shoppers",
   },
@@ -116,7 +114,6 @@ describe("generation service", () => {
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",
-      lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
     });
@@ -127,7 +124,6 @@ describe("generation service", () => {
       synthesizeBrief: vi.fn().mockResolvedValue({
         hypothesis: "We believe quality-led copy improves clickthrough rate.",
         whatIsChanging: ["headline copy", "CTA label"],
-        whatIsLocked: ["hero image", "logo"],
         successMetric: "Increase clickthrough rate",
         audienceSignal: "Returning shoppers",
       }),
@@ -166,7 +162,6 @@ describe("generation service", () => {
             emphasis: "headline",
             theme: "atelier-spring",
             assetSetKey: "atelier-spring",
-            lockedElements: ["Lock hero image", "Lock logo"],
           },
         },
       }),

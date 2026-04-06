@@ -19,7 +19,6 @@ export type ExperimentRecord = {
   seedContext: string | null;
   whatToTest: string;
   trafficSplit: string;
-  lockedElements: unknown;
   approvedBrief: unknown;
   launchMetric?: string | null;
   launchAt?: Date | null;

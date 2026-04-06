@@ -12,7 +12,6 @@ import {
   type ExperimentBuilderActionResult,
   type ExperimentBuilderFieldErrors,
   type ExperimentBuilderValues,
-  type LockedElement,
 } from "@/components/experiment-builder/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,12 +43,6 @@ const brandTones = [
   "Confident",
   "Warm",
 ] as const;
-const lockedElementOptions: LockedElement[] = [
-  "Lock hero image",
-  "Lock logo",
-  "Lock legal copy",
-  "Lock price display",
-];
 
 export function ExperimentBuilderForm({
   initialValues = emptyExperimentBuilderValues,
@@ -235,36 +228,6 @@ export function ExperimentBuilderForm({
                       ))}
                     </select>
                   </FormField>
-
-                  <FormField
-                    label="Locked elements"
-                    htmlFor="lockedElements"
-                    required
-                    error={fieldErrors.lockedElements}
-                  >
-                    <div id="lockedElements" className="builder-checkbox-grid">
-                      {lockedElementOptions.map((option) => {
-                        const checked = values.lockedElements.includes(option);
-                        return (
-                          <label key={option} className="builder-checkbox-card">
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => {
-                                setFieldValue(
-                                  "lockedElements",
-                                  checked
-                                    ? values.lockedElements.filter((item) => item !== option)
-                                    : [...values.lockedElements, option],
-                                );
-                              }}
-                            />
-                            <span>{option.replace("Lock ", "")}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </FormField>
                 </div>
 
                 <FormField
@@ -339,10 +302,6 @@ export function ExperimentBuilderForm({
                     <BriefListCard
                       title="What is changing"
                       items={values.approvedBrief.whatIsChanging}
-                    />
-                    <BriefListCard
-                      title="What is locked"
-                      items={values.approvedBrief.whatIsLocked}
                     />
                     <BriefListCard
                       title="Success metric"

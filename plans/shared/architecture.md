@@ -53,7 +53,7 @@ Protected route. Lists the current user’s experiments and offers navigation to
 Protected route. Hosts the Experiment Builder flow for draft creation, validation, save, and generation.
 
 ### `/experiments/[id]`
-Protected route. Shows experiment metadata, the latest saved output, generation history, and rerun controls.
+Protected route. Shows experiment metadata, the latest saved output, and rerun controls.
 
 ## Data Flow
 ### Dashboard flow
@@ -71,9 +71,9 @@ Protected route. Shows experiment metadata, the latest saved output, generation 
 
 ### Detail flow
 1. Server authenticates the user and loads the requested experiment.
-2. Server fetches the latest saved output and generation history.
+2. Server fetches the latest saved output and the latest generation state.
 3. Page renders saved experiment metadata and the current preview-oriented output.
-4. User may rerun generation, which creates a new generation run while preserving prior history.
+4. User may rerun generation, which creates a new generation run while preserving prior runs.
 
 ## Codex Call Placement
 Codex is called only from the server layer. The recommended implementation shape is:

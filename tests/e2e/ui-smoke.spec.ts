@@ -26,7 +26,7 @@ test("login route renders scaffold", async ({ page }) => {
   });
 });
 
-test("seeded login can create an experiment, generate output, and review saved history", async ({
+test("seeded login can create an experiment and review the saved output", async ({
   page,
 }) => {
   const experimentName = `Playwright demo ${Date.now()}`;
@@ -53,15 +53,15 @@ test("seeded login can create an experiment, generate output, and review saved h
     .getByLabel("What to test *")
     .fill("Generate one premium, product-led headline direction with concise CTA copy.");
 
-  await page.getByRole("button", { name: "Analyze Inputs" }).click();
-  await expect(page.getByText("Brief confirmation")).toBeVisible();
-  await page.getByRole("button", { name: "Approve Brief & Generate Output" }).click();
+  await expect(page.getByText("Brief preview")).toHaveCount(0);
+  await expect(page.getByText("Pipeline controls")).toHaveCount(0);
+  await page.getByRole("button", { name: "Generate Output" }).click();
 
   await page.waitForURL(/\/experiments\/[^/]+$/);
   await expect(page.getByRole("heading", { name: experimentName })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Wear what lasts" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Generation history" })).toBeVisible();
-  await expect(page.getByText(/1 saved output/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "AI suggestions" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate output" })).toBeVisible();
 
   await page.screenshot({
     path: "test-results/experiment-happy-path.png",

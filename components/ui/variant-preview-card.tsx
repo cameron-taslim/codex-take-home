@@ -19,7 +19,6 @@ export function VariantPreviewCard({
         emphasis: "headline" as const,
         theme: "atelier-spring" as const,
         assetSetKey: "atelier-spring",
-        lockedElements: [],
       };
   const assetSet = getBrandAssetSet(previewConfig.assetSetKey);
   const headlineTone = getHeadlineTone(variant.headline);

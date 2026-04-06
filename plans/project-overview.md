@@ -6,7 +6,7 @@ Experiment Lab is a web app for eCommerce teams to create storefront experiments
 - Codex can be used to quickly build a polished product workflow.
 - Codex can be embedded inside the product as a real generation engine, not just used during development.
 
-The app lets an authenticated user log in, create an experiment brief, generate UI and copy output with Codex, persist the result, and review the latest saved output with generation history in a preview-oriented detail view.
+The app lets an authenticated user log in, create an experiment brief, generate UI and copy output with Codex, persist the result, and review the latest saved output in a preview-oriented detail view.
 
 ## Audience
 The primary audience is an OpenAI customer operating a major eCommerce platform. The product should feel relevant to merchandisers, growth teams, and product marketers who want to launch experiments faster without hand-authoring every landing-page variation.
@@ -19,7 +19,7 @@ The demo should show a single continuous user flow:
 3. Create a new experiment from structured inputs.
 4. Trigger Codex generation from inside the app.
 5. Persist the generated output.
-6. Open the experiment detail page and review the latest saved output plus history.
+6. Open the experiment detail page and review the latest saved output.
 
 This flow makes the Codex integration visible and ties it directly to a business use case.
 
@@ -34,7 +34,7 @@ This is a medium-scope MVP with four pages:
 The product includes:
 
 - user authentication
-- persisted experiments and generation history
+- persisted experiments and generation runs
 - a Codex-powered generation workflow
 - a previewable detail page for generated outputs
 - a small but meaningful automated test suite
@@ -71,7 +71,7 @@ The builder collects structured inputs:
 - brand constraints
 - optional seed copy or context
 
-The user can save a draft before generation or submit the brief to Codex to generate the next saved output.
+The user submits the brief to Codex to generate the next saved output.
 
 ### 4. Codex Generation
 The app sends the structured experiment brief to a server-side generation layer. Codex returns one structured output for the current run, which the app stores with the experiment and associates with the generation run.
@@ -83,7 +83,7 @@ The user reviews the latest generated output, sees the latest generation state, 
 The project is successful if it demonstrates all of the following:
 
 - a working authenticated user flow
-- persisted data for experiments and generation history
+- persisted data for experiments and generation runs
 - a clear and visible Codex-powered action inside the app
 - a UI polished enough for a short demo
 - test coverage for core risk areas

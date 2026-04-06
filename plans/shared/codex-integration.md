@@ -94,7 +94,7 @@ The final product should make the Codex integration obvious:
 - the user clicks a generate action inside the app
 - the app shows a generation-in-progress state
 - the resulting output appears as saved experiment data
-- the detail page shows the latest generated output and history
+- the detail page shows the latest generated output and a rerun path
 
 This is the clearest evidence that Codex is being used programmatically as part of the workflow.
 

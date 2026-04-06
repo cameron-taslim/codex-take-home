@@ -1,7 +1,7 @@
 # Experiment Builder Page Plan
 
 ## Purpose
-Collect the experiment brief, allow draft persistence, and trigger Codex generation from inside the app.
+Collect the experiment brief and trigger Codex generation from inside the app.
 
 ## Route
 `/experiments/new`
@@ -9,7 +9,6 @@ Collect the experiment brief, allow draft persistence, and trigger Codex generat
 ## Page Responsibilities
 - collect structured experiment inputs
 - validate required fields
-- save draft experiment data
 - trigger Codex generation
 - communicate loading, success, and failure states
 
@@ -27,27 +26,17 @@ The form should collect:
 These are business inputs and must map directly to the shared Codex input contract.
 
 ## UI Layout
-Use a two-panel layout:
-
-- left panel for the experiment form
-- right panel for contextual guidance, generation expectations, or a lightweight preview placeholder
-
-This page should feel action-oriented rather than like a generic settings form.
+Use a compact single-column layout with a minimal page title and the experiment form.
 
 ## Primary Actions
-- `Save Draft`
 - `Generate Output`
 
-`Generate Output` should be the dominant action once required fields are valid.
+`Generate Output` is the only visible page action.
 
 ## Behavior
-### Save Draft
-- validates minimally required persistence fields
-- creates or updates an experiment in `draft` state
-- keeps the user in a recoverable editing flow
-
 ### Generate Output
 - requires the full generation field set
+- prepares the brief as needed
 - persists the experiment if needed
 - triggers a server-side Codex generation run
 - prevents duplicate submissions while in progress
@@ -87,5 +76,4 @@ Validation errors must be explicit and field-level.
 ## Acceptance Criteria
 - the page makes programmatic Codex usage obvious
 - structured inputs are clear and fast to fill in
-- users can save drafts without generating
 - generation is reliable enough to demo and safe enough to test with mocks

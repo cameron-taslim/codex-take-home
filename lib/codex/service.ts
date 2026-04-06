@@ -40,9 +40,6 @@ function createMockCodexProvider(): CodexProvider {
       return codexBriefSynthesisSchema.parse({
         hypothesis: `We believe that changing ${componentCopy.join(", ")} will increase ${input.primaryGoal.toLowerCase()} because ${input.targetAudience.toLowerCase()} respond to ${input.brandTone.toLowerCase()} product storytelling.`,
         whatIsChanging: componentCopy,
-        whatIsLocked: input.lockedElements.map((element) =>
-          element.replace("Lock ", ""),
-        ),
         successMetric: input.primaryGoal,
         audienceSignal: input.targetAudience,
       });
@@ -100,7 +97,6 @@ function createMockCodexProvider(): CodexProvider {
             emphasis: "headline",
             theme: themes[0],
             assetSetKey: "atelier-spring",
-            lockedElements: input.lockedElements,
           },
         },
       });
@@ -131,7 +127,6 @@ export function buildPromptSnapshot(
     targetAudience: experiment.targetAudience,
     brandTone: experiment.tone,
     brandConstraints: experiment.brandConstraints,
-    lockedElements: normalizeLockedElements(experiment.lockedElements),
     seedContext: experiment.seedContext ?? "",
     whatToTest,
   });
@@ -286,10 +281,6 @@ function createDefaultCodexProvider(): CodexProvider {
   }
 
   return new OpenAICodexProvider(process.env.OPENAI_API_KEY);
-}
-
-function normalizeLockedElements(value: unknown) {
-  return Array.isArray(value) ? value : [];
 }
 
 function slugify(value: string) {

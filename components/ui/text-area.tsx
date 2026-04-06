@@ -1,7 +1,12 @@
 import React from "react";
-import type { TextareaHTMLAttributes } from "react";
+import type { CSSProperties, TextareaHTMLAttributes } from "react";
 
-export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function TextArea({
+  style,
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  style?: CSSProperties;
+}) {
   return (
     <textarea
       {...props}
@@ -10,6 +15,7 @@ export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
         minHeight: 120,
         padding: "12px 14px",
         resize: "vertical",
+        ...style,
       }}
     />
   );

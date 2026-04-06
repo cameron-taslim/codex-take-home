@@ -28,7 +28,6 @@ function normalizeValues(values: ExperimentBuilderValues): ExperimentBuilderValu
     targetAudience: values.targetAudience.trim(),
     brandTone: values.brandTone.trim(),
     brandConstraints: values.brandConstraints.trim(),
-    lockedElements: values.lockedElements,
     seedContext: values.seedContext.trim(),
     whatToTest: values.whatToTest.trim(),
     approvedBrief: values.approvedBrief,
@@ -64,7 +63,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
     targetAudience: values.targetAudience,
     brandTone: values.brandTone,
     brandConstraints: values.brandConstraints,
-    lockedElements: values.lockedElements,
     seedContext: values.seedContext,
     whatToTest: values.whatToTest,
   });
@@ -84,7 +82,6 @@ function mapGenerationErrors(values: ExperimentBuilderValues) {
     if (path === "targetAudience") fieldErrors.targetAudience = issue.message;
     if (path === "brandTone") fieldErrors.brandTone = issue.message;
     if (path === "brandConstraints") fieldErrors.brandConstraints = issue.message;
-    if (path === "lockedElements") fieldErrors.lockedElements = issue.message;
     if (path === "seedContext") fieldErrors.seedContext = issue.message;
     if (path === "whatToTest") fieldErrors.whatToTest = issue.message;
   }
@@ -103,7 +100,6 @@ async function persistExperiment(values: ExperimentBuilderValues, userId: string
     seedContext: values.seedContext || undefined,
     whatToTest: values.whatToTest,
     trafficSplit: values.trafficSplit,
-    lockedElements: values.lockedElements,
   };
 
   if (values.experimentId) {

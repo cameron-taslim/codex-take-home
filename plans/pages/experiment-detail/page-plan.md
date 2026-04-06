@@ -10,14 +10,12 @@ Present the saved experiment, display the latest generated output, and provide a
 - load the selected owned experiment
 - render experiment metadata
 - display the latest generated output
-- show generation history
 - allow rerunning generation
 
 ## Data Needed
 - experiment metadata
 - latest generation run
 - the saved output for the latest run
-- lightweight generation history list
 - latest failure state if applicable
 
 All data must be loaded from persisted records, scoped to the authenticated owner.
@@ -27,7 +25,7 @@ Use a split or stacked layout that prioritizes output review:
 
 - summary section for experiment metadata and status
 - main review area for the latest saved output
-- secondary area for generation history and rerun action
+- secondary area for rerun action
 
 ## Output Presentation
 Show one generated output for the active run in a clearly separated preview card. The saved output should present:
@@ -44,7 +42,7 @@ Use `previewConfig` only for safe presentational enhancements, not arbitrary ren
 ## Rerun Behavior
 - rerun uses the saved experiment brief as input
 - creates a new generation run
-- preserves prior history
+- preserves prior runs
 - updates the latest run pointer after success
 - shows in-progress and failure states clearly
 
@@ -60,7 +58,6 @@ Show the failure state and allow regeneration without losing existing experiment
 
 ## Dependencies
 - shared experiment ownership rules
-- generation history query shape
 - Codex rerun service contract
 - shared variant preview and status components
 
@@ -72,5 +69,4 @@ Show the failure state and allow regeneration without losing existing experiment
 
 ## Acceptance Criteria
 - the page clearly demonstrates saved Codex-generated output
-- generation history is visible enough to support the product story
 - rerun behavior preserves history and updates the latest output correctly

@@ -52,7 +52,6 @@ const baseValues = {
   targetAudience: "Returning shoppers looking for premium seasonal pieces",
   brandTone: "Editorial",
   brandConstraints: "Avoid discount framing",
-  lockedElements: ["Lock hero image", "Lock logo"] as const,
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three headlines that lead with quality.",
 };
@@ -108,17 +107,14 @@ describe("experiment builder actions", () => {
       prepareExperimentBriefAction({
         ...baseValues,
         brandConstraints: "",
-        lockedElements: [],
       }),
     ).resolves.toEqual({
       values: {
         ...baseValues,
         brandConstraints: "",
-        lockedElements: [],
       },
       fieldErrors: {
         brandConstraints: "Brand constraints are required.",
-        lockedElements: "Choose at least one locked element.",
       },
     });
 
@@ -133,7 +129,6 @@ describe("experiment builder actions", () => {
     synthesizeExperimentBriefMock.mockResolvedValue({
       hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
       whatIsChanging: ["headline copy", "CTA label"],
-      whatIsLocked: ["hero image", "logo"],
       successMetric: "Increase clickthrough rate",
       audienceSignal: "Returning shoppers",
     });
@@ -142,7 +137,6 @@ describe("experiment builder actions", () => {
 
     expect(result.experimentId).toBe("exp_123");
     expect(result.stage).toBe("brief_ready");
-    expect(result.values.approvedBrief?.whatIsLocked).toEqual(["hero image", "logo"]);
     expect(synthesizeExperimentBriefMock).toHaveBeenCalledWith({
       experimentId: "exp_123",
       userId: "user_1",
@@ -178,7 +172,6 @@ describe("experiment builder actions", () => {
         approvedBrief: {
           hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
           whatIsChanging: ["headline copy", "CTA label"],
-          whatIsLocked: ["hero image", "logo"],
           successMetric: "Increase clickthrough rate",
           audienceSignal: "Returning shoppers",
         },
@@ -190,7 +183,6 @@ describe("experiment builder actions", () => {
         approvedBrief: {
           hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
           whatIsChanging: ["headline copy", "CTA label"],
-          whatIsLocked: ["hero image", "logo"],
           successMetric: "Increase clickthrough rate",
           audienceSignal: "Returning shoppers",
         },

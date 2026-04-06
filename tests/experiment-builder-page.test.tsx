@@ -7,7 +7,6 @@ const {
   refreshMock,
   redirectMock,
   requireUserSessionMock,
-  saveDraftExperimentActionMock,
   prepareExperimentBriefActionMock,
   generateExperimentActionMock,
 } = vi.hoisted(() => ({
@@ -15,7 +14,6 @@ const {
   refreshMock: vi.fn(),
   redirectMock: vi.fn(),
   requireUserSessionMock: vi.fn(),
-  saveDraftExperimentActionMock: vi.fn(),
   prepareExperimentBriefActionMock: vi.fn(),
   generateExperimentActionMock: vi.fn(),
 }));
@@ -36,7 +34,6 @@ vi.mock("@/lib/auth/session", () => ({
 }));
 
 vi.mock("@/app/experiments/new/actions", () => ({
-  saveDraftExperimentAction: saveDraftExperimentActionMock,
   prepareExperimentBriefAction: prepareExperimentBriefActionMock,
   generateExperimentAction: generateExperimentActionMock,
 }));
@@ -45,15 +42,17 @@ vi.mock("@/components/layout/app-shell", () => ({
   AppShell: ({
     title,
     description,
+    customHeader,
     children,
   }: {
     title: string;
     description: string;
+    customHeader?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
     <main>
-      <h1>{title}</h1>
-      <p>{description}</p>
+      {customHeader ?? <h1>{title}</h1>}
+      {description ? <p>{description}</p> : null}
       {children}
     </main>
   ),
@@ -69,7 +68,6 @@ const baseValues = {
   targetAudience: "Returning shoppers",
   brandTone: "Editorial",
   brandConstraints: "Avoid discount framing",
-  lockedElements: ["Lock hero image", "Lock logo"],
   seedContext: "Feature lightweight outerwear",
   whatToTest: "Generate three headlines that lead with quality.",
 };
@@ -82,13 +80,6 @@ describe("experiment builder page", () => {
       user: { id: "user_1", email: "demo@example.com" },
     });
 
-    saveDraftExperimentActionMock.mockResolvedValue({
-      values: { ...baseValues, experimentId: "exp_123" },
-      experimentId: "exp_123",
-      savedMessage: "Draft saved. Keep refining the brief or analyze it when ready.",
-      stage: "draft",
-    });
-
     prepareExperimentBriefActionMock.mockResolvedValue({
       values: {
         ...baseValues,
@@ -96,7 +87,6 @@ describe("experiment builder page", () => {
         approvedBrief: {
           hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
           whatIsChanging: ["headline copy", "CTA label"],
-          whatIsLocked: ["hero image", "logo"],
           successMetric: "Increase clickthrough rate",
           audienceSignal: "Returning shoppers",
         },
@@ -112,7 +102,6 @@ describe("experiment builder page", () => {
         approvedBrief: {
           hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
           whatIsChanging: ["headline copy", "CTA label"],
-          whatIsLocked: ["hero image", "logo"],
           successMetric: "Increase clickthrough rate",
           audienceSignal: "Returning shoppers",
         },
@@ -133,42 +122,23 @@ describe("experiment builder page", () => {
     expect(redirectMock).toHaveBeenCalledWith("/login");
   });
 
-  it("renders the staged merchandiser workflow", async () => {
+  it("renders the minimal builder UI", async () => {
     render(await NewExperimentPage());
 
     expect(
       screen.getByRole("heading", { name: "Create experiment" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save Draft" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Analyze Inputs" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
-    ).toBeDisabled();
+    expect(screen.queryByText("Workflow stages")).not.toBeInTheDocument();
+    expect(screen.queryByText("Brief preview")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pipeline controls")).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 2")).not.toBeInTheDocument();
+    expect(screen.queryByText("Step 3")).not.toBeInTheDocument();
+    expect(screen.queryByText("Storefront experiment setup")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Generate Output" })).toBeInTheDocument();
   });
 
-  it("saves a draft with merchandiser inputs", async () => {
-    render(await NewExperimentPage());
-
-    fireEvent.change(screen.getByLabelText("Experiment name *"), {
-      target: { value: "Spring hero banner test" },
-    });
-    fireEvent.change(screen.getByLabelText("Brand constraints *"), {
-      target: { value: "Avoid discount framing" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Save Draft" }));
-
-    await waitFor(() => {
-      expect(saveDraftExperimentActionMock).toHaveBeenCalled();
-    });
-
-    expect(
-      await screen.findByText("Draft saved. Keep refining the brief or analyze it when ready."),
-    ).toBeInTheDocument();
-  });
-
-  it("shows the synthesized brief after analysis", async () => {
+  it("prepares the brief and routes to detail from a single generate action", async () => {
     render(await NewExperimentPage());
 
     fireEvent.change(screen.getByLabelText("Experiment name *"), {
@@ -186,33 +156,11 @@ describe("experiment builder page", () => {
     fireEvent.change(screen.getByLabelText("What to test *"), {
       target: { value: "Generate three headlines that lead with quality." },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Analyze Inputs" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Generate Output" }));
 
     await waitFor(() => {
       expect(prepareExperimentBriefActionMock).toHaveBeenCalled();
-    });
-
-    expect(await screen.findByText("Brief confirmation")).toBeInTheDocument();
-    expect(
-      screen.getByText("We believe a quality-led headline will improve clickthrough rate."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
-    ).toBeEnabled();
-  });
-
-  it("routes to detail after approved generation", async () => {
-    render(await NewExperimentPage());
-
-    fireEvent.click(screen.getByRole("button", { name: "Analyze Inputs" }));
-
-    await screen.findByText("Brief confirmation");
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Approve Brief & Generate Output" }),
-    );
-
-    await waitFor(() => {
       expect(generateExperimentActionMock).toHaveBeenCalled();
       expect(pushMock).toHaveBeenCalledWith("/experiments/exp_123");
       expect(refreshMock).toHaveBeenCalled();

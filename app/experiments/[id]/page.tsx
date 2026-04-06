@@ -4,7 +4,6 @@ import { ExperimentDetailHeader } from "@/components/experiment-detail/detail-he
 import { ExperimentResultsPanel } from "@/components/experiment-detail/results-panel";
 import { RerunControls } from "@/components/experiment-detail/rerun-controls";
 import { AppShell } from "@/components/layout/app-shell";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { requireUserSession } from "@/lib/auth/session";
@@ -12,12 +11,16 @@ import { getExperimentDetailForUser } from "@/lib/repositories/experiment-reposi
 
 export default async function ExperimentDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ run?: string | string[] | undefined }>;
 }) {
   const { id } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const selectedRunId = getSingleSearchParam(resolvedSearchParams?.run);
   const session = await requireUserSession();
-  const experiment = await getExperimentDetailForUser(id, session.user.id);
+  const experiment = await getExperimentDetailForUser(id, session.user.id, selectedRunId);
 
   if (!experiment) {
     notFound();
@@ -25,12 +28,13 @@ export default async function ExperimentDetailPage({
 
   const latestRun = experiment.latestGenerationRun;
   const latestSavedRun = experiment.latestSavedRun;
-  const latestVariants = latestSavedRun?.variants ?? [];
+  const activeSavedRun = experiment.selectedSavedRun ?? latestSavedRun;
+  const activeVariants = activeSavedRun?.variants ?? [];
 
   return (
     <AppShell
       title={experiment.name}
-      description="Review the latest saved output, refine the next generation prompt, and inspect run history."
+      description="Review the latest saved output and refine the next generation prompt."
       customHeader={
         <ExperimentDetailHeader
           experimentId={experiment.id}
@@ -52,24 +56,10 @@ export default async function ExperimentDetailPage({
               <MetadataItem label="Primary goal" value={experiment.goal} />
               <MetadataItem label="Audience" value={experiment.targetAudience} />
               <MetadataItem label="Brand tone" value={experiment.tone} />
-              <MetadataItem label="Traffic split" value={experiment.trafficSplit} />
               <MetadataItem label="Brand constraints" value={experiment.brandConstraints} />
               <MetadataItem
                 label="What to test"
                 value={experiment.whatToTest || "No test prompt saved"}
-              />
-              <MetadataItem
-                label="Locked elements"
-                value={
-                  Array.isArray(experiment.lockedElements)
-                    ? experiment.lockedElements
-                        .map((item) =>
-                          typeof item === "string" ? item.replace("Lock ", "") : "",
-                        )
-                        .filter(Boolean)
-                        .join(", ")
-                    : "None selected"
-                }
               />
             </dl>
           }
@@ -81,48 +71,20 @@ export default async function ExperimentDetailPage({
         <div className="stack detail-main-column">
           <div className="detail-workspace">
             <div className="stack detail-workspace-main">
-              {latestVariants.length > 0 ? (
-                <ExperimentResultsPanel experiment={experiment} />
+              {activeVariants.length > 0 ? (
+                <ExperimentResultsPanel experiment={{ activeSavedRun }} />
               ) : (
                 <EmptyState
                   title="No saved output yet"
                   description="Approve the brief and generate output before editing copy or launching this experiment."
                 />
               )}
-
-              <Card className="detail-history-panel detail-history-panel-inline">
-                <div className="stack detail-history-stack">
-                  <h2 className="detail-section-title">Generation history</h2>
-
-                  {experiment.generationHistory.length > 0 ? (
-                    <div className="stack detail-history-list">
-                      {experiment.generationHistory.map((run, index) => (
-                        <HistoryItem
-                          key={run.id}
-                          id={run.id}
-                          status={run.status}
-                          startedAt={run.startedAt}
-                          completedAt={run.completedAt}
-                          errorMessage={run.errorMessage}
-                          variantCount={run.variantCount}
-                          isLatest={index === 0}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      title="No generation runs yet"
-                      description="Start the first run from the approved brief to populate generation history."
-                    />
-                  )}
-                </div>
-              </Card>
             </div>
 
             <aside className="stack detail-side-column">
               <RerunControls
                 experimentId={experiment.id}
-                suggestions={buildPromptSuggestions(experiment, latestVariants)}
+                suggestions={buildPromptSuggestions(experiment, activeVariants)}
                 defaultPrompt={experiment.whatToTest}
               />
             </aside>
@@ -142,59 +104,13 @@ function MetadataItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HistoryItem({
-  id,
-  status,
-  startedAt,
-  completedAt,
-  errorMessage,
-  variantCount,
-  isLatest,
-}: {
-  id: string;
-  status: "pending" | "running" | "succeeded" | "failed";
-  startedAt: Date;
-  completedAt: Date | null;
-  errorMessage: string | null;
-  variantCount: number;
-  isLatest: boolean;
-}) {
-  return (
-    <Card className={`detail-history-item ${isLatest ? "is-latest" : ""}`}>
-      <div className="detail-history-item-topbar">
-        <strong>{formatRunStatus(status)}</strong>
-        <span className="detail-history-date">{formatDate(startedAt)}</span>
-      </div>
-      <p className="detail-history-copy">
-        {variantCount} saved output{variantCount === 1 ? "" : "s"}
-        {completedAt ? ` • Completed ${formatDate(completedAt)}` : ""}
-      </p>
-      {errorMessage ? <p className="detail-history-error">{errorMessage}</p> : null}
-      <p className="detail-history-id">Run {id}</p>
-    </Card>
-  );
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatRunStatus(status: "pending" | "running" | "succeeded" | "failed") {
-  if (status === "succeeded") {
-    return "Generated";
+function getSingleSearchParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0];
   }
 
-  if (status === "failed") {
-    return "Failed";
-  }
-
-  return "Generating";
+  return value;
 }
-
 
 function buildPromptSuggestions(
   experiment: {

@@ -149,7 +149,6 @@ export function DashboardContent({
               <div className="dashboard-row-primary">
                 <div className="dashboard-row-title-block">
                   <h2 className="dashboard-row-title">{experiment.name}</h2>
-                  <p className="dashboard-row-id">{experiment.trafficSplit} traffic split</p>
                 </div>
                 <StatusBadge status={experiment.status} />
               </div>

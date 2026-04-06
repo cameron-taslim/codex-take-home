@@ -48,7 +48,7 @@ Test that a mocked generation failure:
 Test that persisted experiment summaries render correctly on the dashboard, including empty and non-empty states.
 
 ### Experiment detail rendering
-Test that the detail page can render persisted variants and generation history for a valid owned experiment.
+Test that the detail page can render the latest persisted variants for a valid owned experiment.
 
 ## Test Levels
 ### Unit tests

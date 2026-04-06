@@ -11,7 +11,6 @@ describe("experiment generation validation", () => {
       targetAudience: "Returning shoppers",
       brandTone: "Confident",
       brandConstraints: "",
-      lockedElements: [],
       seedContext: "",
       whatToTest: "",
     });

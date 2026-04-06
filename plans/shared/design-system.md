@@ -94,11 +94,11 @@ Prioritize form clarity and action confidence:
 - generation action visually prominent
 
 ### Detail
-Prioritize the latest generated output and run history:
+Prioritize the latest generated output and rerun controls:
 
 - experiment metadata summary
 - latest generated output
-- generation history
+- rerun controls
 
 ## Accessibility Baseline
 - keyboard-accessible navigation and controls

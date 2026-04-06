@@ -43,7 +43,6 @@ describe("OpenAICodexProvider", () => {
       output_parsed: {
         hypothesis: "We believe a quality-led headline will improve clickthrough rate.",
         whatIsChanging: ["headline copy"],
-        whatIsLocked: ["hero image"],
         successMetric: "Increase clickthrough rate",
         audienceSignal: "Returning shoppers",
       },
@@ -60,7 +59,6 @@ describe("OpenAICodexProvider", () => {
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",
-      lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
     });
@@ -89,7 +87,6 @@ describe("OpenAICodexProvider", () => {
             emphasis: "headline",
             theme: "atelier-spring",
             assetSetKey: "atelier-spring",
-            lockedElements: ["Lock hero image", "Lock logo"],
           },
         },
       },
@@ -106,7 +103,6 @@ describe("OpenAICodexProvider", () => {
       targetAudience: "Returning shoppers",
       brandTone: "Editorial",
       brandConstraints: "Avoid discount framing",
-      lockedElements: ["Lock hero image", "Lock logo"],
       seedContext: "Feature lightweight outerwear",
       whatToTest: "Generate three quality-led headlines.",
     });

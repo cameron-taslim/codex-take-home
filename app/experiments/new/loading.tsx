@@ -5,42 +5,50 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NewExperimentLoading() {
   return (
-    <AppShell
-      title="Experiment Builder"
-      description="Capture the structured brief, save a recoverable draft, and trigger a server-side Codex generation run."
-    >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.4fr) minmax(300px, 0.9fr)",
-          gap: 20,
-        }}
-      >
-        <Card style={{ padding: 24 }}>
-          <div className="stack" style={{ gap: 16 }}>
-            <Skeleton height={28} />
-            {Array.from({ length: 7 }).map((_, index) => (
-              <div key={index} className="stack" style={{ gap: 8 }}>
-                <Skeleton height={14} />
-                <Skeleton height={index % 3 === 1 ? 112 : 44} />
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <div className="stack">
-          {Array.from({ length: 2 }).map((_, index) => (
-            <Card key={index} style={{ padding: 24 }}>
-              <div className="stack" style={{ gap: 12 }}>
-                <Skeleton height={22} />
-                <Skeleton height={16} />
-                <Skeleton height={16} />
-                <Skeleton height={index === 0 ? 108 : 160} />
+    <AppShell title="Create experiment" description="" customHeader={<></>}>
+      <Card style={{ padding: 24 }}>
+        <div className="stack" style={{ gap: 14 }}>
+          <Skeleton height={20} width="180px" />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 14,
+            }}
+          >
+            <Card style={{ padding: 14, gridColumn: "1 / -1" }}>
+              <div className="stack" style={{ gap: 10 }}>
+                <Skeleton height={12} width="52px" />
+                <Skeleton height={44} />
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  <Skeleton height={44} />
+                  <Skeleton height={44} />
+                  <Skeleton height={44} />
+                </div>
               </div>
             </Card>
-          ))}
+            {Array.from({ length: 2 }).map((_, index) => (
+              <Card key={index} style={{ padding: 14 }}>
+                <div className="stack" style={{ gap: 10 }}>
+                  <Skeleton height={12} width="52px" />
+                  <Skeleton height={88} />
+                  <Skeleton height={44} />
+                  <Skeleton height={88} />
+                </div>
+              </Card>
+            ))}
+          </div>
+          <Card style={{ padding: 14 }}>
+            <Skeleton height={44} width="220px" />
+          </Card>
         </div>
-      </div>
+      </Card>
     </AppShell>
   );
 }

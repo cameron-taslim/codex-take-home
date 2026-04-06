@@ -24,19 +24,12 @@ export const brandToneSchema = z.enum([
   "Confident",
   "Warm",
 ]);
-export const lockedElementSchema = z.enum([
-  "Lock hero image",
-  "Lock logo",
-  "Lock legal copy",
-  "Lock price display",
-]);
 
 export const previewConfigSchema = z.object({
   layout: z.enum(["spotlight", "split", "stacked"]).default("spotlight"),
   emphasis: z.enum(["headline", "cta", "proof"]).default("headline"),
   theme: z.enum(["atelier-spring", "midnight-ledger"]).default("atelier-spring"),
   assetSetKey: z.string().min(1),
-  lockedElements: z.array(lockedElementSchema).default([]),
 });
 
 export const generatedVariantSchema = z.object({
@@ -52,7 +45,6 @@ export const generatedVariantSchema = z.object({
 export const briefSynthesisSchema = z.object({
   hypothesis: requiredText("Hypothesis is required."),
   whatIsChanging: z.array(requiredText("Change summary is required.")).min(1).max(4),
-  whatIsLocked: z.array(requiredText("Locked element summary is required.")).min(1).max(4),
   successMetric: requiredText("Success metric is required."),
   audienceSignal: requiredText("Audience signal is required."),
 });
@@ -76,7 +68,6 @@ export const experimentDraftSchema = z.object({
   seedContext: z.string().optional(),
   whatToTest: z.string().optional(),
   trafficSplit: trafficSplitSchema.optional(),
-  lockedElements: z.array(lockedElementSchema).optional(),
   approvedBrief: briefSynthesisSchema.optional(),
   launchMetric: primaryGoalSchema.optional(),
   launchConfig: experimentLaunchConfigSchema.optional(),
@@ -91,7 +82,6 @@ export const experimentInputSchema = z.object({
   targetAudience: requiredText("Target audience is required."),
   brandTone: brandToneSchema.or(requiredText("Brand tone is required.")),
   brandConstraints: z.string().trim().min(1, "Brand constraints are required."),
-  lockedElements: z.array(lockedElementSchema).min(1, "Choose at least one locked element."),
   seedContext: requiredText("Seed context is required."),
   whatToTest: requiredText("What to test is required."),
 });
