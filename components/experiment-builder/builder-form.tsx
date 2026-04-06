@@ -6,7 +6,6 @@ import type { Route } from "next";
 import {
   generateExperimentAction,
   prepareExperimentBriefAction,
-  saveDraftExperimentAction,
 } from "@/app/experiments/new/actions";
 import {
   emptyExperimentBuilderValues,
@@ -37,7 +36,6 @@ const primaryGoals = [
   "Reduce bounce rate",
 ] as const;
 
-const trafficSplitOptions = ["50/50", "70/30", "80/20"] as const;
 const brandTones = [
   "Editorial",
   "Urgent",
@@ -63,12 +61,9 @@ export function ExperimentBuilderForm({
   const [fieldErrors, setFieldErrors] = useState<ExperimentBuilderFieldErrors>({});
   const [formError, setFormError] = useState<string>();
   const [savedMessage, setSavedMessage] = useState<string>();
-  const [workflowStage, setWorkflowStage] = useState<"draft" | "brief_ready">("draft");
-  const [isSaving, startSaving] = useTransition();
-  const [isAnalyzing, startAnalyzing] = useTransition();
   const [isGenerating, startGenerating] = useTransition();
 
-  const isBusy = isSaving || isAnalyzing || isGenerating;
+  const isBusy = isGenerating;
 
   function setFieldValue<K extends keyof ExperimentBuilderValues>(
     field: K,
@@ -82,8 +77,7 @@ export function ExperimentBuilderForm({
       ...current,
       [field]: undefined,
     }));
-    if (field !== "approvedBrief" && workflowStage === "brief_ready") {
-      setWorkflowStage("draft");
+    if (field !== "approvedBrief" && values.approvedBrief) {
       setValues((current) => ({
         ...current,
         approvedBrief: undefined,
@@ -97,12 +91,6 @@ export function ExperimentBuilderForm({
     setFieldErrors(result.fieldErrors ?? {});
     setFormError(result.formError);
     setSavedMessage(result.savedMessage);
-    if (result.stage === "brief_ready") {
-      setWorkflowStage("brief_ready");
-    }
-    if (result.stage === "draft") {
-      setWorkflowStage(result.values.approvedBrief ? "brief_ready" : "draft");
-    }
 
     if (result.redirectTo) {
       router.push(result.redirectTo as Route);
@@ -110,48 +98,30 @@ export function ExperimentBuilderForm({
     }
   }
 
-  function handleSaveDraft() {
-    setSavedMessage(undefined);
-
-    startSaving(async () => {
-      const result = await saveDraftExperimentAction(values);
-      applyActionResult(result);
-    });
-  }
-
-  function handleAnalyzeBrief() {
-    setSavedMessage(undefined);
-
-    startAnalyzing(async () => {
-      const result = await prepareExperimentBriefAction(values);
-      applyActionResult(result);
-    });
-  }
-
   function handleGenerate() {
     setSavedMessage(undefined);
 
     startGenerating(async () => {
-      const result = await generateExperimentAction(values);
+      const preparedResult = values.approvedBrief
+        ? ({ values } as ExperimentBuilderActionResult)
+        : await prepareExperimentBriefAction(values);
+
+      if (!preparedResult.values.approvedBrief || preparedResult.fieldErrors || preparedResult.formError) {
+        applyActionResult(preparedResult);
+        return;
+      }
+
+      const result = await generateExperimentAction(preparedResult.values);
       applyActionResult(result);
     });
   }
 
   return (
     <div className="builder-layout">
-      <Card className="builder-form-panel">
+      <Card className="builder-form-panel builder-form-panel-compact">
         <div className="stack builder-panel-stack">
-          <div className="builder-section-header stack">
-            <div className="cluster builder-kicker-row">
-              <p className="builder-kicker">Merchandiser brief</p>
-              <span className="shell-badge">Mocked agent pipeline</span>
-            </div>
-            <h2 className="builder-section-title">Storefront experiment setup</h2>
-            <p className="muted builder-section-copy">
-              Define the storefront surface, approve the synthesized brief, then
-              generate copy-first creative directions without exposing technical
-              implementation details.
-            </p>
+          <div className="builder-inline-header">
+            <h1 className="builder-inline-title">Create experiment</h1>
           </div>
 
           {formError ? <ErrorBanner message={formError} /> : null}
@@ -161,15 +131,8 @@ export function ExperimentBuilderForm({
             </div>
           ) : null}
 
-          <div className="stack builder-sections">
-            <section className="builder-section-card stack">
-              <div className="builder-section-header stack">
-                <p className="builder-section-kicker">Step 1</p>
-                <p className="muted builder-section-copy">
-                  Set the core experiment framing the merchandiser cares about.
-                </p>
-              </div>
-
+          <div className="builder-sections builder-sections-compact">
+            <section className="builder-section-card stack builder-section-card-step1">
               <div className="stack builder-fields-grid">
                 <FormField
                   label="Experiment name"
@@ -185,7 +148,7 @@ export function ExperimentBuilderForm({
                   />
                 </FormField>
 
-                <div className="builder-three-column-grid">
+                <div className="builder-two-column-grid">
                   <FormField
                     label="Component type"
                     htmlFor="componentType"
@@ -229,43 +192,11 @@ export function ExperimentBuilderForm({
                       ))}
                     </select>
                   </FormField>
-
-                  <FormField
-                    label="Traffic split"
-                    htmlFor="trafficSplit"
-                    required
-                    error={fieldErrors.trafficSplit}
-                  >
-                    <select
-                      id="trafficSplit"
-                      className="field-base"
-                      value={values.trafficSplit}
-                      onChange={(event) =>
-                        setFieldValue(
-                          "trafficSplit",
-                          event.target.value as ExperimentBuilderValues["trafficSplit"],
-                        )
-                      }
-                    >
-                      {trafficSplitOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
                 </div>
               </div>
             </section>
 
             <section className="builder-section-card stack">
-              <div className="builder-section-header stack">
-                <p className="builder-section-kicker">Step 2</p>
-                <p className="muted builder-section-copy">
-                  Add audience context, tone, and non-negotiable brand guardrails.
-                </p>
-              </div>
-
               <div className="stack builder-fields-grid">
                 <FormField
                   label="Target audience"
@@ -280,6 +211,7 @@ export function ExperimentBuilderForm({
                       setFieldValue("targetAudience", event.target.value)
                     }
                     placeholder="Returning shoppers looking for premium seasonal pieces"
+                    style={{ minHeight: 84 }}
                   />
                 </FormField>
 
@@ -348,19 +280,13 @@ export function ExperimentBuilderForm({
                       setFieldValue("brandConstraints", event.target.value)
                     }
                     placeholder="Avoid discount framing, keep copy product-led, never mention competitors"
+                    style={{ minHeight: 84 }}
                   />
                 </FormField>
               </div>
             </section>
 
             <section className="builder-section-card stack">
-              <div className="builder-section-header stack">
-                <p className="builder-section-kicker">Step 3</p>
-                <p className="muted builder-section-copy">
-                  Define the seed context and the creative angle the agent should test.
-                </p>
-              </div>
-
               <div className="stack builder-fields-grid">
                 <FormField
                   label="Seed context"
@@ -373,6 +299,7 @@ export function ExperimentBuilderForm({
                     value={values.seedContext}
                     onChange={(event) => setFieldValue("seedContext", event.target.value)}
                     placeholder="Feature lightweight outerwear and transitional layering for spring"
+                    style={{ minHeight: 84 }}
                   />
                 </FormField>
 
@@ -387,6 +314,7 @@ export function ExperimentBuilderForm({
                     value={values.whatToTest}
                     onChange={(event) => setFieldValue("whatToTest", event.target.value)}
                     placeholder="Generate one headline direction that emphasizes product quality, not the season. Keep CTA under 4 words."
+                    style={{ minHeight: 84 }}
                   />
                 </FormField>
               </div>
@@ -431,119 +359,20 @@ export function ExperimentBuilderForm({
           </div>
 
           <div className="builder-action-rail">
-            <div className="stack builder-action-copy">
-              <p className="builder-section-kicker">Pipeline controls</p>
-              <p className="muted builder-action-note">
-                Save the brief, analyze inputs into a confirmation card, then
-                generate the next saved storefront output.
-              </p>
-            </div>
             <div className="cluster builder-action-buttons">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleSaveDraft}
-                loading={isSaving}
-                disabled={isBusy}
-              >
-                Save Draft
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleAnalyzeBrief}
-                loading={isAnalyzing}
-                disabled={isBusy}
-              >
-                Analyze Inputs
-              </Button>
               <Button
                 type="button"
                 onClick={handleGenerate}
                 loading={isGenerating}
-                disabled={isBusy || !values.approvedBrief}
+                disabled={isBusy}
+                style={{ minWidth: 220 }}
               >
-                Approve Brief & Generate Output
+                Generate Output
               </Button>
             </div>
           </div>
         </div>
       </Card>
-
-      <div className="stack builder-side-column">
-        <Card className="builder-side-panel">
-          <div className="stack builder-side-stack">
-            <div className="cluster builder-kicker-row">
-              <h2 className="builder-side-title">Workflow stages</h2>
-              <span className="builder-side-pill">Friendly status only</span>
-            </div>
-            <div className="builder-guidance-card">
-              <p className="builder-guidance-title">What the merchandiser sees</p>
-              <div className="builder-pipeline-list">
-                <PipelineRow
-                  label="Analyzing your inputs..."
-                  state={isAnalyzing ? "Running" : values.approvedBrief ? "Ready" : "Pending"}
-                />
-                <PipelineRow
-                  label="Writing output copy..."
-                  state={isGenerating ? "Running" : workflowStage === "brief_ready" ? "Queued" : "Pending"}
-                />
-                <PipelineRow
-                  label="Building previews..."
-                  state={isGenerating ? "Queued" : values.approvedBrief ? "Ready after generation" : "Pending"}
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="builder-side-panel">
-          <div className="stack builder-side-stack">
-            <div className="cluster builder-kicker-row">
-              <h2 className="builder-side-title">Brief preview</h2>
-              <span className="builder-status-chip">
-                {values.approvedBrief ? "Awaiting approval" : "Drafting"}
-              </span>
-            </div>
-
-            <div className="builder-preview-frame">
-              <div className="builder-preview-stage is-merch">
-                <p className="builder-preview-kicker">{values.componentType}</p>
-                <h3 className="builder-preview-title">
-                  {values.name || "Your experiment name will appear here"}
-                </h3>
-                <p className="muted builder-preview-copy">
-                  {values.whatToTest ||
-                    "Describe the copy behavior the agent should test for this storefront surface."}
-                </p>
-              </div>
-
-              <dl className="builder-preview-metadata">
-                <div className="builder-preview-meta-item">
-                  <dt className="builder-preview-meta-label">Audience</dt>
-                  <dd className="builder-preview-meta-value">
-                    {values.targetAudience || "Add the target audience signal."}
-                  </dd>
-                </div>
-                <div className="builder-preview-meta-item">
-                  <dt className="builder-preview-meta-label">Tone</dt>
-                  <dd className="builder-preview-meta-value">{values.brandTone}</dd>
-                </div>
-                <div className="builder-preview-meta-item">
-                  <dt className="builder-preview-meta-label">Traffic split</dt>
-                  <dd className="builder-preview-meta-value">{values.trafficSplit}</dd>
-                </div>
-                <div className="builder-preview-meta-item">
-                  <dt className="builder-preview-meta-label">Locked elements</dt>
-                  <dd className="builder-preview-meta-value">
-                    {values.lockedElements.map((item) => item.replace("Lock ", "")).join(", ")}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </Card>
-      </div>
     </div>
   );
 }
@@ -557,18 +386,6 @@ function BriefListCard({ title, items }: { title: string; items: string[] }) {
           <li key={item}>{item}</li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-function PipelineRow({ label, state }: { label: string; state: string }) {
-  return (
-    <div className="builder-readiness-row">
-      <div className="cluster" style={{ gap: 10 }}>
-        <span aria-hidden="true" className="builder-readiness-dot is-ready" />
-        <span>{label}</span>
-      </div>
-      <span className="builder-readiness-state">{state}</span>
     </div>
   );
 }
