@@ -31,6 +31,7 @@ export const generatedVariantSchema = z.object({
   subheadline: z.string().optional(),
   bodyCopy: z.string().min(1),
   ctaText: z.string().trim().min(1).max(20),
+  htmlContent: z.string().trim().min(1),
   layoutNotes: z.string().min(1),
   previewConfig: previewConfigSchema,
 });

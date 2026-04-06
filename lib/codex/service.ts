@@ -16,6 +16,7 @@ import {
   getExperimentForUser,
 } from "@/lib/repositories/experiment-repository";
 import { createVariants } from "@/lib/repositories/variant-repository";
+import { sanitizeGeneratedHtml } from "@/lib/sanitization/generated-html";
 import type { ExperimentRecord } from "@/lib/domain/types";
 
 function createMockCodexProvider(): CodexProvider {
@@ -67,6 +68,19 @@ function createMockCodexProvider(): CodexProvider {
           subheadline: variant.subheadline,
           bodyCopy: variant.rationale,
           ctaText: variant.ctaText,
+          htmlContent: [
+            '<section style="display: flex; flex-direction: column; gap: 18px; padding: 24px; max-width: 100%; background: linear-gradient(180deg, #f6efe7, #fffaf5); color: #162033; border-radius: 24px;">',
+            '<span style="display: inline-block; width: fit-content; padding: 6px 10px; border-radius: 999px; background: #162033; color: #ffffff; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Featured drop</span>',
+            `<h1 style="margin: 0; font-size: 46px; line-height: 0.95; letter-spacing: -0.05em; max-width: 100%;">${variant.headline}</h1>`,
+            variant.subheadline
+              ? `<p style="margin: 0; font-size: 18px; line-height: 1.55; max-width: 32ch;">${variant.subheadline}</p>`
+              : "",
+            '<div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">',
+            `<a href="#" style="display: inline-flex; align-items: center; justify-content: center; min-width: 0; padding: 14px 18px; border-radius: 14px; background: #162033; color: #ffffff; text-decoration: none; font-weight: 700;">${variant.ctaText}</a>`,
+            `<p style="margin: 0; max-width: 34ch; font-size: 15px; line-height: 1.65;">${variant.rationale}</p>`,
+            "</div>",
+            "</section>",
+          ].join(""),
           layoutNotes: `${variant.label} direction for ${input.componentType.toLowerCase()} previews.`,
           previewConfig: {
             layout: layouts[0],
@@ -126,6 +140,10 @@ export async function generateExperimentVariants(params: {
 
   try {
     const result = await provider.generateVariants(promptSnapshot);
+    const sanitizedVariant = {
+      ...result.variant,
+      htmlContent: sanitizeGeneratedHtml(result.variant.htmlContent),
+    };
 
     await prisma.$transaction(async (tx) => {
       await createVariants(
@@ -134,7 +152,7 @@ export async function generateExperimentVariants(params: {
         run.id,
         [
           {
-            ...result.variant,
+            ...sanitizedVariant,
             position: 0,
           },
         ],

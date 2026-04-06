@@ -117,6 +117,8 @@ describe("generation service", () => {
           subheadline: "Crafted for the season ahead.",
           bodyCopy: "Leads with product materiality.",
           ctaText: "Explore now",
+          htmlContent:
+            '<section><script>alert(1)</script><h1 style="width: 180%">Wear what lasts</h1></section>',
           layoutNotes: "Quality-led direction",
           previewConfig: {
             layout: "spotlight",
@@ -135,7 +137,16 @@ describe("generation service", () => {
     });
 
     expect(provider.generateVariants).toHaveBeenCalled();
-    expect(createVariants).toHaveBeenCalled();
+    expect(createVariants).toHaveBeenCalledWith(
+      expect.anything(),
+      "exp_123",
+      "run_123",
+      [
+        expect.objectContaining({
+          htmlContent: '<section><h1 style="width: 100%">Wear what lasts</h1></section>',
+        }),
+      ],
+    );
     expect(completeGenerationRun).toHaveBeenCalled();
   });
 
@@ -151,6 +162,39 @@ describe("generation service", () => {
         provider,
       }),
     ).rejects.toThrow("invalid structured response");
+
+    expect(failGenerationRun).toHaveBeenCalled();
+    expect(createVariants).not.toHaveBeenCalled();
+  });
+
+  it("fails the run when generated html cannot be sanitized safely", async () => {
+    const provider = {
+      generateVariants: vi.fn().mockResolvedValue({
+        variant: {
+          label: "Quality-led",
+          headline: "Wear what lasts",
+          subheadline: "Crafted for the season ahead.",
+          bodyCopy: "Leads with product materiality.",
+          ctaText: "Explore now",
+          htmlContent: "<html><body><h1>Unsafe</h1></body></html>",
+          layoutNotes: "Quality-led direction",
+          previewConfig: {
+            layout: "spotlight",
+            emphasis: "headline",
+            theme: "atelier-spring",
+            assetSetKey: "atelier-spring",
+          },
+        },
+      }),
+    };
+
+    await expect(
+      generateExperimentVariants({
+        experimentId: "exp_123",
+        userId: "user_123",
+        provider,
+      }),
+    ).rejects.toThrow("fragment");
 
     expect(failGenerationRun).toHaveBeenCalled();
     expect(createVariants).not.toHaveBeenCalled();
@@ -180,6 +224,7 @@ describe("generation service", () => {
         subheadline: "Crafted for the season ahead.",
         bodyCopy: "Leads with product materiality.",
         ctaText: "Explore now",
+        htmlContent: "<section><h1>Wear what lasts</h1></section>",
         layoutNotes: "Quality-led direction",
         previewConfig: {
           layout: "spotlight",

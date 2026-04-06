@@ -45,6 +45,7 @@ export type VariantRecord = {
   subheadline: string | null;
   bodyCopy: string;
   ctaText: string;
+  htmlContent: string;
   layoutNotes: string;
   previewConfig: unknown;
   position: number;

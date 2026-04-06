@@ -17,6 +17,7 @@ describe("variant preview card", () => {
           bodyCopy:
             "Avoid discount framing and keep the direction product-led while preserving premium cues across the offer.",
           ctaText: "Explore Collection",
+          htmlContent: "",
           layoutNotes: "Highlights the offer for returning shoppers with concise supporting copy.",
           previewConfig: {
             layout: "spotlight",

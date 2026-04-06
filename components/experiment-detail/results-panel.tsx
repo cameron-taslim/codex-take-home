@@ -1,31 +1,20 @@
 "use client";
 
 import React from "react";
+import { VariantHtmlPreview } from "@/components/ui/variant-html-preview";
 import { VariantPreviewCard } from "@/components/ui/variant-preview-card";
+import type { VariantRecord } from "@/lib/domain/types";
 
 type DetailExperiment = {
   activeSavedRun: {
-    variants: Array<{
-      id: string;
-      label: string;
-      headline: string;
-      subheadline: string | null;
-      bodyCopy: string;
-      ctaText: string;
-      previewConfig: unknown;
-      generationRunId: string;
-      experimentId: string;
-      position: number;
-      createdAt: Date;
-      updatedAt: Date;
-      layoutNotes: string;
-    }>;
+    variants: VariantRecord[];
   } | null;
 };
 
 export function ExperimentResultsPanel({ experiment }: { experiment: DetailExperiment }) {
   const variants = experiment.activeSavedRun?.variants ?? [];
   const activeOutput = variants[0];
+  const savedHtml = activeOutput?.htmlContent?.trim() ?? "";
 
   if (!activeOutput) {
     return null;
@@ -34,7 +23,17 @@ export function ExperimentResultsPanel({ experiment }: { experiment: DetailExper
   return (
     <section className="stack detail-section">
       <div className="detail-variant-grid">
-        <VariantPreviewCard key={activeOutput.id} variant={activeOutput} />
+        {savedHtml ? (
+          <VariantHtmlPreview key={activeOutput.id} variant={activeOutput} />
+        ) : (
+          <div className="stack">
+            <p className="detail-recovery-note">
+              Saved HTML preview unavailable for this record. Showing the structured
+              fallback.
+            </p>
+            <VariantPreviewCard key={activeOutput.id} variant={activeOutput} />
+          </div>
+        )}
       </div>
     </section>
   );

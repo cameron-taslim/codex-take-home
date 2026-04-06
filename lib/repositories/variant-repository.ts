@@ -12,6 +12,7 @@ export async function createVariants(
     subheadline?: string | null;
     bodyCopy: string;
     ctaText: string;
+    htmlContent: string;
     layoutNotes: string;
     previewConfig: object;
     position: number;

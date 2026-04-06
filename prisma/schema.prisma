@@ -79,6 +79,7 @@ model ExperimentVariant {
   subheadline     String?
   bodyCopy        String
   ctaText         String
+  htmlContent     String             @default("")
   layoutNotes     String
   previewConfig   Json
   position        Int

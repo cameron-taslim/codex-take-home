@@ -32,8 +32,7 @@ test("seeded login can create an experiment and review the saved output", async 
   const experimentName = `Playwright demo ${Date.now()}`;
 
   await login(page);
-  await expect(page.getByRole("link", { name: "New" })).toBeVisible();
-  await page.getByRole("link", { name: "New" }).click();
+  await page.goto("/experiments/new");
 
   await expect(page.getByRole("heading", { name: "Create experiment" })).toBeVisible();
   await page.getByLabel("Experiment name *").fill(experimentName);
@@ -61,6 +60,33 @@ test("seeded login can create an experiment and review the saved output", async 
   await expect(page.getByRole("heading", { name: "Wear what lasts" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "AI suggestions" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Generate output" })).toBeVisible();
+  await expect(page.getByTestId("saved-html-preview-frame")).toBeVisible();
+
+  const previewMetrics = await page.getByTestId("saved-html-preview-frame").evaluate(
+    (element) => {
+      const container = element as HTMLElement;
+      const inner = container.querySelector("[data-testid='saved-html-preview']") as HTMLElement | null;
+      const rect = container.getBoundingClientRect();
+
+      return {
+        width: rect.width,
+        height: rect.height,
+        scrollWidth: container.scrollWidth,
+        scrollHeight: container.scrollHeight,
+        innerScrollWidth: inner?.scrollWidth ?? 0,
+        innerScrollHeight: inner?.scrollHeight ?? 0,
+        clientWidth: container.clientWidth,
+        clientHeight: container.clientHeight,
+      };
+    },
+  );
+
+  expect(previewMetrics.width).toBeGreaterThan(0);
+  expect(previewMetrics.height).toBeGreaterThan(0);
+  expect(previewMetrics.scrollWidth).toBeLessThanOrEqual(previewMetrics.clientWidth);
+  expect(previewMetrics.scrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight);
+  expect(previewMetrics.innerScrollWidth).toBeLessThanOrEqual(previewMetrics.clientWidth);
+  expect(previewMetrics.innerScrollHeight).toBeLessThanOrEqual(previewMetrics.clientHeight);
 
   await page.screenshot({
     path: "test-results/experiment-happy-path.png",

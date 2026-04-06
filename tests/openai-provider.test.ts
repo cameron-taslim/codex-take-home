@@ -47,6 +47,7 @@ describe("OpenAICodexProvider", () => {
           subheadline: "Crafted for the season ahead.",
           bodyCopy: "Leads with product materiality.",
           ctaText: "Explore now",
+          htmlContent: "<section><h1>Wear what lasts</h1></section>",
           layoutNotes: "Quality-led direction",
           previewConfig: {
             layout: "spotlight",
@@ -89,6 +90,7 @@ describe("OpenAICodexProvider", () => {
           subheadline: "Crafted for the season ahead.",
           bodyCopy: "Leads with product materiality.",
           ctaText: "Explore now",
+          htmlContent: "<section><h1>Wear what lasts</h1></section>",
           layoutNotes: "Quality-led direction",
           previewConfig: {
             layout: "spotlight",

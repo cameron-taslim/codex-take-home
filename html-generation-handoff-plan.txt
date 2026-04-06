@@ -1,0 +1,94 @@
+Add Sanitized HTML Variant Generation
+
+Summary
+- Extend experiment generation so each run produces two persisted outputs for the variant:
+  - existing structured content for summary and fallback use
+  - new sanitized HTML preview content with constrained inline CSS
+- The generated HTML becomes the primary preview surface on the experiment detail page.
+- The HTML must render inside a fixed preview container, reflow within that container, and never rely on scripts, external assets, or uncontrolled viewport assumptions.
+
+Key Changes
+
+Generation contract
+- Change the Codex output schema to include `htmlContent` alongside `label`, `headline`, `subheadline`, `bodyCopy`, `ctaText`, `layoutNotes`, and `previewConfig`.
+- Update the system prompt so the model returns:
+  - one self-contained HTML fragment, not a full document
+  - only allowed tags and attributes
+  - inline CSS only
+  - no `script`, `iframe`, form submission, external fonts, external images, remote stylesheets, or event handlers
+  - layout rules that fit a bounded container using fluid sizing, wrapping, `max-width: 100%`, and no fixed viewport-sized elements
+- Keep structured text fields in the response so the app still has stable metadata and fallback content.
+
+Persistence and types
+- Add `htmlContent` to `ExperimentVariant` in Prisma as a required text field.
+- Update domain types, repository contracts, and validation schemas so `htmlContent` is required for successful generations.
+- Persist the model HTML only after sanitization and normalization. Store the sanitized result, not the unsafe source.
+- Keep `previewConfig` for outer container theming and layout hints, but stop treating it as the primary preview renderer.
+
+Sanitization and rendering
+- Add a server-side sanitization module that:
+  - sanitizes the model HTML before persistence
+  - allowlists only a constrained set of tags, attributes, and inline CSS properties
+  - strips scripts, event handlers, dangerous URLs, absolute positioning that can escape the frame, and overflow-causing constructs
+  - enforces fragment-only HTML
+- Introduce a dedicated preview renderer component that uses `dangerouslySetInnerHTML` only with sanitized persisted HTML.
+- Render the preview inside a fixed, app-owned container with:
+  - explicit width and height constraints from the page layout
+  - `overflow: hidden`
+  - typography, image, and layout reset rules scoped to the preview surface
+  - wrapper rules that force descendants to respect container bounds
+- Keep the current structured preview card as the fallback when HTML is missing or sanitization or validation fails for older records.
+
+Page behavior
+- Detail page:
+  - use sanitized HTML as the main saved-output preview
+  - keep label, metadata, and rerun controls unchanged
+  - show a recoverable error or fallback state if the saved HTML cannot be rendered safely
+- Builder flow:
+  - generation continues to redirect to detail on success
+  - no separate live HTML editor is added
+- Dashboard:
+  - leave summary cards unchanged
+  - continue using structured fields and status, not raw HTML thumbnails
+
+Public interfaces and contracts
+- `generatedVariantSchema` gains `htmlContent: string`.
+- `CodexGenerationResult` returns the same single variant shape plus `htmlContent`.
+- `VariantRecord` gains `htmlContent: string`.
+- `createVariants(...)` must accept and persist `htmlContent`.
+- Sanitizer contract:
+  - input: raw model HTML string
+  - output: sanitized HTML string or validation failure
+- Sanitization failure is treated like generation failure:
+  - mark run failed
+  - persist run error
+  - do not create a partial variant
+
+Test plan
+- Validation tests:
+  - accept valid variant responses with `htmlContent`
+  - reject missing or empty HTML
+- Sanitizer tests:
+  - strip `script`, event handlers, dangerous URLs, forbidden tags, and forbidden CSS
+  - preserve allowed semantic and layout markup
+  - normalize oversized content patterns that would escape the preview bounds
+- Generation service tests:
+  - successful mocked response persists both structured fields and sanitized HTML
+  - sanitization failure marks the run failed and persists no variant
+  - malformed HTML response is treated as failed generation
+- Detail page and component tests:
+  - render sanitized HTML preview for a saved variant
+  - fall back to structured preview for legacy records without HTML
+  - show a safe error or fallback state when preview render data is unavailable
+- Browser verification:
+  - generated preview stays within the detail-page preview container at the target local app width
+  - no internal scrollbars or overflow escape in the recommended desktop viewport
+  - preview still stacks correctly on smaller screens
+
+Assumptions and defaults
+- Raw model HTML is allowed, but only as a sanitized fragment with inline CSS.
+- No model-generated JavaScript is allowed.
+- No external assets are allowed in generated HTML.
+- The fixed preview container on the detail page is the authoritative size constraint. "Fit the window" means fit the page's bounded preview surface, not the full browser viewport.
+- Structured fields remain persisted for summaries, rerun context, and fallback rendering.
+- Existing saved variants without `htmlContent` remain readable through the current structured preview path.
