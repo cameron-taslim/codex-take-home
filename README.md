@@ -53,7 +53,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/experiment_lab?schem
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 AUTH_DEMO_EMAIL="demo@example.com"
-AUTH_DEMO_PASSWORD="password123"
+AUTH_DEMO_PASSWORD="G1xM4PrNXFquiEzuJBOykg1R"
 CODEX_PROVIDER_MODE="mock"
 OPENAI_API_KEY=""
 OPENAI_MODEL="gpt-5-codex"
@@ -142,7 +142,7 @@ http://localhost:3000
 Log in with the seeded credentials:
 
 - email: `demo@example.com`
-- password: `password123`
+- password: `G1xM4PrNXFquiEzuJBOykg1R`
 
 ## Useful commands
 

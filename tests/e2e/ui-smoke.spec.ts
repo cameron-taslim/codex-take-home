@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const demoEmail = process.env.AUTH_DEMO_EMAIL ?? "demo@example.com";
-const demoPassword = process.env.AUTH_DEMO_PASSWORD ?? "password123";
+const demoPassword = process.env.AUTH_DEMO_PASSWORD ?? "G1xM4PrNXFquiEzuJBOykg1R";
 
 async function login(page: Page) {
   await page.goto("/login");

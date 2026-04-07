@@ -109,7 +109,7 @@ const SAMPLE_EXPERIMENTS = [
 
 async function main() {
   const email = process.env.AUTH_DEMO_EMAIL ?? "demo@example.com";
-  const password = process.env.AUTH_DEMO_PASSWORD ?? "password123";
+  const password = process.env.AUTH_DEMO_PASSWORD ?? "G1xM4PrNXFquiEzuJBOykg1R";
   const passwordHash = await hash(password, 10);
 
   const user = await prisma.user.upsert({
